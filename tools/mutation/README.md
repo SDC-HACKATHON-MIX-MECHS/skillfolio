@@ -16,6 +16,8 @@ bash tools/mutation/run_all.sh mutplug_portfolio   # engine/portfolio.py (plug/m
 
 **Adding a mutant:** add `"name": ("exact old source text", "replacement")` to `M` in `plug/mutplug.py`. The old text must occur in `engine/forecast.py` (otherwise the harness reports a problem).
 
+**Matching expected:** 94 mutants, 94 killed, no survivors (`bash tools/mutation/run_all.sh mutplug_matching`). Python 3.12+ makes the built-in `sum()` of floats compensated, so the "plain running total" mutants use `functools.reduce` instead; a mutant that was a no-op by construction was dropped. Known accepted gap: a tie-break key rounded to 2 decimals (needs two roles with equal float rank scores and matches within 0.005) is not pinned.
+
 **Portfolio expected:** 65 mutants, 65 killed, no survivors. Two mutants were removed as provably equivalent: a redundant `level != int(level)` clause (the `level in (1, 2, 3)` check already rejects fractions; the clause itself was deleted) and flipping the sign of every monthly change (covariance is unchanged by negating both series).
 
 **For a new module** (for example `engine/matching.py`): copy `mutplug_portfolio.py`, change the module it patches and the mutant list, and aim for the same standard: every formula term, constant, boundary and output key has a mutant, and every survivor is explained.

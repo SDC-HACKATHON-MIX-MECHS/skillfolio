@@ -192,6 +192,15 @@ A role is a bundle of skills `j` with importance weight `w_j ∈ {1,2,3}` and re
 
 Every match returns its **contributions** (which skills earned credit, how much), **gaps**, and **citations** (snapshot date + source IDs). The UI shows the breakdown — no black box.
 
+Rules the table leaves open (implemented in `engine/matching.py`):
+- **Role growth** (which must be a finite number; anything else is an error) averages each skill's `projected` growth by importance weight over *all* the role's skills, with a thin-data skill counting for at most ±`THIN_GROWTH_CAP` (5%, the same clamp as portfolio growth, so one thin skill cannot decide a ranking), and a skill with no forecast counting as growth 0 (it keeps its weight).
+- **Contributions** are the role skills where the user has some credit (`credit > 0`), sorted by weight (high → low), then credit (high → low), then skill id. A partly met skill (level 1 of 2) appears in *both* contributions (credit 0.5) and gaps.
+- **Gaps** are sorted by weight, then required level (both high → low), then skill id.
+- **SDG overlap** compares distinct SDGs, so repeats in either list count once.
+- **Ranking** covers `future` roles that have at least one skill row; ties go to the higher match %, then the smaller `role_id` (match and growth are summed exactly, so row order cannot change a tie). Duplicate role ids are an error. A role with no skill rows cannot be scored and is left out (calling `match_role` on one is an error). Level 0 means "does not have the skill".
+- **Citations** are `hn_whoishiring` (demand trend), the role's `exposure_source` (default `aei_job_exposure`), then one entry per distinct source in the role's skill rows (`onet_in_demand` and `onet_hot` are cited as `onet_tech`), each with the snapshot date.
+- **Needs curated data.** On the uncurated `role_skills.generated.csv` (6 to 46 skills per role, median 32), Aina's top role comes out as *Electrical / Energy Engineer* (match 43%, growth +25%), ahead of Technical Writer, while Data Scientist ranks 9th and Software Developer 15th. The winners are the roles with the fewest skills (6 to 8), mostly generic ones Aina already has (Excel, SQL, Python); roles with 30–46 listed skills dilute any user's coverage to 10–17%. `data/role_skills.csv` must be curated to at most 10 skills per role, with the skills that really define the role, before the rankings mean anything.
+
 ### 5.4 Reskilling plan (`engine/pathway.py`)
 
 - Target role = the user's pick (default: top-ranked).
