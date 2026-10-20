@@ -23,3 +23,6 @@ Thumbs.db
 
 # Streamlit local secrets
 .streamlit/secrets.toml
+
+# .md files (Atheek)
+ClaudeAtheekSaves.md
