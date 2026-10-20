@@ -1,0 +1,10 @@
+{
+  "_note": "ILLUSTRATIVE shape only - not real output.",
+  "role_id": "example_role", "title": "Example Role",
+  "match_pct": 0.5, "role_growth": 0.09, "ai_exposure": 0.46, "sdg_overlap": 0.5,
+  "rank_score": 0.5859,
+  "contributions": [{"skill_id": "flat_skill", "weight": 3, "user_level": 2, "required_level": 2, "credit": 1.0}],
+  "gaps": [{"skill_id": "rising_skill", "weight": 3, "user_level": 0, "required_level": 2}],
+  "sdgs": [9, 8],
+  "citations": [{"source_id": "aei_job_exposure", "snapshot_date": "2026-01-01"}]
+}

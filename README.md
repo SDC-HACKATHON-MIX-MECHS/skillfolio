@@ -25,8 +25,9 @@ Lanes: **A** Engine · **B** Data & Trends · **C** App & Replit · **D** Resear
 
 ## Docs
 
-- [docs/SPEC.md](docs/SPEC.md) — what we're building, the finance ↔ career model, formulas, screens, data sources
-- [docs/TEAM_PLAN.md](docs/TEAM_PLAN.md) — roles, day-by-day sprint, Replit guide, risks, submission checklist
+- [docs/SPEC.md](docs/SPEC.md) — **what** we're building: the finance ↔ career model, formulas, screens, data sources
+- [docs/TASKS.md](docs/TASKS.md) — **who builds what, by when**, and how we know it's done
+- [docs/TEAM_PLAN.md](docs/TEAM_PLAN.md) — roles, sprint, Replit guide, risks, submission checklist
 - [contracts/](contracts/) — the data shapes every lane builds against
 
 ## How we work
@@ -42,7 +43,29 @@ From Wednesday night, `main` must always run.
 
 ## Running it
 
-Run instructions (Replit + local) land with the app commit. Stack: **Python 3.12 · Streamlit · pandas · Plotly**.
+Stack: **Python 3.12 · Streamlit · pandas · Plotly**.
+
+**On Replit:** Create App → Import from GitHub → `SDC-HACKATHON-MIX-MECHS/skillfolio` → **Run**. (`.replit` starts Streamlit on port 8501.)
+
+**Locally** (with [uv](https://docs.astral.sh/uv/)):
+```
+uv sync
+uv run pytest
+uv run streamlit run app/Home.py
+```
+Until the first real data snapshot lands, the app runs on an illustrative fixture and shows an "EXAMPLE DATA" banner.
+
+## Repo layout
+
+```
+app/          Streamlit pages (lane C)
+engine/       forecasts, portfolio maths, matching, plan, SDG lens (lane A)
+pipeline/     HN hiring posts + AI exposure -> dated snapshots (lane B)
+data/         skills, roles, courses, sample profiles, snapshots
+contracts/    data shapes + illustrative fixtures
+tests/        data-integrity checks + acceptance tests per lane
+docs/         spec, tasks, team plan
+```
 
 ## Data sources
 
@@ -50,7 +73,7 @@ Run instructions (Replit + local) land with the app commit. Stack: **Python 3.12
 |---|---|---|
 | Skill demand over time | Hacker News "Ask HN: Who is hiring?" monthly threads via the [HN Algolia API](https://hn.algolia.com/api) | Public API |
 | AI exposure by occupation | [Anthropic Economic Index](https://huggingface.co/datasets/Anthropic/EconomicIndex) — `labor_market_impacts/job_exposure.csv` | CC-BY |
-| Skill ↔ occupation links | [O*NET Technology Skills](https://www.onetcenter.org/dictionary/29.3/excel/technology_skills.html) (Hot Technology / In Demand flags) | CC BY 4.0 (to confirm) |
+| Skill ↔ occupation links | [O*NET 31.0 database](https://www.onetcenter.org/database.html) — Technology Skills (Hot Technology / In Demand flags) | CC BY 4.0 |
 | Malaysian labour context | [data.gov.my](https://data.gov.my) API — `lfs_qtr` | Open data |
 
 Known limit: Hacker News postings are global and tech-heavy, so SkillFolio targets grads moving into tech and data roles. Malaysian occupation data is a Phase 2 upgrade.

@@ -4,6 +4,16 @@
 **Deadline:** Sun 25 Oct 2026, 08:00 — **we submit Sat 24 by 9 pm**
 **Platform:** Replit (compulsory) + public GitHub repo
 
+> ## ✅ Decision (20 Oct): we're building **Idea 3 — SkillFolio**
+> *"Your skills are a portfolio. AI is the market."* For Malaysian fresh grads and early-career switchers moving into tech and data.
+>
+> - **What we build:** [SPEC.md](SPEC.md) · **Who builds what, by when:** [TASKS.md](TASKS.md) · **Data shapes:** [contracts/](../contracts/README.md)
+> - **Repo:** https://github.com/SDC-HACKATHON-MIX-MECHS/skillfolio (all four of us have Write access)
+> - **Lanes for Idea 3:** A Engine (Jaiydaan) — forecasts, portfolio maths, matching, plan · B Data — HN hiring-post pipeline, AI exposure, snapshots · C App — Streamlit pages, Replit publishing · D Research & Pitch — SDG table, real courses, proposal, demo
+> - **Data verified 20 Oct:** HN "Who is hiring" via Algolia API (~230–270 posts/month), Anthropic Economic Index job exposure (CC-BY), O*NET 31.0 Technology Skills (CC BY 4.0), data.gov.my labour force
+>
+> Sections 2–3 below are kept as the record of the options we considered.
+
 ---
 
 ## 1. The challenge in one paragraph
