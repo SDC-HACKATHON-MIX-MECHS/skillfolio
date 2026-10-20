@@ -136,7 +136,6 @@ def test_forecast_skill_rejects_unknown_scenario(example):
         forecast.forecast_skill("flat_skill", no_exposure, example["months"], 0.4, "slow")
 
 
-@todo
 def test_portfolio_weights_follow_levels():
     w = portfolio.weights([{"skill_id": "a", "level": 3}, {"skill_id": "b", "level": 1}])
     assert w == pytest.approx({"a": 0.75, "b": 0.25})

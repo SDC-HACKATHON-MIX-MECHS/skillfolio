@@ -10,18 +10,19 @@
 #
 # Needs the project's Python environment (e.g. `uv sync`, or UV_PROJECT_ENVIRONMENT pointing at it).
 HERE="$(cd "$(dirname "$0")" && pwd)"
+PLUG="${1:-mutplug}"   # plug module to run: mutplug (engine/forecast.py) or mutplug_portfolio (engine/portfolio.py)
 cd "$HERE/../.." || exit 9
 export PYTHONDONTWRITEBYTECODE=1
 export PYTHONPATH="$HERE/plug"
 if command -v uv >/dev/null 2>&1; then RUN="uv run"; else RUN=""; fi
 
-names=$($RUN python -c "import mutplug; print(' '.join(mutplug.MUTANTS))") || exit 9
-$RUN pytest -q -p mutplug -p no:cacheprovider tests >/dev/null 2>&1
+names=$($RUN python -c "import $PLUG as p; print(' '.join(p.MUTANTS))") || exit 9
+$RUN pytest -q -p "$PLUG" -p no:cacheprovider tests >/dev/null 2>&1
 echo "control (no mutation) exit code: $? (must be 0)"
 
 killed=0; surv=""; bad=""
 for m in $names; do
-  MUT=$m $RUN pytest -q -p mutplug -p no:cacheprovider tests >/dev/null 2>&1
+  MUT=$m $RUN pytest -q -p "$PLUG" -p no:cacheprovider tests >/dev/null 2>&1
   rc=$?
   case $rc in
     1) killed=$((killed + 1)) ;;

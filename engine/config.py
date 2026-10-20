@@ -31,7 +31,8 @@ TAU_FLOOR = 0.10                # skills are assumed to differ in true yearly lo
 
 # Portfolio
 COVARIANCE_SHRINKAGE = 0.5      # pull the covariance halfway toward its diagonal for stability
-RISK_AVERSION = {"low": 6.0, "medium": 3.0, "high": 1.0}  # gamma in readiness = growth - gamma/2 * vol^2
+RISK_AVERSION = {"low": 1.5, "medium": 0.75, "high": 0.25}  # gamma in readiness = growth - gamma/2 * vol^2 (SPEC 6/3/1 scaled by 1/4, calibrated on the 2026-10-20 snapshot)
+THIN_GROWTH_CAP = 0.05          # a thin-data skill counts for at most +/-5% a year in portfolio growth (the "stable" band)
 
 # Matching and planning
 SDG_TILT_ALPHA = 0.15           # how much a shared SDG lifts a role's rank
