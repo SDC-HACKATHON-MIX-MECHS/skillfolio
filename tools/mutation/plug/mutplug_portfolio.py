@@ -43,7 +43,7 @@ M = {
     # --- config bypass (the value must come from config.py) ---
     "hc_vol_window": ("config.VOLATILITY_WINDOW_MONTHS", "24"),
     "hc_shrinkage": ("config.COVARIANCE_SHRINKAGE", "0.5"),
-    "hc_gamma": ("config.RISK_AVERSION[risk_tolerance]", '{"low": 1.5, "medium": 0.75, "high": 0.25}[risk_tolerance]'),
+    "hc_gamma": ("config.RISK_AVERSION[risk_tolerance]", '{"low": 0.75, "medium": 0.375, "high": 0.125}[risk_tolerance]'),
     "hc_cap": ("config.THIN_GROWTH_CAP", "0.05"),
     # --- metrics ---
     "gamma_always_medium": ("config.RISK_AVERSION[risk_tolerance]", 'config.RISK_AVERSION["medium"]'),

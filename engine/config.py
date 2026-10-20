@@ -20,6 +20,7 @@ SMOOTHING_MONTHS = 3            # rolling mean before fitting trends
 MOMENTUM_WINDOW_MONTHS = 12     # momentum = trend over the last 12 months
 VOLATILITY_WINDOW_MONTHS = 24   # volatility = swing over the last 24 months
 INTERVAL_Z = 1.28               # 80% interval around momentum
+SE_INFLATION = 1.9              # trend uncertainty is multiplied by this: the trend is fitted to a 3-month rolling average, so neighbouring points move together and the plain standard error is ~1.9x too small (simulation, Poisson counts: nominal 80% band covered ~50%)
 TREND_THRESHOLD = 0.05          # +/-5% a year separates rising / stable / declining
 THIN_DATA_MIN_MEAN_COUNT = 3    # fewer posts than this per month on average -> "thin data"
 MIN_HISTORY_MONTHS = 3          # fewer months than this -> no trend is estimated; label stays "stable"
@@ -31,7 +32,7 @@ TAU_FLOOR = 0.10                # skills are assumed to differ in true yearly lo
 
 # Portfolio
 COVARIANCE_SHRINKAGE = 0.5      # pull the covariance halfway toward its diagonal for stability
-RISK_AVERSION = {"low": 1.5, "medium": 0.75, "high": 0.25}  # gamma in readiness = growth - gamma/2 * vol^2 (SPEC 6/3/1 scaled by 1/4, calibrated on the 2026-10-20 snapshot)
+RISK_AVERSION = {"low": 0.75, "medium": 0.375, "high": 0.125}  # gamma in readiness = growth - gamma/2 * vol^2 (SPEC 6/3/1 scaled by 1/8, calibrated on the 2026-10-20 snapshot)
 THIN_GROWTH_CAP = 0.05          # a thin-data skill counts for at most +/-5% a year in portfolio growth (the "stable" band)
 
 # Matching and planning

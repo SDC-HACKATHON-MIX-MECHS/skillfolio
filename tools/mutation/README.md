@@ -1,13 +1,13 @@
 # Mutation check
 
-A test suite is only as good as the wrong code it can catch. `plug/mutplug.py` holds 67 deliberately broken versions ("mutants") of `engine/forecast.py` (wrong operators, constants, formulas, hard-coded config values, wrong output keys). `run_all.sh` applies each one in memory, runs the whole suite, and reports which mutants the tests failed to catch.
+A test suite is only as good as the wrong code it can catch. `plug/mutplug.py` holds 73 deliberately broken versions ("mutants") of `engine/forecast.py` (wrong operators, constants, formulas, hard-coded config values, wrong output keys). `run_all.sh` applies each one in memory, runs the whole suite, and reports which mutants the tests failed to catch.
 
 ```
 bash tools/mutation/run_all.sh                    # engine/forecast.py (plug/mutplug.py)
 bash tools/mutation/run_all.sh mutplug_portfolio   # engine/portfolio.py (plug/mutplug_portfolio.py)
 ```
 
-**Expected today:** control exit code 0; 67 mutants, 65 killed; survivors `shrink_applied_without_history` and `reference_needs_no_history`, both **provably equivalent** (they change the code but never the result: damping a zero-history trend returns exactly 0, and the reference filter already excludes it).
+**Expected today:** control exit code 0; 73 mutants, 71 killed; survivors `shrink_applied_without_history` and `reference_needs_no_history`, both **provably equivalent** (they change the code but never the result: damping a zero-history trend returns exactly 0, and the reference filter already excludes it).
 
 **Rules**
 - A surviving mutant is either *equivalent* (prove it: algebra, or a differential fuzz against the real engine) or a **test gap** (add a test that kills it).

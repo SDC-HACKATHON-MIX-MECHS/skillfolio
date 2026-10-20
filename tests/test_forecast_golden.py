@@ -467,3 +467,24 @@ def test_is_estimate_is_the_literal_true_for_every_forecast():
     for snap in (SNAP30, SNAP3, SNAP6, SNAPEX):
         for f in forecast.forecast_all(snap, "fast").values():
             assert f["is_estimate"] is True
+
+
+def test_trend_uncertainty_is_inflated_by_the_documented_factor_and_only_it(monkeypatch):
+    """SPEC 5.1: s = 12 * SE_b * SE_INFLATION (1.9); the growth g itself is untouched."""
+    totals = [m["total_posts"] for m in SNAP30["months"]]
+    smoothed = forecast.smooth(SNAP30["skills"]["noisy_up"]["shares"])
+    assert config.SE_INFLATION == 1.9
+    g, s = forecast.trend(smoothed, totals)
+    monkeypatch.setattr(config, "SE_INFLATION", 1.0)
+    g_plain, s_plain = forecast.trend(smoothed, totals)
+    assert g == pytest.approx(g_plain, rel=1e-12) and s == pytest.approx(1.9 * s_plain, rel=1e-12)
+    monkeypatch.setattr(config, "SE_INFLATION", 2.5)
+    assert forecast.trend(smoothed, totals)[1] == pytest.approx(2.5 * s_plain, rel=1e-12)
+
+
+def test_plain_momentum_interval_uses_the_inflated_uncertainty():
+    totals = [m["total_posts"] for m in SNAP30["months"]]
+    smoothed = forecast.smooth(SNAP30["skills"]["noisy_up"]["shares"])
+    g, s = forecast.trend(smoothed, totals)
+    r, low, high = forecast.momentum(smoothed, totals)
+    assert (r, low, high) == pytest.approx((math.exp(g) - 1, math.exp(g - 1.28 * s) - 1, math.exp(g + 1.28 * s) - 1), rel=1e-12)

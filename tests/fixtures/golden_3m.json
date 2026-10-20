@@ -5,13 +5,13 @@
  "skills": {
   "rising3": {
    "g": 1.3578787564529273,
-   "s": 0.15370069793615132,
+   "s": 0.2920313260786875,
    "g_damped": 1.3578787564529273,
-   "s_damped": 0.15370069793615132,
+   "s_damped": 0.2920313260786875,
    "momentum_raw": 2.887937286500999,
    "momentum": 2.887937286500999,
-   "momentum_low": 2.193577823589722,
-   "momentum_high": 3.7332669434601833,
+   "momentum_low": 1.6753458429419203,
+   "momentum_high": 4.650131695550251,
    "volatility": 0.10868280578375779,
    "thin_data": false,
    "history_months": 3,
@@ -23,27 +23,27 @@
    "scenarios": {
     "moderate": {
      "projected": 2.887937286500999,
-     "projected_low": 2.193577823589722,
-     "projected_high": 3.7332669434601833,
+     "projected_low": 1.6753458429419203,
+     "projected_high": 4.650131695550251,
      "trajectory": "rising"
     },
     "fast": {
      "projected": 2.887937286500999,
-     "projected_low": 2.193577823589722,
-     "projected_high": 3.7332669434601833,
+     "projected_low": 1.6753458429419203,
+     "projected_high": 4.650131695550251,
      "trajectory": "rising"
     }
    }
   },
   "falling3": {
    "g": -1.5498447826312574,
-   "s": 0.1835944606940258,
+   "s": 0.348829475318649,
    "g_damped": -1.5498447826312574,
-   "s_damped": 0.1835944606940258,
+   "s_damped": 0.348829475318649,
    "momentum_raw": -0.7877190790443214,
    "momentum": -0.7877190790443214,
-   "momentum_low": -0.832177044626756,
-   "momentum_high": -0.7314837573824808,
+   "momentum_low": -0.8641693664726502,
+   "momentum_high": -0.6682398643696419,
    "volatility": 0.12982088814503268,
    "thin_data": false,
    "history_months": 3,
@@ -55,27 +55,27 @@
    "scenarios": {
     "moderate": {
      "projected": -0.7877190790443214,
-     "projected_low": -0.832177044626756,
-     "projected_high": -0.7314837573824808,
+     "projected_low": -0.8641693664726502,
+     "projected_high": -0.6682398643696419,
      "trajectory": "declining"
     },
     "fast": {
      "projected": -0.7877190790443214,
-     "projected_low": -0.832177044626756,
-     "projected_high": -0.7314837573824808,
+     "projected_low": -0.8641693664726502,
+     "projected_high": -0.6682398643696419,
      "trajectory": "declining"
     }
    }
   },
   "exposed3": {
    "g": 4.574221960279323e-15,
-   "s": 8.634081047997269e-15,
+   "s": 1.640475399119481e-14,
    "g_damped": 4.574221960279323e-15,
-   "s_damped": 8.634081047997269e-15,
+   "s_damped": 1.640475399119481e-14,
    "momentum_raw": 4.6629367034256575e-15,
    "momentum": 4.6629367034256575e-15,
-   "momentum_low": -6.439293542825908e-15,
-   "momentum_high": 1.554312234475219e-14,
+   "momentum_low": -1.6431300764452317e-14,
+   "momentum_high": 2.55351295663786e-14,
    "volatility": 0.0,
    "thin_data": false,
    "history_months": 3,
@@ -87,27 +87,27 @@
    "scenarios": {
     "moderate": {
      "projected": -0.029554466451487404,
-     "projected_low": -0.029554466451498063,
-     "projected_high": -0.029554466451476635,
+     "projected_low": -0.02955446645150772,
+     "projected_high": -0.029554466451466976,
      "trajectory": "stable"
     },
     "fast": {
      "projected": -0.0860688147287676,
-     "projected_low": -0.0860688147287777,
-     "projected_high": -0.08606881472875749,
+     "projected_low": -0.0860688147287868,
+     "projected_high": -0.08606881472874839,
      "trajectory": "declining"
     }
    }
   },
   "sheltered3": {
    "g": 4.574221960279323e-15,
-   "s": 8.634081047997269e-15,
+   "s": 1.640475399119481e-14,
    "g_damped": 4.574221960279323e-15,
-   "s_damped": 8.634081047997269e-15,
+   "s_damped": 1.640475399119481e-14,
    "momentum_raw": 4.6629367034256575e-15,
    "momentum": 4.6629367034256575e-15,
-   "momentum_low": -6.439293542825908e-15,
-   "momentum_high": 1.554312234475219e-14,
+   "momentum_low": -1.6431300764452317e-14,
+   "momentum_high": 2.55351295663786e-14,
    "volatility": 0.0,
    "thin_data": false,
    "history_months": 3,
@@ -119,14 +119,14 @@
    "scenarios": {
     "moderate": {
      "projected": 0.0304545339535216,
-     "projected_low": 0.030454533953510277,
-     "projected_high": 0.030454533953532925,
+     "projected_low": 0.03045453395349984,
+     "projected_high": 0.03045453395354314,
      "trajectory": "stable"
     },
     "fast": {
      "projected": 0.0941742837052153,
-     "projected_low": 0.09417428370520331,
-     "projected_high": 0.09417428370522751,
+     "projected_low": 0.09417428370519243,
+     "projected_high": 0.09417428370523839,
      "trajectory": "rising"
     }
    }

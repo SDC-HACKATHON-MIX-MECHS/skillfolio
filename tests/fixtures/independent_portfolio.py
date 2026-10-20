@@ -35,7 +35,7 @@ sys.path.insert(0, str(HERE))
 import independent_expected as ie  # noqa: E402  (engine-free)
 
 ROOT = HERE.parents[1]
-GAMMA = {"low": 1.5, "medium": 0.75, "high": 0.25}
+GAMMA = {"low": 0.75, "medium": 0.375, "high": 0.125}
 THIN_GROWTH_CAP = 0.05
 SHRINK = 0.5
 WINDOW = 24
