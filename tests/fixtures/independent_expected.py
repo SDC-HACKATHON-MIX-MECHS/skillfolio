@@ -11,7 +11,8 @@ Rules implemented (from the SPEC):
   eps        = 0.5 / mean(total_posts)
   smoothed   = trailing 3-month mean, partial at the start
   trend      = OLS of ln(smoothed + eps) on 0..n-1 over the last min(12, M) months (needs n >= 3);
-               g = 12 b (annual log growth), s = 12 SE_b with n-2 degrees of freedom
+               g = 12 b (annual log growth), s = 12 SE_b * 1.9 with n-2 degrees of freedom
+               (1.9 = SE_INFLATION: the rolling average makes the plain standard error ~1.9x too small)
   thin       = history < 3 or mean monthly count (all months) < 3
   prior      = from reference skills (history >= 3 and not thin), k of them; none if k < 5:
                s* = max(s, 0.05); w = 1/s*^2; mu0 = sum(w g)/sum(w); Q = sum(w (g-mu0)^2);
@@ -39,6 +40,7 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 LAMBDA = {"moderate": 0.5, "fast": 1.5}
 SE_FLOOR, TAU_FLOOR, MIN_REF_SKILLS, Z = 0.05, 0.10, 5, 1.28
+SE_INFLATION = 1.9   # the 3-month rolling average makes the plain OLS standard error ~1.9x too small (SPEC 5.1)
 
 
 def ols(y):
@@ -79,7 +81,7 @@ def expected(snapshot):
         enough = history >= 3
         if enough:
             b, se = ols(np.log(smoothed[-min(12, history):] + eps))
-            g, sg = 12 * b, 12 * se
+            g, sg = 12 * b, 12 * se * SE_INFLATION
         else:
             g = sg = 0.0
         thin = (not enough) or float(np.mean(s["counts"])) < 3

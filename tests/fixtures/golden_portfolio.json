@@ -1,0 +1,574 @@
+{
+ "gamma": {
+  "low": 0.75,
+  "medium": 0.375,
+  "high": 0.125
+ },
+ "thin_growth_cap": 0.05,
+ "cases": {
+  "single_u_turn": {
+   "snapshot": "30m",
+   "skills": [
+    {
+     "skill_id": "u_turn",
+     "level": 2
+    }
+   ],
+   "cov": [
+    [
+     0.050148686296639294
+    ]
+   ],
+   "metrics": {
+    "moderate": {
+     "low": {
+      "growth": 1.5289646414706315,
+      "ai_exposure": 0.3,
+      "volatility": 0.22393902361276674,
+      "diversification": 0.0,
+      "readiness": 1.5101588841093918
+     },
+     "medium": {
+      "growth": 1.5289646414706315,
+      "ai_exposure": 0.3,
+      "volatility": 0.22393902361276674,
+      "diversification": 0.0,
+      "readiness": 1.5195617627900115
+     },
+     "high": {
+      "growth": 1.5289646414706315,
+      "ai_exposure": 0.3,
+      "volatility": 0.22393902361276674,
+      "diversification": 0.0,
+      "readiness": 1.5258303485770914
+     }
+    },
+    "fast": {
+     "low": {
+      "growth": 1.93146498822221,
+      "ai_exposure": 0.3,
+      "volatility": 0.22393902361276674,
+      "diversification": 0.0,
+      "readiness": 1.9126592308609702
+     },
+     "medium": {
+      "growth": 1.93146498822221,
+      "ai_exposure": 0.3,
+      "volatility": 0.22393902361276674,
+      "diversification": 0.0,
+      "readiness": 1.92206210954159
+     },
+     "high": {
+      "growth": 1.93146498822221,
+      "ai_exposure": 0.3,
+      "volatility": 0.22393902361276674,
+      "diversification": 0.0,
+      "readiness": 1.9283306953286699
+     }
+    }
+   }
+  },
+  "mixed_with_thin_and_unknown": {
+   "snapshot": "30m",
+   "skills": [
+    {
+     "skill_id": "u_turn",
+     "level": 3
+    },
+    {
+     "skill_id": "noisy_early",
+     "level": 2
+    },
+    {
+     "skill_id": "sparse",
+     "level": 1
+    },
+    {
+     "skill_id": "unknown_exp",
+     "level": 2
+    },
+    {
+     "skill_id": "shift_up",
+     "level": 1
+    }
+   ],
+   "cov": [
+    [
+     0.050148686296639294,
+     0.005793738868441384,
+     0.009282230939073275,
+     -0.002540269933653633,
+     -1.2529927941341098e-05
+    ],
+    [
+     0.005793738868441384,
+     0.5796969271186305,
+     -0.10519176110503914,
+     -0.003576174535481806,
+     -0.000694075959644807
+    ],
+    [
+     0.009282230939073275,
+     -0.10519176110503914,
+     1.2822962330335823,
+     -0.006321908312618462,
+     -0.0008232137547158236
+    ],
+    [
+     -0.002540269933653633,
+     -0.003576174535481806,
+     -0.006321908312618462,
+     0.0012311251800677845,
+     1.5688325292024528e-05
+    ],
+    [
+     -1.2529927941341098e-05,
+     -0.000694075959644807,
+     -0.0008232137547158236,
+     1.5688325292024528e-05,
+     5.0371147929460805e-05
+    ]
+   ],
+   "metrics": {
+    "moderate": {
+     "low": {
+      "growth": 0.5802513391215004,
+      "ai_exposure": 0.4885714285714285,
+      "volatility": 0.21294619883119306,
+      "diversification": 0.7654320987654322,
+      "readiness": 0.5632465577727551
+     },
+     "medium": {
+      "growth": 0.5802513391215004,
+      "ai_exposure": 0.4885714285714285,
+      "volatility": 0.21294619883119306,
+      "diversification": 0.7654320987654322,
+      "readiness": 0.5717489484471278
+     },
+     "high": {
+      "growth": 0.5802513391215004,
+      "ai_exposure": 0.4885714285714285,
+      "volatility": 0.21294619883119306,
+      "diversification": 0.7654320987654322,
+      "readiness": 0.5774172088967096
+     }
+    },
+    "fast": {
+     "low": {
+      "growth": 0.6624708460581007,
+      "ai_exposure": 0.4885714285714285,
+      "volatility": 0.21294619883119306,
+      "diversification": 0.7654320987654322,
+      "readiness": 0.6454660647093554
+     },
+     "medium": {
+      "growth": 0.6624708460581007,
+      "ai_exposure": 0.4885714285714285,
+      "volatility": 0.21294619883119306,
+      "diversification": 0.7654320987654322,
+      "readiness": 0.653968455383728
+     },
+     "high": {
+      "growth": 0.6624708460581007,
+      "ai_exposure": 0.4885714285714285,
+      "volatility": 0.21294619883119306,
+      "diversification": 0.7654320987654322,
+      "readiness": 0.6596367158333099
+     }
+    }
+   }
+  },
+  "all_thin": {
+   "snapshot": "30m",
+   "skills": [
+    {
+     "skill_id": "sparse",
+     "level": 2
+    },
+    {
+     "skill_id": "sparse_clumpy",
+     "level": 1
+    },
+    {
+     "skill_id": "all_zero",
+     "level": 2
+    }
+   ],
+   "cov": [
+    [
+     1.2822962330335823,
+     -0.2399509115716253,
+     0.0
+    ],
+    [
+     -0.2399509115716253,
+     22.081657914938848,
+     0.0
+    ],
+    [
+     0.0,
+     0.0,
+     0.0
+    ]
+   ],
+   "metrics": {
+    "moderate": {
+     "low": {
+      "growth": 0.010000000000000002,
+      "ai_exposure": 0.72,
+      "volatility": 1.0247153595176892,
+      "diversification": 0.6399999999999999,
+      "readiness": -0.3837655880118001
+     },
+     "medium": {
+      "growth": 0.010000000000000002,
+      "ai_exposure": 0.72,
+      "volatility": 1.0247153595176892,
+      "diversification": 0.6399999999999999,
+      "readiness": -0.18688279400590005
+     },
+     "high": {
+      "growth": 0.010000000000000002,
+      "ai_exposure": 0.72,
+      "volatility": 1.0247153595176892,
+      "diversification": 0.6399999999999999,
+      "readiness": -0.055627598001966684
+     }
+    },
+    "fast": {
+     "low": {
+      "growth": -0.022137340388945187,
+      "ai_exposure": 0.72,
+      "volatility": 1.0247153595176892,
+      "diversification": 0.6399999999999999,
+      "readiness": -0.4159029284007453
+     },
+     "medium": {
+      "growth": -0.022137340388945187,
+      "ai_exposure": 0.72,
+      "volatility": 1.0247153595176892,
+      "diversification": 0.6399999999999999,
+      "readiness": -0.21902013439484525
+     },
+     "high": {
+      "growth": -0.022137340388945187,
+      "ai_exposure": 0.72,
+      "volatility": 1.0247153595176892,
+      "diversification": 0.6399999999999999,
+      "readiness": -0.08776493839091187
+     }
+    }
+   }
+  },
+  "all_unknown_exposure": {
+   "snapshot": "30m",
+   "skills": [
+    {
+     "skill_id": "unknown_exp",
+     "level": 2
+    }
+   ],
+   "cov": [
+    [
+     0.0012311251800677845
+    ]
+   ],
+   "metrics": {
+    "moderate": {
+     "low": {
+      "growth": 0.3656903385657466,
+      "ai_exposure": null,
+      "volatility": 0.03508739346357584,
+      "diversification": 0.0,
+      "readiness": 0.3652286666232212
+     },
+     "medium": {
+      "growth": 0.3656903385657466,
+      "ai_exposure": null,
+      "volatility": 0.03508739346357584,
+      "diversification": 0.0,
+      "readiness": 0.3654595025944839
+     },
+     "high": {
+      "growth": 0.3656903385657466,
+      "ai_exposure": null,
+      "volatility": 0.03508739346357584,
+      "diversification": 0.0,
+      "readiness": 0.3656133932419924
+     }
+    },
+    "fast": {
+     "low": {
+      "growth": 0.3656903385657466,
+      "ai_exposure": null,
+      "volatility": 0.03508739346357584,
+      "diversification": 0.0,
+      "readiness": 0.3652286666232212
+     },
+     "medium": {
+      "growth": 0.3656903385657466,
+      "ai_exposure": null,
+      "volatility": 0.03508739346357584,
+      "diversification": 0.0,
+      "readiness": 0.3654595025944839
+     },
+     "high": {
+      "growth": 0.3656903385657466,
+      "ai_exposure": null,
+      "volatility": 0.03508739346357584,
+      "diversification": 0.0,
+      "readiness": 0.3656133932419924
+     }
+    }
+   }
+  },
+  "equal_pair": {
+   "snapshot": "30m",
+   "skills": [
+    {
+     "skill_id": "shift_up",
+     "level": 2
+    },
+    {
+     "skill_id": "shift_down",
+     "level": 2
+    }
+   ],
+   "cov": [
+    [
+     5.0371147929460805e-05,
+     2.5185573964730402e-05
+    ],
+    [
+     2.5185573964730402e-05,
+     5.0371147929460805e-05
+    ]
+   ],
+   "metrics": {
+    "moderate": {
+     "low": {
+      "growth": 0.015532095034823168,
+      "ai_exposure": 0.43,
+      "volatility": 0.0061464104115406745,
+      "diversification": 0.5,
+      "readiness": 0.015517928149468008
+     },
+     "medium": {
+      "growth": 0.015532095034823168,
+      "ai_exposure": 0.43,
+      "volatility": 0.0061464104115406745,
+      "diversification": 0.5,
+      "readiness": 0.015525011592145588
+     },
+     "high": {
+      "growth": 0.015532095034823168,
+      "ai_exposure": 0.43,
+      "volatility": 0.0061464104115406745,
+      "diversification": 0.5,
+      "readiness": 0.015529733887263975
+     }
+    },
+    "fast": {
+     "low": {
+      "growth": 0.03738137179909212,
+      "ai_exposure": 0.43,
+      "volatility": 0.0061464104115406745,
+      "diversification": 0.5,
+      "readiness": 0.03736720491373696
+     },
+     "medium": {
+      "growth": 0.03738137179909212,
+      "ai_exposure": 0.43,
+      "volatility": 0.0061464104115406745,
+      "diversification": 0.5,
+      "readiness": 0.03737428835641454
+     },
+     "high": {
+      "growth": 0.03738137179909212,
+      "ai_exposure": 0.43,
+      "volatility": 0.0061464104115406745,
+      "diversification": 0.5,
+      "readiness": 0.03737901065153293
+     }
+    }
+   }
+  },
+  "example_three": {
+   "snapshot": "example",
+   "skills": [
+    {
+     "skill_id": "rising_skill",
+     "level": 3
+    },
+    {
+     "skill_id": "flat_skill",
+     "level": 2
+    },
+    {
+     "skill_id": "falling_skill",
+     "level": 1
+    }
+   ],
+   "cov": [
+    [
+     0.008644464795026917,
+     0.0,
+     -0.005426782478030718
+    ],
+    [
+     0.0,
+     0.0,
+     0.0
+    ],
+    [
+     -0.005426782478030718,
+     0.0,
+     0.025428385265570196
+    ]
+   ],
+   "metrics": {
+    "moderate": {
+     "low": {
+      "growth": 1.6454117687065415,
+      "ai_exposure": 0.35000000000000003,
+      "volatility": 0.04430571619523833,
+      "diversification": 0.6111111111111112,
+      "readiness": 1.6446756450237017
+     },
+     "medium": {
+      "growth": 1.6454117687065415,
+      "ai_exposure": 0.35000000000000003,
+      "volatility": 0.04430571619523833,
+      "diversification": 0.6111111111111112,
+      "readiness": 1.6450437068651216
+     },
+     "high": {
+      "growth": 1.6454117687065415,
+      "ai_exposure": 0.35000000000000003,
+      "volatility": 0.04430571619523833,
+      "diversification": 0.6111111111111112,
+      "readiness": 1.6452890814260681
+     }
+    },
+    "fast": {
+     "low": {
+      "growth": 2.2414526423918906,
+      "ai_exposure": 0.35000000000000003,
+      "volatility": 0.04430571619523833,
+      "diversification": 0.6111111111111112,
+      "readiness": 2.2407165187090508
+     },
+     "medium": {
+      "growth": 2.2414526423918906,
+      "ai_exposure": 0.35000000000000003,
+      "volatility": 0.04430571619523833,
+      "diversification": 0.6111111111111112,
+      "readiness": 2.2410845805504707
+     },
+     "high": {
+      "growth": 2.2414526423918906,
+      "ai_exposure": 0.35000000000000003,
+      "volatility": 0.04430571619523833,
+      "diversification": 0.6111111111111112,
+      "readiness": 2.2413299551114174
+     }
+    }
+   }
+  },
+  "flat6_with_thin_riser": {
+   "snapshot": "flat6",
+   "skills": [
+    {
+     "skill_id": "noisy1",
+     "level": 1
+    },
+    {
+     "skill_id": "noisy2",
+     "level": 1
+    },
+    {
+     "skill_id": "noisy3",
+     "level": 2
+    },
+    {
+     "skill_id": "thin_riser",
+     "level": 3
+    }
+   ],
+   "cov": [
+    [
+     0.19770201158351836,
+     0.10259814678519882,
+     0.1009103299117878,
+     0.011915916583381363
+    ],
+    [
+     0.10259814678519882,
+     0.2136509114042981,
+     0.10497833088847866,
+     0.01632737679651378
+    ],
+    [
+     0.1009103299117878,
+     0.10497833088847866,
+     0.20674924360887176,
+     0.015216283787563595
+    ],
+    [
+     0.011915916583381363,
+     0.01632737679651378,
+     0.015216283787563595,
+     0.37681445919938883
+    ]
+   ],
+   "metrics": {
+    "moderate": {
+     "low": {
+      "growth": -0.05305660478221489,
+      "ai_exposure": 0.3,
+      "volatility": 0.35023275446536395,
+      "diversification": 0.6938775510204082,
+      "readiness": -0.09905522314486336
+     },
+     "medium": {
+      "growth": -0.05305660478221489,
+      "ai_exposure": 0.3,
+      "volatility": 0.35023275446536395,
+      "diversification": 0.6938775510204082,
+      "readiness": -0.07605591396353913
+     },
+     "high": {
+      "growth": -0.05305660478221489,
+      "ai_exposure": 0.3,
+      "volatility": 0.35023275446536395,
+      "diversification": 0.6938775510204082,
+      "readiness": -0.06072304117598963
+     }
+    },
+    "fast": {
+     "low": {
+      "growth": -0.025341871337375296,
+      "ai_exposure": 0.3,
+      "volatility": 0.35023275446536395,
+      "diversification": 0.6938775510204082,
+      "readiness": -0.07134048970002377
+     },
+     "medium": {
+      "growth": -0.025341871337375296,
+      "ai_exposure": 0.3,
+      "volatility": 0.35023275446536395,
+      "diversification": 0.6938775510204082,
+      "readiness": -0.048341180518699525
+     },
+     "high": {
+      "growth": -0.025341871337375296,
+      "ai_exposure": 0.3,
+      "volatility": 0.35023275446536395,
+      "diversification": 0.6938775510204082,
+      "readiness": -0.033008307731150044
+     }
+    }
+   }
+  }
+ }
+}

@@ -64,8 +64,9 @@ def _ols_slope(y: list[float]) -> tuple[float, float]:
 
 
 def trend(smoothed: list[float], total_posts: list[int]) -> tuple[float, float]:
-    """Annual log growth g = 12 b and its standard error s = 12 SE_b.
+    """Annual log growth g = 12 b and its standard error s = 12 SE_b * SE_INFLATION.
 
+    SE_INFLATION corrects the plain OLS standard error, which is too small because the smoothed points are not independent (SPEC 5.1).
     OLS of ln(smoothed + epsilon) on the month index over the last MOMENTUM_WINDOW_MONTHS.
     With fewer than MIN_HISTORY_MONTHS there is no trend to fit: returns (0, 0).
     """
@@ -74,13 +75,14 @@ def trend(smoothed: list[float], total_posts: list[int]) -> tuple[float, float]:
         return 0.0, 0.0
     eps = epsilon(total_posts)
     b, se = _ols_slope([math.log(s + eps) for s in smoothed[-n:]])
-    return 12 * b, 12 * se
+    return 12 * b, 12 * se * config.SE_INFLATION
 
 
 def momentum(smoothed: list[float], total_posts: list[int]) -> tuple[float, float, float]:
     """The raw (undamped) annual growth (r, r_low, r_high): r = e^g - 1, interval g -/+ INTERVAL_Z * s.
 
-    Not used by forecast_all (it works on trend() and damps it); kept as the plain fitted trend.
+    Not used by forecast_all (it works on trend() and damps it); kept as the plain fitted trend. The interval
+    uses trend()'s s, so it already includes SE_INFLATION.
     """
     g, s = trend(smoothed, total_posts)
     half = config.INTERVAL_Z * s

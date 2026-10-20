@@ -56,7 +56,7 @@ def noisy_counts(level0, slope, amp, seed):
 SKILLS = {
     # skill: (counts, exposure)
     "u_turn": (from_share(u_turn), 0.30),
-    "noisy_early": (from_share(noisy_early), 0.55),
+    "noisy_early": (from_share(noisy_early), 0.75),
     "late_riser": (from_share(late_riser), 0.15),
     "sparse": ([SPARSE_PATTERN[m % 10] for m in range(MONTHS)], 0.65),
     "sparse_clumpy": ([12 if m % 6 == 2 else 0 for m in range(MONTHS)], 0.50),  # mean 2.0, but 12 in busy months
@@ -71,7 +71,7 @@ SKILLS = {
     # well observed but very noisy: the point estimate passes +/-5% while the 80% interval straddles 0,
     # so the label must come from the interval end (low for rising, high for declining), not the point:
     "noisy_up": (noisy_counts(6, 0.12, 4, 67), 0.43),
-    "noisy_down": (noisy_counts(10, -0.12, 4, 12), 0.43),
+    "noisy_down": (noisy_counts(16, -0.40, 4, 12), 0.43),
 }
 
 

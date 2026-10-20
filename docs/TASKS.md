@@ -45,7 +45,7 @@ Everyone builds against [`contracts/`](../contracts/README.md). **Until the real
 | Thu | `matching.py` + curate `role_skills.csv` with D (≤10 skills per role, from B's generated file) | match test passes; Aina's top 5 makes sense to the team |
 | Thu | `sdg.py` | SDG test passes; every skill has ≥1 SDG |
 | Thu 9 pm | **Integration checkpoint** with C | all pages show real engine output |
-| Fri | `pathway.py`; tune γ, α so neither term dominates on Aina and Ravi (the scenario weights λ are already tuned: 0.5 / 1.5, SPEC 5.1) | plan test passes; Apply plan visibly moves Aina's dot |
+| Fri | `pathway.py`; tune α so neither term dominates on Aina and Ravi (λ is tuned: 0.5 / 1.5, SPEC 5.1; γ is tuned: 0.75 / 0.375 / 0.125, SPEC 5.2, re-check it if the forecast changes) | plan test passes; Apply plan visibly moves Aina's dot |
 | Fri | Write the plain-English formula text for Methodology (with D) | page reviewed by the team |
 
 ## Lane B — Data & Trends

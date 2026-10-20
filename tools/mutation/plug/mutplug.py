@@ -61,7 +61,13 @@ M = {
     "history_guard_4_in_trend": ("if n < config.MIN_HISTORY_MONTHS:", "if n < 4:"),
     "traj_ge": ("if projected_low > config.TREND_THRESHOLD:", "if projected_low >= config.TREND_THRESHOLD:"),
     "unknown_exposure_offset": ("    delta = 0.0\n", "    delta = 0.01 if exposure is None else 0.0\n"),
-    # --- config bypass ---
+    # --- uncertainty inflation (the 3-month average makes the plain standard error ~1.9x too small) ---
+    "se_inflation_off": ("return 12 * b, 12 * se * config.SE_INFLATION", "return 12 * b, 12 * se"),
+    "se_inflation_on_slope": ("return 12 * b, 12 * se * config.SE_INFLATION", "return 12 * b * config.SE_INFLATION, 12 * se"),
+    "se_inflation_on_both": ("return 12 * b, 12 * se * config.SE_INFLATION", "return 12 * b * config.SE_INFLATION, 12 * se * config.SE_INFLATION"),
+    "se_inflation_1_5": ("12 * se * config.SE_INFLATION", "12 * se * 1.5"),
+    "hc_se_inflation": ("config.SE_INFLATION", "1.9"),
+    "momentum_band_deinflated": ("math.exp(g - half) - 1, math.exp(g + half) - 1\n", "math.exp(g - half / config.SE_INFLATION) - 1, math.exp(g + half / config.SE_INFLATION) - 1\n"),
     "hc_min_skills": ("config.SHRINK_MIN_SKILLS", "5"),
     "hc_se_floor": ("config.SE_FLOOR", "0.05"),
     "hc_tau_floor": ("config.TAU_FLOOR", "0.10"),
