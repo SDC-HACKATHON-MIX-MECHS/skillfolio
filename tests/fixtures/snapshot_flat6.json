@@ -1,0 +1,289 @@
+{
+ "_note": "ILLUSTRATIVE FIXTURE for forecast tests. Made-up numbers, not real data.",
+ "is_example": true,
+ "snapshot_date": "2026-01-01",
+ "retrieved_at": "2026-01-01T00:00:00Z",
+ "sources": [
+  {
+   "id": "example",
+   "name": "Illustrative fixture",
+   "url": "https://example.org",
+   "licence": "n/a",
+   "retrieved_at": "2026-01-01T00:00:00Z"
+  }
+ ],
+ "months": [
+  {
+   "month": "2024-05",
+   "story_id": 0,
+   "url": "https://example.org",
+   "total_posts": 200
+  },
+  {
+   "month": "2024-06",
+   "story_id": 0,
+   "url": "https://example.org",
+   "total_posts": 200
+  },
+  {
+   "month": "2024-07",
+   "story_id": 0,
+   "url": "https://example.org",
+   "total_posts": 200
+  },
+  {
+   "month": "2024-08",
+   "story_id": 0,
+   "url": "https://example.org",
+   "total_posts": 200
+  },
+  {
+   "month": "2024-09",
+   "story_id": 0,
+   "url": "https://example.org",
+   "total_posts": 200
+  },
+  {
+   "month": "2024-10",
+   "story_id": 0,
+   "url": "https://example.org",
+   "total_posts": 200
+  },
+  {
+   "month": "2024-11",
+   "story_id": 0,
+   "url": "https://example.org",
+   "total_posts": 200
+  },
+  {
+   "month": "2024-12",
+   "story_id": 0,
+   "url": "https://example.org",
+   "total_posts": 200
+  },
+  {
+   "month": "2025-01",
+   "story_id": 0,
+   "url": "https://example.org",
+   "total_posts": 200
+  },
+  {
+   "month": "2025-02",
+   "story_id": 0,
+   "url": "https://example.org",
+   "total_posts": 200
+  },
+  {
+   "month": "2025-03",
+   "story_id": 0,
+   "url": "https://example.org",
+   "total_posts": 200
+  },
+  {
+   "month": "2025-04",
+   "story_id": 0,
+   "url": "https://example.org",
+   "total_posts": 200
+  }
+ ],
+ "skills": {
+  "noisy1": {
+   "counts": [
+    24,
+    30,
+    29,
+    23,
+    17,
+    19,
+    26,
+    30,
+    27,
+    20,
+    16,
+    20
+   ],
+   "shares": [
+    0.12,
+    0.15,
+    0.145,
+    0.115,
+    0.085,
+    0.095,
+    0.13,
+    0.15,
+    0.135,
+    0.1,
+    0.08,
+    0.1
+   ],
+   "exposure": 0.2,
+   "exposure_n_occupations": 5,
+   "exposure_method": "example"
+  },
+  "noisy2": {
+   "counts": [
+    24,
+    30,
+    30,
+    23,
+    17,
+    19,
+    26,
+    31,
+    28,
+    20,
+    17,
+    20
+   ],
+   "shares": [
+    0.12,
+    0.15,
+    0.15,
+    0.115,
+    0.085,
+    0.095,
+    0.13,
+    0.155,
+    0.14,
+    0.1,
+    0.085,
+    0.1
+   ],
+   "exposure": 0.28,
+   "exposure_n_occupations": 5,
+   "exposure_method": "example"
+  },
+  "noisy3": {
+   "counts": [
+    24,
+    30,
+    30,
+    23,
+    17,
+    19,
+    26,
+    31,
+    28,
+    21,
+    17,
+    21
+   ],
+   "shares": [
+    0.12,
+    0.15,
+    0.15,
+    0.115,
+    0.085,
+    0.095,
+    0.13,
+    0.155,
+    0.14,
+    0.105,
+    0.085,
+    0.105
+   ],
+   "exposure": 0.36,
+   "exposure_n_occupations": 5,
+   "exposure_method": "example"
+  },
+  "noisy4": {
+   "counts": [
+    24,
+    30,
+    30,
+    23,
+    18,
+    19,
+    26,
+    31,
+    28,
+    21,
+    18,
+    21
+   ],
+   "shares": [
+    0.12,
+    0.15,
+    0.15,
+    0.115,
+    0.09,
+    0.095,
+    0.13,
+    0.155,
+    0.14,
+    0.105,
+    0.09,
+    0.105
+   ],
+   "exposure": 0.44,
+   "exposure_n_occupations": 5,
+   "exposure_method": "example"
+  },
+  "noisy5": {
+   "counts": [
+    24,
+    30,
+    30,
+    23,
+    18,
+    20,
+    27,
+    32,
+    29,
+    22,
+    18,
+    22
+   ],
+   "shares": [
+    0.12,
+    0.15,
+    0.15,
+    0.115,
+    0.09,
+    0.1,
+    0.135,
+    0.16,
+    0.145,
+    0.11,
+    0.09,
+    0.11
+   ],
+   "exposure": 0.52,
+   "exposure_n_occupations": 5,
+   "exposure_method": "example"
+  },
+  "thin_riser": {
+   "counts": [
+    0,
+    0,
+    1,
+    0,
+    1,
+    1,
+    2,
+    2,
+    3,
+    3,
+    4,
+    5
+   ],
+   "shares": [
+    0.0,
+    0.0,
+    0.005,
+    0.0,
+    0.005,
+    0.005,
+    0.01,
+    0.01,
+    0.015,
+    0.015,
+    0.02,
+    0.025
+   ],
+   "exposure": 0.3,
+   "exposure_n_occupations": 5,
+   "exposure_method": "example"
+  }
+ }
+}

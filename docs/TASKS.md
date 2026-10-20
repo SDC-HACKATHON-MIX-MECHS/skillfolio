@@ -40,12 +40,12 @@ Everyone builds against [`contracts/`](../contracts/README.md). **Until the real
 |---|---|---|
 | Tue | Data contracts agreed (this repo) ✅ | contracts/README.md committed |
 | Wed | `forecast.py` on the example fixture | `tests/test_engine_spec.py` forecast tests pass |
-| Wed | `portfolio.py` (weights, covariance, metrics) — **write the missing tests** for covariance and metrics (hand-checked 2-skill portfolio) | weights test + your new tests pass; Aina's metrics look sane on the real snapshot |
+| Wed | `portfolio.py` (weights, covariance, metrics) — **write the missing tests** for covariance and metrics (hand-checked 2-skill portfolio) | weights test + your new tests pass; Aina's metrics look sane on the real snapshot. **Watch:** `R = Σw·projected` must not let one thin-data skill with a huge projected growth dominate (exclude or cap thin skills), and recalibrate γ now that projected growth spreads over about −45% … +120% (SPEC 5.1) |
 | Thu | Tests for `rank_roles`, `impact_allocation`, pathway prerequisites and `guardrails.keep_known` | new tests pass |
 | Thu | `matching.py` + curate `role_skills.csv` with D (≤10 skills per role, from B's generated file) | match test passes; Aina's top 5 makes sense to the team |
 | Thu | `sdg.py` | SDG test passes; every skill has ≥1 SDG |
 | Thu 9 pm | **Integration checkpoint** with C | all pages show real engine output |
-| Fri | `pathway.py`; tune λ, γ, α so neither term dominates on Aina and Ravi | plan test passes; Apply plan visibly moves Aina's dot |
+| Fri | `pathway.py`; tune γ, α so neither term dominates on Aina and Ravi (the scenario weights λ are already tuned: 0.5 / 1.5, SPEC 5.1) | plan test passes; Apply plan visibly moves Aina's dot |
 | Fri | Write the plain-English formula text for Methodology (with D) | page reviewed by the team |
 
 ## Lane B — Data & Trends
@@ -73,7 +73,7 @@ Everyone builds against [`contracts/`](../contracts/README.md). **Until the real
 |---|---|---|
 | Tue/Wed | Replit import works for everyone; `Run` serves the app | each teammate has opened it on Replit |
 | Wed | Profile page (picker, CV paste using `pipeline.extract_skills.skills_in_text`, samples, session state) | loading Aina fills the form |
-| Wed | Skill Market on the example fixture: ticker table + sparklines (Plotly), scenario toggle | flipping the toggle changes the table |
+| Wed | Skill Market on the example fixture: ticker table + sparklines (Plotly), scenario toggle; grey out `thin_data` skills with a "low data" badge; cap the sparkline axis (late-appearing skills can have huge index values) | flipping the toggle changes the table; thin skills are visibly greyed |
 | Thu | My Portfolio: metric cards, AI-exposure gauge, risk/return chart | Aina's dot + role bubbles render |
 | Thu | Matches: top 5 with breakdown, gaps, SDG badges + links | each match shows its citations |
 | Thu 9 pm | **Integration checkpoint** with A on the real snapshot | whole journey works end to end |

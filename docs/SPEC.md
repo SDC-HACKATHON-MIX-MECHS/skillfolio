@@ -49,7 +49,7 @@ Second persona: **Ravi, 27**, customer-service executive switching into tech.
 | Finance | SkillFolio | How it's computed |
 |---|---|---|
 | Share price history | **Demand index** for a skill | Monthly share of HN "Who is hiring" posts that mention the skill, rebased to 100 |
-| Expected return | **Momentum** | Annualised trend of the last 12 months (log-linear fit), with an 80% interval |
+| Expected return | **Momentum** | Annualised trend of the last 12 months (log-linear fit), noisy trends damped toward the all-skill average, with an 80% interval |
 | Volatility | **Demand swing** | Annualised std dev of month-on-month log change, last 24 months |
 | Market beta | **AI exposure** (0–1) | Anthropic Economic Index `observed_exposure` of the occupations that use the skill |
 | Market regime / stress test | **Scenario** | Moderate vs Fast AI disruption shifts projected returns by exposure |
@@ -120,25 +120,48 @@ All tunable numbers live in `engine/config.py` and are shown on the Methodology 
 
 ### 5.1 Skill forecast (`engine/forecast.py`)
 
-For each skill, monthly shares `s_1 … s_M` (M = 25):
+For each skill, monthly shares `s_1 … s_M` (M = 25 in a full snapshot), oldest first:
 
-| Quantity | Formula | Notes |
+| Quantity | Exact rule | Notes |
 |---|---|---|
-| Smoothed share | `ŝ_m` = 3-month rolling mean of `s_m` | reduces month-to-month noise |
-| Demand index | `I_m = 100 × ŝ_m / ŝ_first` | the sparkline |
-| Momentum `r` | OLS of `ln(ŝ_m + ε)` on month index over the **last 12 months** → slope `b`; `r = e^(12b) − 1` | annual % change; `ε = 0.5 / total_posts_m` |
-| 80% interval | `r_low, r_high = e^(12(b ∓ 1.28·SE_b)) − 1` | shown as a band |
-| Volatility `v` | `std(Δ ln ŝ)` over last 24 months × √12 | annualised |
-| Thin data flag | mean monthly count < 3 | greyed out, interval shown wider |
+| ε (epsilon) | `ε = EPSILON_POSTS / (average total_posts per month across the snapshot)`, `EPSILON_POSTS = 0.5` (in `config.py`); if the average is 0 or there are no months, `ε = EPSILON_POSTS` | half a post. **One constant for every month and skill**, so a skill that is never mentioned shows no trend even when monthly threads grow or shrink |
+| Smoothed share | `ŝ_m` = trailing mean of the last 3 months of `s`; months 1 and 2 use the 1 or 2 months available | reduces month-to-month noise |
+| Demand index | `I_m = 100 × ŝ_m / ŝ_base`, where `ŝ_base` = the first non-zero `ŝ`; months before it are 0; all-zero → all 0 | the sparkline. A skill that appears late can reach large index values — the app should cap the axis |
+| Trend `g`, `s` | OLS of `ln(ŝ_m + ε)` on month index `0 … n−1` over the last `n = min(12, M)` months → slope `b` and standard error `SE_b = √(RSS / (n − 2)) / √Σ(x − x̄)²` (**n − 2 degrees of freedom**); `g = 12·b` (annual log growth), `s = 12·SE_b` | needs `n ≥ 3`; otherwise `g = s = 0` |
+| Raw momentum | `r_raw = e^g − 1` | the plain fitted trend, kept for transparency (`momentum_raw`) |
+| Damped trend `g′`, `s′` | `B = τ² / (τ² + s²)`, `g′ = μ + B·(g − μ)`, `s′ = s·√B` — `μ`, `τ²` come from the shrinkage prior below | noisy skills are pulled toward the all-skill average, solid ones barely move. No prior (fewer than 5 reference skills) → `g′ = g`, `s′ = s` |
+| Momentum `r` | `r = e^{g′} − 1` | the headline annual % change |
+| 80% interval | `r_low, r_high = e^{g′ ∓ 1.28·s′} − 1` | shown as a band |
+| Volatility `v` | sample std dev (divide by count − 1) of the month-on-month changes in `ln(ŝ_m + ε)` over the last 24 smoothed months (23 changes), × √12 | annualised; 0 when fewer than 2 changes |
+| History | `history_months = M` | |
+| Too little history | `history_months < 3` → `g = s = g′ = s′ = 0` (so `momentum`, `momentum_raw`, interval = 0) **and** the scenario shift is 0, so `projected = projected_low = projected_high = 0`; `thin_data = true` | placeholders, not a forecast |
+| Thin data flag | `history_months < 3` **or** the skill's mean posts per month (its `counts`, over **all** months, empty ones included) < 3 | **label is always Stable**; app (lane C) greys the row and shows a "low data" badge |
 
-**Scenarios** (`config.SCENARIOS`):
-```
-projected r_s = r − λ_s × (e − ē)        # e = skill AI exposure, ē = average exposure of all skills
-λ_moderate = 0.10    λ_fast = 0.30        # starting values — assumptions, displayed
-```
-Centring on `ē` means the scenario re-ranks skills (more exposed → lower, less exposed → higher) rather than shifting everything down. The interval shifts by the same amount.
+**Damping noisy trends (shrinkage, a.k.a. partial pooling).** A skill mentioned in about 4 posts a month has a very noisy trend; one mentioned 12 times a month does not. We estimate how much skills *really* differ from each other, then pull each skill's trend toward the average by exactly as much as its noise warrants.
+- **Reference skills** = skills with `history_months ≥ 3` that are **not** thin data; `k` = how many. If `k < SHRINK_MIN_SKILLS` (5) there is no prior and nothing is shrunk.
+- Otherwise, with each reference skill's `g_i`, `s_i`: (1) `s*_i = max(s_i, SE_FLOOR)`, `SE_FLOOR = 0.05`; (2) `w_i = 1/s*_i²`, `μ₀ = Σ w_i g_i / Σ w_i`, `Q = Σ w_i (g_i − μ₀)²`; (3) `τ²_DL = max(0, (Q − (k − 1)) / (Σ w_i − Σ w_i² / Σ w_i))` (DerSimonian–Laird); (4) `τ² = max(τ²_DL, TAU_FLOOR²)`, `TAU_FLOOR = 0.10`; (5) `w′_i = 1/(s*_i² + τ²)`, `μ = Σ w′_i g_i / Σ w′_i`.
+- Then **every** skill with `history_months ≥ 3` (thin or not) is damped with `B = τ² / (τ² + s²)` using its **own unfloored** `s`, so a skill with `s = 0` (never mentioned, or perfectly flat) has `B = 1` and is left exactly as it is.
+- Plain English: `μ` is the average annual log growth across skills, `τ` how much skills genuinely differ. On 20 Oct 2026 data: `μ ≈ +0.07`, `τ ≈ 0.28`.
 
-**Trajectory label** (per scenario): **Rising** if `r_s_low > +5%` · **Declining** if `r_s_high < −5%` · else **Stable**. Every label carries an "estimate" tag.
+**Scenarios** (`config.SCENARIOS`) — applied in **log space**, so the effect is proportional to the skill's growth:
+```
+Δ_s = λ_s × (e − ē)                      # e = skill AI exposure; ē = average exposure of skills whose exposure is known
+projected r_s = e^{g′ − Δ_s} − 1          = (1 + r) × e^{−Δ_s} − 1
+projected_low / high = e^{g′ ∓ 1.28·s′ − Δ_s} − 1
+λ_moderate = 0.5    λ_fast = 1.5         # assumptions, displayed on the Methodology page
+```
+Plain English: for a skill with AI exposure **0.1 above average**, its yearly growth *factor* `(1 + r)` is multiplied by `e^{−0.05} ≈ 0.95` in the moderate scenario and by `e^{−0.15} ≈ 0.86` in the fast one — so a skill growing +20% a year would grow about +14% (moderate) or +3% (fast). 0.1 *below* average multiplies by the inverse (≈ 1.05 / 1.16). Centring on `ē` re-ranks skills rather than shifting everything down. The whole interval shifts by the same factor. A skill with **unknown** exposure (`null`), or with `history_months < 3`, gets no shift; unknown exposures are left out of `ē`.
+
+**Trajectory label** (per scenario): **Stable** if the skill is thin data · else **Rising** if `r_s_low > +5%` · **Declining** if `r_s_high < −5%` · else **Stable** (exactly ±5% is Stable). Every label carries an "estimate" tag.
+
+**What the scenario may and may not do:** for skills with enough data, the scenario shift is an *assumption on purpose* and can move a label (its λ values are shown on the Methodology page). It can never create a label for a thin-data skill — a skill with too little history or almost no posts is always Stable, so we don't headline a number we can't trust. A thin skill with enough months still shows its (greyed) projected number, including the shift.
+
+**Honest caveats (put on the Methodology page):**
+- **The 80% band is too narrow, by roughly half.** The trend is fitted to a 3-month rolling average, so neighbouring points move together and the standard error comes out about 1.9× too small (simulation with Poisson counts: the nominal 80% band covered only about 50%). Treat bands as indicative. The same understatement makes damping weaker than a corrected standard error would: re-running the real snapshot with `s` ×1.9 gives `τ ≈ 0.22` (not 0.28) and roughly half as many Rising/Declining labels. Fixing this (inflate `s`, or fit the raw series) is a known open decision.
+- **A prior from only 5 skills is weak** (the spread `τ` is badly estimated, and is often 0 before the floor). On the real snapshot there are 58 reference skills, so this matters only for tiny snapshots such as the demo fixtures.
+- **Thin-data skills still carry large, greyed numbers** (their trends are damped but, with few posts, can still be huge). The app must grey them and never headline them; Step 2's portfolio growth must not let one thin skill dominate.
+- **The scenarios are a what-if, not a prediction.** In the 20 Oct 2026 snapshot, AI exposure and demand growth are essentially uncorrelated (≈ −0.02 for annual log growth among the 58 well-observed skills): today's job posts do not yet show AI-exposed skills falling. The moderate and fast scenarios ask "what if exposure starts to matter this much?" — the weights `λ` are assumptions we show, not estimates from data.
+- Damping assumes skills' true growth rates come from one common spread (`τ`); a few skills with genuinely extreme growth are therefore shown somewhat closer to the average than their raw trend (see `momentum_raw`).
 
 ### 5.2 Portfolio (`engine/portfolio.py`)
 
@@ -148,7 +171,7 @@ User skills with levels `L_i ∈ {1,2,3}` → weights `w_i = L_i / ΣL`.
 |---|---|---|
 | Expected growth `R` | `Σ w_i · r_s,i` | % per year (scenario-dependent) |
 | AI exposure `E` | `Σ w_i · e_i` | gauge 0–100 |
-| Volatility `σ_p` | `√(wᵀ Σ w)`, `Σ` = annualised covariance of monthly `Δ ln ŝ`, shrunk 50% toward its diagonal | % |
+| Volatility `σ_p` | `√(wᵀ Σ w)`, `Σ` = annualised (×12) **sample** covariance (divide by the number of changes − 1) of the monthly changes `Δ ln(ŝ + ε)` over the last 24 smoothed months — the same ε and window as §5.1 volatility, so a one-skill portfolio has `σ_p = v` — shrunk 50% toward its diagonal | % |
 | Diversification `D` | `1 − Σ w_i²` | 0–100 |
 | **Readiness** `U` | `R − (γ/2)·σ_p²` | headline score; `γ` from the risk slider (low 6 · medium 3 · high 1 — lane A tunes so neither term dominates on the sample profiles) |
 
@@ -197,7 +220,7 @@ Every match returns its **contributions** (which skills earned credit, how much)
 |---|---|---|
 | **Home** | One-line pitch, how it works in 3 steps, data freshness badge (snapshot date), Malaysian labour context card (`my_lfs`, with date) | 2 |
 | **1 · Profile** | Skill picker with level 1–3 · or paste CV text → detected skills to confirm · hour budget · risk slider · SDG picker · "Load sample: Aina / Ravi" | 1 |
-| **2 · Skill Market** | Ticker table: ticker, skill, sparkline (demand index + band), momentum, volatility, AI exposure, trajectory label. Scenario toggle (sidebar, global). **Refresh data** button. Source + date under the table | 2, 6 |
+| **2 · Skill Market** | Ticker table: ticker, skill, sparkline (demand index + band), momentum (damped; optionally the raw trend beside it), volatility, AI exposure, trajectory label. Scenario toggle (sidebar, global). **Refresh data** button. Source + date under the table | 2, 6 |
 | **3 · My Portfolio** | Growth, AI-exposure gauge, volatility, diversification, Readiness. **Risk/return chart:** x = AI exposure, y = growth; roles as bubbles (size = match %), user as a highlighted dot | 3, 6 |
 | **4 · Matches** | Top 5 roles: match %, rank-score breakdown, contributing skills, gaps, AI exposure, SDG badges with reasons + links, citations | 3, 5 |
 | **5 · Rebalance Plan** | Target-role picker, ordered course list (hours, cost RM, link, HRD Corp flag, cumulative hours), before/after metrics, **Apply plan** → dot moves on the chart, gauge drops, SDG donut updates | 4, 5 |

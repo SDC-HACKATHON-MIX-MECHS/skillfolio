@@ -1,0 +1,97 @@
+{
+ "_note": "ILLUSTRATIVE FIXTURE for forecast tests. Made-up numbers, not real data.",
+ "is_example": true,
+ "snapshot_date": "2026-01-01",
+ "retrieved_at": "2026-01-01T00:00:00Z",
+ "sources": [
+  {
+   "id": "example",
+   "name": "Illustrative fixture",
+   "url": "https://example.org",
+   "licence": "n/a",
+   "retrieved_at": "2026-01-01T00:00:00Z"
+  }
+ ],
+ "months": [
+  {
+   "month": "2024-05",
+   "story_id": 0,
+   "url": "https://example.org",
+   "total_posts": 200
+  },
+  {
+   "month": "2024-06",
+   "story_id": 0,
+   "url": "https://example.org",
+   "total_posts": 200
+  },
+  {
+   "month": "2024-07",
+   "story_id": 0,
+   "url": "https://example.org",
+   "total_posts": 200
+  }
+ ],
+ "skills": {
+  "rising3": {
+   "counts": [
+    10,
+    12,
+    16
+   ],
+   "shares": [
+    0.05,
+    0.06,
+    0.08
+   ],
+   "exposure": 0.4,
+   "exposure_n_occupations": 5,
+   "exposure_method": "example"
+  },
+  "falling3": {
+   "counts": [
+    20,
+    16,
+    10
+   ],
+   "shares": [
+    0.1,
+    0.08,
+    0.05
+   ],
+   "exposure": 0.4,
+   "exposure_n_occupations": 5,
+   "exposure_method": "example"
+  },
+  "exposed3": {
+   "counts": [
+    30,
+    30,
+    30
+   ],
+   "shares": [
+    0.15,
+    0.15,
+    0.15
+   ],
+   "exposure": 0.46,
+   "exposure_n_occupations": 5,
+   "exposure_method": "example"
+  },
+  "sheltered3": {
+   "counts": [
+    30,
+    30,
+    30
+   ],
+   "shares": [
+    0.15,
+    0.15,
+    0.15
+   ],
+   "exposure": 0.34,
+   "exposure_n_occupations": 5,
+   "exposure_method": "example"
+  }
+ }
+}
