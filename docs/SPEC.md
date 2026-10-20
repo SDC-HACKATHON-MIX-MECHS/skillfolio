@@ -213,7 +213,9 @@ Rules the table leaves open (implemented in `engine/matching.py`):
 
 - Each **role** has ≥1 SDG in `roles.csv`, with a one-line reason and a source URL (lane D).
 - Each **skill** gets SDG **4 (target 4.4 — relevant skills for decent jobs)** as a baseline, plus the SDGs of every role that weights it ≥2.
-- **Impact allocation:** share of the user's portfolio weight linked to each SDG → donut chart, before and after the plan.
+- **Impact allocation:** share of the user's portfolio weight linked to each SDG → donut chart, before and after the plan. Each skill's weight is split **equally across that skill's SDGs** and each SDG adds up the pieces it receives, so the shares sum to 1. The list is ordered by share (high to low), then SDG number. Because every skill carries the baseline SDG 4 and gives it the same piece as each of its other SDGs, SDG 4 is always the largest slice, possibly tied (on a tie with SDG 1, 2 or 3 those are listed first): the donut should label it "SDG 4 (baseline)" and the story is in the other slices. Skills with weight 0 add no slices.
+- **Skill SDGs** are listed with the baseline first, then the rest ascending, each once. Origin roles count as roles here; rows naming a role missing from `roles.csv` are ignored. A skill no role weights ≥ 2 has only SDG 4.
+- Weights passed to the allocation must be non-negative numbers (not booleans) that sum to 1 (as portfolio weights do); anything else is an error.
 - The user's chosen SDGs tilt the ranking via `α` (5.3), so the SDG link **changes choices**, not just labels.
 
 ### 5.6 Guardrails (`engine/guardrails.py`)

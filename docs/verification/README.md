@@ -13,6 +13,7 @@ Each report comes from a separate "verifier" run that checks claims cold: it re-
 | 7 | `07-portfolio-step2-215207.md` | Step 2 portfolio engine (`engine/portfolio.py`) | 6 verified / 1 failed (SPEC sentence on old gamma wrong) / 1 partial; NaN bug found, fixed after the round (finite checks + 5 mutants + 2 tests: 65/65 killed) |
 | 8 | `08-band-widening-220734.md` | Uncertainty bands widened (`SE_INFLATION = 1.9`), regenerated goldens, fixture tweaks, gamma 0.75/0.375/0.125 | 8 pass / 1 partial (one extra mutant survived: `momentum()` band width untested; test + mutant added, 73/71 killed) |
 | 9 | `09-matching-step3-224347.md` | Step 3 role matching (`engine/matching.py`) | 7 pass / 2 partial: SPEC explanation of Aina's top role was wrong; NaN growth, order-dependent float ties, duplicate role ids and bool weights accepted silently. All fixed after the round (94/94 mutants killed) |
+| 10 | `10-sdg-step4-234243.md` | SDG lens (`engine/sdg.py`) | 8 pass / 1 partial: zero-weight skills added empty slices, bool weights accepted, SPEC said SDG 4 was only 'one of the larger' slices (it is always the largest, possibly tied). Fixed after the round (28/28 mutants killed) |
 
 **Open finding from report 6:** the trend's standard error is about 1.9x too small because it is fitted on a 3-month rolling average, so the "80%" bands cover about 50%. Documented in `docs/SPEC.md` 5.1; fix still undecided.
 

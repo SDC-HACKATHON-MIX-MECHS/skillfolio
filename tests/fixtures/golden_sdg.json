@@ -1,0 +1,228 @@
+{
+ "baseline": 4,
+ "min_weight": 2,
+ "roles": [
+  {
+   "role_id": "R1",
+   "sdgs": [
+    7,
+    13
+   ]
+  },
+  {
+   "role_id": "R2",
+   "sdgs": [
+    4,
+    8
+   ]
+  },
+  {
+   "role_id": "R3",
+   "sdgs": [
+    16,
+    16
+   ]
+  },
+  {
+   "role_id": "R4_origin",
+   "sdgs": [
+    8,
+    10
+   ]
+  },
+  {
+   "role_id": "R5_no_skills",
+   "sdgs": [
+    17
+   ]
+  }
+ ],
+ "role_skills": [
+  {
+   "role_id": "R1",
+   "skill_id": "s_green",
+   "weight": 3,
+   "required_level": 1
+  },
+  {
+   "role_id": "R1",
+   "skill_id": "s_mix",
+   "weight": 2,
+   "required_level": 1
+  },
+  {
+   "role_id": "R2",
+   "skill_id": "s_mix",
+   "weight": 3,
+   "required_level": 1
+  },
+  {
+   "role_id": "R2",
+   "skill_id": "s_light",
+   "weight": 1,
+   "required_level": 1
+  },
+  {
+   "role_id": "R3",
+   "skill_id": "s_light",
+   "weight": 1,
+   "required_level": 1
+  },
+  {
+   "role_id": "R3",
+   "skill_id": "s_mix",
+   "weight": 2,
+   "required_level": 1
+  },
+  {
+   "role_id": "R4_origin",
+   "skill_id": "s_origin",
+   "weight": 2,
+   "required_level": 1
+  },
+  {
+   "role_id": "R4_origin",
+   "skill_id": "s_mix",
+   "weight": 1,
+   "required_level": 1
+  },
+  {
+   "role_id": "not_a_role",
+   "skill_id": "s_ghost",
+   "weight": 3,
+   "required_level": 1
+  }
+ ],
+ "skill_sdgs": {
+  "s_green": [
+   4,
+   7,
+   13
+  ],
+  "s_mix": [
+   4,
+   7,
+   8,
+   13,
+   16
+  ],
+  "s_light": [
+   4
+  ],
+  "s_origin": [
+   4,
+   8,
+   10
+  ],
+  "s_ghost": [
+   4
+  ],
+  "s_alone": [
+   4
+  ]
+ },
+ "portfolios": {
+  "three_skills": {
+   "weights": {
+    "s_green": 0.5,
+    "s_mix": 0.3,
+    "s_alone": 0.2
+   },
+   "allocation": [
+    [
+     4,
+     0.4266666666666667
+    ],
+    [
+     7,
+     0.22666666666666666
+    ],
+    [
+     13,
+     0.22666666666666666
+    ],
+    [
+     8,
+     0.06
+    ],
+    [
+     16,
+     0.06
+    ]
+   ]
+  },
+  "single_mixed_skill": {
+   "weights": {
+    "s_mix": 1.0
+   },
+   "allocation": [
+    [
+     4,
+     0.2
+    ],
+    [
+     7,
+     0.2
+    ],
+    [
+     8,
+     0.2
+    ],
+    [
+     13,
+     0.2
+    ],
+    [
+     16,
+     0.2
+    ]
+   ]
+  },
+  "only_baseline_skills": {
+   "weights": {
+    "s_alone": 0.6,
+    "s_ghost": 0.4
+   },
+   "allocation": [
+    [
+     4,
+     1.0
+    ]
+   ]
+  },
+  "equal_weights": {
+   "weights": {
+    "s_green": 0.25,
+    "s_mix": 0.25,
+    "s_light": 0.25,
+    "s_origin": 0.25
+   },
+   "allocation": [
+    [
+     4,
+     0.4666666666666667
+    ],
+    [
+     7,
+     0.13333333333333333
+    ],
+    [
+     8,
+     0.13333333333333333
+    ],
+    [
+     13,
+     0.13333333333333333
+    ],
+    [
+     10,
+     0.08333333333333333
+    ],
+    [
+     16,
+     0.05
+    ]
+   ]
+  }
+ }
+}

@@ -187,7 +187,6 @@ def test_plan_stays_in_budget_and_catalogue(example):
     assert result["after"]["match_pct"] > result["before"]["match_pct"]
 
 
-@todo
 def test_skill_sdgs_baseline_plus_heavily_weighted_roles():
     roles = [{"role_id": "green", "sdgs": [7, 13]}, {"role_id": "light", "sdgs": [16]}]
     role_skills = [
