@@ -85,4 +85,4 @@ Known limit: Hacker News postings are global and tech-heavy, so SkillFolio targe
 
 ## Team agreement
 
-Code is released under the [MIT licence](LICENSE). The project belongs equally to the four team members; any decision to continue it after the hackathon is made together.
+Code is released under the [Apache License 2.0](LICENSE) (copyright notice in [NOTICE](NOTICE)). The project belongs equally to the four team members; any decision to continue it after the hackathon is made together.
