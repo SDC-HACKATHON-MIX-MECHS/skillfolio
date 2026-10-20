@@ -1,0 +1,34 @@
+#!/bin/bash
+# Mutation check for engine/forecast.py: runs every deliberately broken version in plug/mutplug.py
+# against the test suite. A mutant is KILLED when the suite fails. Run from anywhere:
+#
+#   bash tools/mutation/run_all.sh
+#
+# IMPORTANT: classify by pytest's EXIT CODE (1 = tests failed = killed, 0 = survived, anything else =
+# harness problem). Never search the output for the word "failed": "xfailed" contains it, which once made
+# every mutant look killed.
+#
+# Needs the project's Python environment (e.g. `uv sync`, or UV_PROJECT_ENVIRONMENT pointing at it).
+HERE="$(cd "$(dirname "$0")" && pwd)"
+cd "$HERE/../.." || exit 9
+export PYTHONDONTWRITEBYTECODE=1
+export PYTHONPATH="$HERE/plug"
+if command -v uv >/dev/null 2>&1; then RUN="uv run"; else RUN=""; fi
+
+names=$($RUN python -c "import mutplug; print(' '.join(mutplug.MUTANTS))") || exit 9
+$RUN pytest -q -p mutplug -p no:cacheprovider tests >/dev/null 2>&1
+echo "control (no mutation) exit code: $? (must be 0)"
+
+killed=0; surv=""; bad=""
+for m in $names; do
+  MUT=$m $RUN pytest -q -p mutplug -p no:cacheprovider tests >/dev/null 2>&1
+  rc=$?
+  case $rc in
+    1) killed=$((killed + 1)) ;;
+    0) surv="$surv $m" ;;
+    *) bad="$bad $m(rc=$rc)" ;;
+  esac
+done
+echo "mutants: $(echo $names | wc -w)  killed: $killed"
+echo "survivors:${surv:- none}"
+echo "harness problems:${bad:- none}"
