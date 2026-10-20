@@ -1,0 +1,18 @@
+{
+  "profile_id": "aina",
+  "display_name": "Aina (synthetic)",
+  "synthetic": true,
+  "headline": "Fresh business-analytics graduate, Kuala Lumpur",
+  "hours_budget": 200,
+  "budget_rm": 300,
+  "risk_tolerance": "medium",
+  "sdg_interests": [8, 13],
+  "skills": [
+    {"skill_id": "excel", "level": 3},
+    {"skill_id": "sql", "level": 2},
+    {"skill_id": "python", "level": 1},
+    {"skill_id": "powerbi", "level": 2},
+    {"skill_id": "statistics", "level": 2},
+    {"skill_id": "data_analysis", "level": 2}
+  ]
+}

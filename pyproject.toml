@@ -1,0 +1,21 @@
+[project]
+name = "skillfolio"
+version = "0.1.0"
+description = "Your skills are a portfolio. AI is the market. SDC Hackathon 2026, Domain 1."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+dependencies = [
+    "streamlit>=1.38",
+    "pandas>=2.2",
+    "numpy>=1.26",
+    "plotly>=5.22",
+    "requests>=2.32",
+]
+
+[dependency-groups]
+dev = ["pytest>=8.2"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]

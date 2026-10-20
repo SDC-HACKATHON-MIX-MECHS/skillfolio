@@ -1,0 +1,23 @@
+{
+  "_note": "ILLUSTRATIVE FIXTURE for development and tests only. Numbers are made up. Not real data.",
+  "snapshot_date": "2026-01-01",
+  "retrieved_at": "2026-01-01T00:00:00Z",
+  "is_example": true,
+  "sources": [
+    {"id": "hn_whoishiring", "name": "Hacker News - Ask HN: Who is hiring? (EXAMPLE)", "url": "https://example.org/hn", "licence": "n/a", "retrieved_at": "2026-01-01T00:00:00Z"},
+    {"id": "aei_job_exposure", "name": "AI exposure (EXAMPLE)", "url": "https://example.org/exposure", "licence": "n/a", "retrieved_at": "2026-01-01T00:00:00Z"}
+  ],
+  "months": [
+    {"month": "2025-01", "story_id": 0, "url": "https://example.org/t/1", "total_posts": 200},
+    {"month": "2025-02", "story_id": 0, "url": "https://example.org/t/2", "total_posts": 200},
+    {"month": "2025-03", "story_id": 0, "url": "https://example.org/t/3", "total_posts": 200},
+    {"month": "2025-04", "story_id": 0, "url": "https://example.org/t/4", "total_posts": 200},
+    {"month": "2025-05", "story_id": 0, "url": "https://example.org/t/5", "total_posts": 200},
+    {"month": "2025-06", "story_id": 0, "url": "https://example.org/t/6", "total_posts": 200}
+  ],
+  "skills": {
+    "rising_skill":   {"counts": [10, 12, 14, 16, 18, 20], "shares": [0.05, 0.06, 0.07, 0.08, 0.09, 0.10], "exposure": 0.2, "exposure_n_occupations": 5, "exposure_method": "example"},
+    "flat_skill":     {"counts": [30, 30, 30, 30, 30, 30], "shares": [0.15, 0.15, 0.15, 0.15, 0.15, 0.15], "exposure": 0.4, "exposure_n_occupations": 5, "exposure_method": "example"},
+    "falling_skill":  {"counts": [40, 36, 32, 28, 24, 20], "shares": [0.20, 0.18, 0.16, 0.14, 0.12, 0.10], "exposure": 0.7, "exposure_n_occupations": 5, "exposure_method": "example"}
+  }
+}
