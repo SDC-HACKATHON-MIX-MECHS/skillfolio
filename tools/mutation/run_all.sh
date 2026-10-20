@@ -1,8 +1,9 @@
 #!/bin/bash
-# Mutation check for engine/forecast.py: runs every deliberately broken version in plug/mutplug.py
-# against the test suite. A mutant is KILLED when the suite fails. Run from anywhere:
+# Mutation check: runs every deliberately broken version in a plug (default plug/mutplug.py = engine/forecast.py;
+# also mutplug_portfolio, mutplug_matching) against the test suite. A mutant is KILLED when the suite fails.
+# Run from anywhere:
 #
-#   bash tools/mutation/run_all.sh
+#   bash tools/mutation/run_all.sh [mutplug | mutplug_portfolio | mutplug_matching]
 #
 # IMPORTANT: classify by pytest's EXIT CODE (1 = tests failed = killed, 0 = survived, anything else =
 # harness problem). Never search the output for the word "failed": "xfailed" contains it, which once made

@@ -148,10 +148,10 @@ File: `data/snapshots/YYYY-MM-DD.json` (owner B), copied to `latest.json`.
   "contributions": [{"skill_id": "sql", "weight": 3, "user_level": 2, "required_level": 2, "credit": 1.0}],
   "gaps": [{"skill_id": "ml", "weight": 3, "user_level": 0, "required_level": 2}],
   "sdgs": [9, 8],
-  "citations": [{"source_id": "aei_job_exposure", "snapshot_date": "2026-10-20"}]
+  "citations": [{"source_id": "hn_whoishiring", "snapshot_date": "2026-10-20"}, {"source_id": "aei_job_exposure", "snapshot_date": "2026-10-20"}, {"source_id": "onet_tech", "snapshot_date": "2026-10-20"}]
 }
 ```
-`match_pct` = (3 × 1.0 + 3 × 0) / (3 + 3) = 0.5 · `rank_score` = 0.5 × (1 + 0.09) × (1 + 0.15 × 0.5) = 0.5859. `gaps` are sorted by `weight` (high → low), then `required_level` (high → low).
+`match_pct` = (3 × 1.0 + 3 × 0) / (3 + 3) = 0.5 · `rank_score` = 0.5 × (1 + 0.09) × (1 + 0.15 × 0.5) = 0.5859. `gaps` are sorted by `weight` (high → low), then `required_level` (high → low), then `skill_id`. `contributions` hold the skills with some credit, sorted by `weight`, then `credit` (high → low), then `skill_id`; a partly met skill is in both lists. `citations` are the demand data (`hn_whoishiring`), the role's exposure source, and one entry per distinct source in the role's skill rows (`onet_in_demand` / `onet_hot` appear as `onet_tech`; a hand-curated row with source `team` appears as `team`). Rules for growth, ties and which roles are ranked are in SPEC 5.3.
 
 ### PathwayStep — engine output (owner A)
 

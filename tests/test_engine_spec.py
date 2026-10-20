@@ -141,7 +141,6 @@ def test_portfolio_weights_follow_levels():
     assert w == pytest.approx({"a": 0.75, "b": 0.25})
 
 
-@todo
 def test_match_pct_formula():
     role = {"role_id": "r", "title": "R", "role_type": "future", "ai_exposure": 0.3, "sdgs": [9]}
     role_skills = [
@@ -155,7 +154,6 @@ def test_match_pct_formula():
     assert m["citations"], "every match must cite its sources"
 
 
-@todo
 def test_match_caps_credit_and_builds_rank_score():
     role = {"role_id": "r", "title": "R", "role_type": "future", "ai_exposure": 0.3, "sdgs": [9]}
     role_skills = [

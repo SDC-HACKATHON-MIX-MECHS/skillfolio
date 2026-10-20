@@ -1,0 +1,1262 @@
+{
+ "alpha": 0.15,
+ "thin_growth_cap": 0.05,
+ "roles": [
+  {
+   "role_id": "r_tie_b",
+   "title": "Tie B",
+   "role_type": "future",
+   "ai_exposure": 0.3,
+   "sdgs": [
+    8
+   ]
+  },
+  {
+   "role_id": "r_data",
+   "title": "Data role",
+   "role_type": "future",
+   "ai_exposure": 0.4,
+   "sdgs": [
+    9,
+    8
+   ]
+  },
+  {
+   "role_id": "r_ops",
+   "title": "Ops role",
+   "role_type": "future",
+   "ai_exposure": 0.2,
+   "sdgs": [
+    8,
+    10
+   ]
+  },
+  {
+   "role_id": "r_green",
+   "title": "Green role",
+   "role_type": "future",
+   "ai_exposure": null,
+   "sdgs": [
+    7,
+    13
+   ]
+  },
+  {
+   "role_id": "r_ghost",
+   "title": "Role with a skill missing from the snapshot",
+   "role_type": "future",
+   "ai_exposure": 0.1,
+   "sdgs": [
+    4
+   ]
+  },
+  {
+   "role_id": "r_origin",
+   "title": "Origin role (not ranked)",
+   "role_type": "origin",
+   "ai_exposure": 0.7,
+   "sdgs": [
+    8
+   ]
+  },
+  {
+   "role_id": "r_empty",
+   "title": "Role without skills",
+   "role_type": "future",
+   "ai_exposure": 0.1,
+   "sdgs": [
+    9
+   ]
+  },
+  {
+   "role_id": "r_tie_a",
+   "title": "Tie A",
+   "role_type": "future",
+   "ai_exposure": 0.3,
+   "sdgs": [
+    8
+   ]
+  }
+ ],
+ "role_skills": [
+  {
+   "role_id": "r_data",
+   "skill_id": "u_turn",
+   "weight": 3,
+   "required_level": 2,
+   "source": "onet_in_demand"
+  },
+  {
+   "role_id": "r_data",
+   "skill_id": "noisy_early",
+   "weight": 2,
+   "required_level": 1,
+   "source": "onet_hot"
+  },
+  {
+   "role_id": "r_data",
+   "skill_id": "sparse",
+   "weight": 1,
+   "required_level": 2,
+   "source": "onet_in_demand"
+  },
+  {
+   "role_id": "r_ops",
+   "skill_id": "shift_up",
+   "weight": 3,
+   "required_level": 3,
+   "source": "onet_in_demand"
+  },
+  {
+   "role_id": "r_ops",
+   "skill_id": "shift_down",
+   "weight": 2,
+   "required_level": 2,
+   "source": "onet_in_demand"
+  },
+  {
+   "role_id": "r_ops",
+   "skill_id": "unknown_exp",
+   "weight": 1,
+   "required_level": 1,
+   "source": "onet_in_demand"
+  },
+  {
+   "role_id": "r_green",
+   "skill_id": "faded",
+   "weight": 2,
+   "required_level": 2,
+   "source": "onet_in_demand"
+  },
+  {
+   "role_id": "r_green",
+   "skill_id": "exactly_3",
+   "weight": 2,
+   "required_level": 1,
+   "source": "onet_in_demand"
+  },
+  {
+   "role_id": "r_ghost",
+   "skill_id": "ghost",
+   "weight": 2,
+   "required_level": 1,
+   "source": "onet_in_demand"
+  },
+  {
+   "role_id": "r_ghost",
+   "skill_id": "u_turn",
+   "weight": 2,
+   "required_level": 1,
+   "source": "onet_in_demand"
+  },
+  {
+   "role_id": "r_origin",
+   "skill_id": "shift_up",
+   "weight": 3,
+   "required_level": 1,
+   "source": "onet_in_demand"
+  },
+  {
+   "role_id": "r_tie_b",
+   "skill_id": "shift_up",
+   "weight": 1,
+   "required_level": 1,
+   "source": "onet_in_demand"
+  },
+  {
+   "role_id": "r_tie_a",
+   "skill_id": "shift_up",
+   "weight": 1,
+   "required_level": 1,
+   "source": "onet_in_demand"
+  }
+ ],
+ "cases": {
+  "full_profile/moderate": {
+   "user_levels": {
+    "u_turn": 3,
+    "noisy_early": 1,
+    "shift_up": 2,
+    "shift_down": 3,
+    "exactly_3": 3,
+    "faded": 1
+   },
+   "user_sdgs": [
+    9,
+    13
+   ],
+   "scenario": "moderate",
+   "ranking": [
+    "r_data",
+    "r_tie_a",
+    "r_tie_b",
+    "r_ghost",
+    "r_green",
+    "r_ops"
+   ],
+   "matches": {
+    "r_tie_b": {
+     "role_id": "r_tie_b",
+     "match_pct": 1.0,
+     "role_growth": 0.045988921386138415,
+     "sdg_overlap": 0.0,
+     "rank_score": 1.0459889213861384,
+     "contributions": [
+      {
+       "skill_id": "shift_up",
+       "weight": 1,
+       "user_level": 2,
+       "required_level": 1,
+       "credit": 1.0
+      }
+     ],
+     "gaps": []
+    },
+    "r_data": {
+     "role_id": "r_data",
+     "match_pct": 0.8333333333333333,
+     "role_growth": 0.7408154089293121,
+     "sdg_overlap": 0.5,
+     "rank_score": 1.5594804704991754,
+     "contributions": [
+      {
+       "skill_id": "u_turn",
+       "weight": 3,
+       "user_level": 3,
+       "required_level": 2,
+       "credit": 1.0
+      },
+      {
+       "skill_id": "noisy_early",
+       "weight": 2,
+       "user_level": 1,
+       "required_level": 1,
+       "credit": 1.0
+      }
+     ],
+     "gaps": [
+      {
+       "skill_id": "sparse",
+       "weight": 1,
+       "user_level": 0,
+       "required_level": 2
+      }
+     ]
+    },
+    "r_ops": {
+     "role_id": "r_ops",
+     "match_pct": 0.6666666666666666,
+     "role_growth": 0.07896794001519628,
+     "sdg_overlap": 0.0,
+     "rank_score": 0.7193119600101309,
+     "contributions": [
+      {
+       "skill_id": "shift_up",
+       "weight": 3,
+       "user_level": 2,
+       "required_level": 3,
+       "credit": 0.6666666666666666
+      },
+      {
+       "skill_id": "shift_down",
+       "weight": 2,
+       "user_level": 3,
+       "required_level": 2,
+       "credit": 1.0
+      }
+     ],
+     "gaps": [
+      {
+       "skill_id": "shift_up",
+       "weight": 3,
+       "user_level": 2,
+       "required_level": 3
+      },
+      {
+       "skill_id": "unknown_exp",
+       "weight": 1,
+       "user_level": 0,
+       "required_level": 1
+      }
+     ]
+    },
+    "r_green": {
+     "role_id": "r_green",
+     "match_pct": 0.75,
+     "role_growth": 0.0818671991714438,
+     "sdg_overlap": 0.5,
+     "rank_score": 0.8722554293319764,
+     "contributions": [
+      {
+       "skill_id": "exactly_3",
+       "weight": 2,
+       "user_level": 3,
+       "required_level": 1,
+       "credit": 1.0
+      },
+      {
+       "skill_id": "faded",
+       "weight": 2,
+       "user_level": 1,
+       "required_level": 2,
+       "credit": 0.5
+      }
+     ],
+     "gaps": [
+      {
+       "skill_id": "faded",
+       "weight": 2,
+       "user_level": 1,
+       "required_level": 2
+      }
+     ]
+    },
+    "r_ghost": {
+     "role_id": "r_ghost",
+     "match_pct": 0.5,
+     "role_growth": 0.7644823207353157,
+     "sdg_overlap": 0.0,
+     "rank_score": 0.8822411603676579,
+     "contributions": [
+      {
+       "skill_id": "u_turn",
+       "weight": 2,
+       "user_level": 3,
+       "required_level": 1,
+       "credit": 1.0
+      }
+     ],
+     "gaps": [
+      {
+       "skill_id": "ghost",
+       "weight": 2,
+       "user_level": 0,
+       "required_level": 1
+      }
+     ]
+    },
+    "r_origin": {
+     "role_id": "r_origin",
+     "match_pct": 1.0,
+     "role_growth": 0.045988921386138415,
+     "sdg_overlap": 0.0,
+     "rank_score": 1.0459889213861384,
+     "contributions": [
+      {
+       "skill_id": "shift_up",
+       "weight": 3,
+       "user_level": 2,
+       "required_level": 1,
+       "credit": 1.0
+      }
+     ],
+     "gaps": []
+    },
+    "r_tie_a": {
+     "role_id": "r_tie_a",
+     "match_pct": 1.0,
+     "role_growth": 0.045988921386138415,
+     "sdg_overlap": 0.0,
+     "rank_score": 1.0459889213861384,
+     "contributions": [
+      {
+       "skill_id": "shift_up",
+       "weight": 1,
+       "user_level": 2,
+       "required_level": 1,
+       "credit": 1.0
+      }
+     ],
+     "gaps": []
+    }
+   }
+  },
+  "full_profile/fast": {
+   "user_levels": {
+    "u_turn": 3,
+    "noisy_early": 1,
+    "shift_up": 2,
+    "shift_down": 3,
+    "exactly_3": 3,
+    "faded": 1
+   },
+   "user_sdgs": [
+    9,
+    13
+   ],
+   "scenario": "fast",
+   "ranking": [
+    "r_data",
+    "r_tie_a",
+    "r_tie_b",
+    "r_ghost",
+    "r_green",
+    "r_ops"
+   ],
+   "matches": {
+    "r_tie_b": {
+     "role_id": "r_tie_b",
+     "match_pct": 1.0,
+     "role_growth": 0.13049442566974867,
+     "sdg_overlap": 0.0,
+     "rank_score": 1.1304944256697487,
+     "contributions": [
+      {
+       "skill_id": "shift_up",
+       "weight": 1,
+       "user_level": 2,
+       "required_level": 1,
+       "credit": 1.0
+      }
+     ],
+     "gaps": []
+    },
+    "r_data": {
+     "role_id": "r_data",
+     "match_pct": 0.8333333333333333,
+     "role_growth": 0.8500604186202775,
+     "sdg_overlap": 0.5,
+     "rank_score": 1.657345791680665,
+     "contributions": [
+      {
+       "skill_id": "u_turn",
+       "weight": 3,
+       "user_level": 3,
+       "required_level": 2,
+       "credit": 1.0
+      },
+      {
+       "skill_id": "noisy_early",
+       "weight": 2,
+       "user_level": 1,
+       "required_level": 1,
+       "credit": 1.0
+      }
+     ],
+     "gaps": [
+      {
+       "skill_id": "sparse",
+       "weight": 1,
+       "user_level": 0,
+       "required_level": 2
+      }
+     ]
+    },
+    "r_ops": {
+     "role_id": "r_ops",
+     "match_pct": 0.6666666666666666,
+     "role_growth": 0.10761837523864395,
+     "sdg_overlap": 0.0,
+     "rank_score": 0.738412250159096,
+     "contributions": [
+      {
+       "skill_id": "shift_up",
+       "weight": 3,
+       "user_level": 2,
+       "required_level": 3,
+       "credit": 0.6666666666666666
+      },
+      {
+       "skill_id": "shift_down",
+       "weight": 2,
+       "user_level": 3,
+       "required_level": 2,
+       "credit": 1.0
+      }
+     ],
+     "gaps": [
+      {
+       "skill_id": "shift_up",
+       "weight": 3,
+       "user_level": 2,
+       "required_level": 3
+      },
+      {
+       "skill_id": "unknown_exp",
+       "weight": 1,
+       "user_level": 0,
+       "required_level": 1
+      }
+     ]
+    },
+    "r_green": {
+     "role_id": "r_green",
+     "match_pct": 0.75,
+     "role_growth": 0.10598241807172126,
+     "sdg_overlap": 0.5,
+     "rank_score": 0.8916983245703253,
+     "contributions": [
+      {
+       "skill_id": "exactly_3",
+       "weight": 2,
+       "user_level": 3,
+       "required_level": 1,
+       "credit": 1.0
+      },
+      {
+       "skill_id": "faded",
+       "weight": 2,
+       "user_level": 1,
+       "required_level": 2,
+       "credit": 0.5
+      }
+     ],
+     "gaps": [
+      {
+       "skill_id": "faded",
+       "weight": 2,
+       "user_level": 1,
+       "required_level": 2
+      }
+     ]
+    },
+    "r_ghost": {
+     "role_id": "r_ghost",
+     "match_pct": 0.5,
+     "role_growth": 0.965732494111105,
+     "sdg_overlap": 0.0,
+     "rank_score": 0.9828662470555525,
+     "contributions": [
+      {
+       "skill_id": "u_turn",
+       "weight": 2,
+       "user_level": 3,
+       "required_level": 1,
+       "credit": 1.0
+      }
+     ],
+     "gaps": [
+      {
+       "skill_id": "ghost",
+       "weight": 2,
+       "user_level": 0,
+       "required_level": 1
+      }
+     ]
+    },
+    "r_origin": {
+     "role_id": "r_origin",
+     "match_pct": 1.0,
+     "role_growth": 0.13049442566974867,
+     "sdg_overlap": 0.0,
+     "rank_score": 1.1304944256697487,
+     "contributions": [
+      {
+       "skill_id": "shift_up",
+       "weight": 3,
+       "user_level": 2,
+       "required_level": 1,
+       "credit": 1.0
+      }
+     ],
+     "gaps": []
+    },
+    "r_tie_a": {
+     "role_id": "r_tie_a",
+     "match_pct": 1.0,
+     "role_growth": 0.13049442566974867,
+     "sdg_overlap": 0.0,
+     "rank_score": 1.1304944256697487,
+     "contributions": [
+      {
+       "skill_id": "shift_up",
+       "weight": 1,
+       "user_level": 2,
+       "required_level": 1,
+       "credit": 1.0
+      }
+     ],
+     "gaps": []
+    }
+   }
+  },
+  "empty_profile/moderate": {
+   "user_levels": {},
+   "user_sdgs": [],
+   "scenario": "moderate",
+   "ranking": [
+    "r_data",
+    "r_ghost",
+    "r_green",
+    "r_ops",
+    "r_tie_a",
+    "r_tie_b"
+   ],
+   "matches": {
+    "r_tie_b": {
+     "role_id": "r_tie_b",
+     "match_pct": 0.0,
+     "role_growth": 0.045988921386138415,
+     "sdg_overlap": 0.0,
+     "rank_score": 0.0,
+     "contributions": [],
+     "gaps": [
+      {
+       "skill_id": "shift_up",
+       "weight": 1,
+       "user_level": 0,
+       "required_level": 1
+      }
+     ]
+    },
+    "r_data": {
+     "role_id": "r_data",
+     "match_pct": 0.0,
+     "role_growth": 0.7408154089293121,
+     "sdg_overlap": 0.0,
+     "rank_score": 0.0,
+     "contributions": [],
+     "gaps": [
+      {
+       "skill_id": "u_turn",
+       "weight": 3,
+       "user_level": 0,
+       "required_level": 2
+      },
+      {
+       "skill_id": "noisy_early",
+       "weight": 2,
+       "user_level": 0,
+       "required_level": 1
+      },
+      {
+       "skill_id": "sparse",
+       "weight": 1,
+       "user_level": 0,
+       "required_level": 2
+      }
+     ]
+    },
+    "r_ops": {
+     "role_id": "r_ops",
+     "match_pct": 0.0,
+     "role_growth": 0.07896794001519628,
+     "sdg_overlap": 0.0,
+     "rank_score": 0.0,
+     "contributions": [],
+     "gaps": [
+      {
+       "skill_id": "shift_up",
+       "weight": 3,
+       "user_level": 0,
+       "required_level": 3
+      },
+      {
+       "skill_id": "shift_down",
+       "weight": 2,
+       "user_level": 0,
+       "required_level": 2
+      },
+      {
+       "skill_id": "unknown_exp",
+       "weight": 1,
+       "user_level": 0,
+       "required_level": 1
+      }
+     ]
+    },
+    "r_green": {
+     "role_id": "r_green",
+     "match_pct": 0.0,
+     "role_growth": 0.0818671991714438,
+     "sdg_overlap": 0.0,
+     "rank_score": 0.0,
+     "contributions": [],
+     "gaps": [
+      {
+       "skill_id": "faded",
+       "weight": 2,
+       "user_level": 0,
+       "required_level": 2
+      },
+      {
+       "skill_id": "exactly_3",
+       "weight": 2,
+       "user_level": 0,
+       "required_level": 1
+      }
+     ]
+    },
+    "r_ghost": {
+     "role_id": "r_ghost",
+     "match_pct": 0.0,
+     "role_growth": 0.7644823207353157,
+     "sdg_overlap": 0.0,
+     "rank_score": 0.0,
+     "contributions": [],
+     "gaps": [
+      {
+       "skill_id": "ghost",
+       "weight": 2,
+       "user_level": 0,
+       "required_level": 1
+      },
+      {
+       "skill_id": "u_turn",
+       "weight": 2,
+       "user_level": 0,
+       "required_level": 1
+      }
+     ]
+    },
+    "r_origin": {
+     "role_id": "r_origin",
+     "match_pct": 0.0,
+     "role_growth": 0.045988921386138415,
+     "sdg_overlap": 0.0,
+     "rank_score": 0.0,
+     "contributions": [],
+     "gaps": [
+      {
+       "skill_id": "shift_up",
+       "weight": 3,
+       "user_level": 0,
+       "required_level": 1
+      }
+     ]
+    },
+    "r_tie_a": {
+     "role_id": "r_tie_a",
+     "match_pct": 0.0,
+     "role_growth": 0.045988921386138415,
+     "sdg_overlap": 0.0,
+     "rank_score": 0.0,
+     "contributions": [],
+     "gaps": [
+      {
+       "skill_id": "shift_up",
+       "weight": 1,
+       "user_level": 0,
+       "required_level": 1
+      }
+     ]
+    }
+   }
+  },
+  "empty_profile/fast": {
+   "user_levels": {},
+   "user_sdgs": [],
+   "scenario": "fast",
+   "ranking": [
+    "r_data",
+    "r_ghost",
+    "r_green",
+    "r_ops",
+    "r_tie_a",
+    "r_tie_b"
+   ],
+   "matches": {
+    "r_tie_b": {
+     "role_id": "r_tie_b",
+     "match_pct": 0.0,
+     "role_growth": 0.13049442566974867,
+     "sdg_overlap": 0.0,
+     "rank_score": 0.0,
+     "contributions": [],
+     "gaps": [
+      {
+       "skill_id": "shift_up",
+       "weight": 1,
+       "user_level": 0,
+       "required_level": 1
+      }
+     ]
+    },
+    "r_data": {
+     "role_id": "r_data",
+     "match_pct": 0.0,
+     "role_growth": 0.8500604186202775,
+     "sdg_overlap": 0.0,
+     "rank_score": 0.0,
+     "contributions": [],
+     "gaps": [
+      {
+       "skill_id": "u_turn",
+       "weight": 3,
+       "user_level": 0,
+       "required_level": 2
+      },
+      {
+       "skill_id": "noisy_early",
+       "weight": 2,
+       "user_level": 0,
+       "required_level": 1
+      },
+      {
+       "skill_id": "sparse",
+       "weight": 1,
+       "user_level": 0,
+       "required_level": 2
+      }
+     ]
+    },
+    "r_ops": {
+     "role_id": "r_ops",
+     "match_pct": 0.0,
+     "role_growth": 0.10761837523864395,
+     "sdg_overlap": 0.0,
+     "rank_score": 0.0,
+     "contributions": [],
+     "gaps": [
+      {
+       "skill_id": "shift_up",
+       "weight": 3,
+       "user_level": 0,
+       "required_level": 3
+      },
+      {
+       "skill_id": "shift_down",
+       "weight": 2,
+       "user_level": 0,
+       "required_level": 2
+      },
+      {
+       "skill_id": "unknown_exp",
+       "weight": 1,
+       "user_level": 0,
+       "required_level": 1
+      }
+     ]
+    },
+    "r_green": {
+     "role_id": "r_green",
+     "match_pct": 0.0,
+     "role_growth": 0.10598241807172126,
+     "sdg_overlap": 0.0,
+     "rank_score": 0.0,
+     "contributions": [],
+     "gaps": [
+      {
+       "skill_id": "faded",
+       "weight": 2,
+       "user_level": 0,
+       "required_level": 2
+      },
+      {
+       "skill_id": "exactly_3",
+       "weight": 2,
+       "user_level": 0,
+       "required_level": 1
+      }
+     ]
+    },
+    "r_ghost": {
+     "role_id": "r_ghost",
+     "match_pct": 0.0,
+     "role_growth": 0.965732494111105,
+     "sdg_overlap": 0.0,
+     "rank_score": 0.0,
+     "contributions": [],
+     "gaps": [
+      {
+       "skill_id": "ghost",
+       "weight": 2,
+       "user_level": 0,
+       "required_level": 1
+      },
+      {
+       "skill_id": "u_turn",
+       "weight": 2,
+       "user_level": 0,
+       "required_level": 1
+      }
+     ]
+    },
+    "r_origin": {
+     "role_id": "r_origin",
+     "match_pct": 0.0,
+     "role_growth": 0.13049442566974867,
+     "sdg_overlap": 0.0,
+     "rank_score": 0.0,
+     "contributions": [],
+     "gaps": [
+      {
+       "skill_id": "shift_up",
+       "weight": 3,
+       "user_level": 0,
+       "required_level": 1
+      }
+     ]
+    },
+    "r_tie_a": {
+     "role_id": "r_tie_a",
+     "match_pct": 0.0,
+     "role_growth": 0.13049442566974867,
+     "sdg_overlap": 0.0,
+     "rank_score": 0.0,
+     "contributions": [],
+     "gaps": [
+      {
+       "skill_id": "shift_up",
+       "weight": 1,
+       "user_level": 0,
+       "required_level": 1
+      }
+     ]
+    }
+   }
+  },
+  "thin_and_repeated_sdgs/moderate": {
+   "user_levels": {
+    "sparse": 3,
+    "u_turn": 1
+   },
+   "user_sdgs": [
+    8,
+    8,
+    9
+   ],
+   "scenario": "moderate",
+   "ranking": [
+    "r_ghost",
+    "r_data",
+    "r_green",
+    "r_ops",
+    "r_tie_a",
+    "r_tie_b"
+   ],
+   "matches": {
+    "r_tie_b": {
+     "role_id": "r_tie_b",
+     "match_pct": 0.0,
+     "role_growth": 0.045988921386138415,
+     "sdg_overlap": 0.5,
+     "rank_score": 0.0,
+     "contributions": [],
+     "gaps": [
+      {
+       "skill_id": "shift_up",
+       "weight": 1,
+       "user_level": 0,
+       "required_level": 1
+      }
+     ]
+    },
+    "r_data": {
+     "role_id": "r_data",
+     "match_pct": 0.41666666666666663,
+     "role_growth": 0.7408154089293121,
+     "sdg_overlap": 1.0,
+     "rank_score": 0.8341407167786287,
+     "contributions": [
+      {
+       "skill_id": "u_turn",
+       "weight": 3,
+       "user_level": 1,
+       "required_level": 2,
+       "credit": 0.5
+      },
+      {
+       "skill_id": "sparse",
+       "weight": 1,
+       "user_level": 3,
+       "required_level": 2,
+       "credit": 1.0
+      }
+     ],
+     "gaps": [
+      {
+       "skill_id": "u_turn",
+       "weight": 3,
+       "user_level": 1,
+       "required_level": 2
+      },
+      {
+       "skill_id": "noisy_early",
+       "weight": 2,
+       "user_level": 0,
+       "required_level": 1
+      }
+     ]
+    },
+    "r_ops": {
+     "role_id": "r_ops",
+     "match_pct": 0.0,
+     "role_growth": 0.07896794001519628,
+     "sdg_overlap": 0.5,
+     "rank_score": 0.0,
+     "contributions": [],
+     "gaps": [
+      {
+       "skill_id": "shift_up",
+       "weight": 3,
+       "user_level": 0,
+       "required_level": 3
+      },
+      {
+       "skill_id": "shift_down",
+       "weight": 2,
+       "user_level": 0,
+       "required_level": 2
+      },
+      {
+       "skill_id": "unknown_exp",
+       "weight": 1,
+       "user_level": 0,
+       "required_level": 1
+      }
+     ]
+    },
+    "r_green": {
+     "role_id": "r_green",
+     "match_pct": 0.0,
+     "role_growth": 0.0818671991714438,
+     "sdg_overlap": 0.0,
+     "rank_score": 0.0,
+     "contributions": [],
+     "gaps": [
+      {
+       "skill_id": "faded",
+       "weight": 2,
+       "user_level": 0,
+       "required_level": 2
+      },
+      {
+       "skill_id": "exactly_3",
+       "weight": 2,
+       "user_level": 0,
+       "required_level": 1
+      }
+     ]
+    },
+    "r_ghost": {
+     "role_id": "r_ghost",
+     "match_pct": 0.5,
+     "role_growth": 0.7644823207353157,
+     "sdg_overlap": 0.0,
+     "rank_score": 0.8822411603676579,
+     "contributions": [
+      {
+       "skill_id": "u_turn",
+       "weight": 2,
+       "user_level": 1,
+       "required_level": 1,
+       "credit": 1.0
+      }
+     ],
+     "gaps": [
+      {
+       "skill_id": "ghost",
+       "weight": 2,
+       "user_level": 0,
+       "required_level": 1
+      }
+     ]
+    },
+    "r_origin": {
+     "role_id": "r_origin",
+     "match_pct": 0.0,
+     "role_growth": 0.045988921386138415,
+     "sdg_overlap": 0.5,
+     "rank_score": 0.0,
+     "contributions": [],
+     "gaps": [
+      {
+       "skill_id": "shift_up",
+       "weight": 3,
+       "user_level": 0,
+       "required_level": 1
+      }
+     ]
+    },
+    "r_tie_a": {
+     "role_id": "r_tie_a",
+     "match_pct": 0.0,
+     "role_growth": 0.045988921386138415,
+     "sdg_overlap": 0.5,
+     "rank_score": 0.0,
+     "contributions": [],
+     "gaps": [
+      {
+       "skill_id": "shift_up",
+       "weight": 1,
+       "user_level": 0,
+       "required_level": 1
+      }
+     ]
+    }
+   }
+  },
+  "thin_and_repeated_sdgs/fast": {
+   "user_levels": {
+    "sparse": 3,
+    "u_turn": 1
+   },
+   "user_sdgs": [
+    8,
+    8,
+    9
+   ],
+   "scenario": "fast",
+   "ranking": [
+    "r_ghost",
+    "r_data",
+    "r_green",
+    "r_ops",
+    "r_tie_a",
+    "r_tie_b"
+   ],
+   "matches": {
+    "r_tie_b": {
+     "role_id": "r_tie_b",
+     "match_pct": 0.0,
+     "role_growth": 0.13049442566974867,
+     "sdg_overlap": 0.5,
+     "rank_score": 0.0,
+     "contributions": [],
+     "gaps": [
+      {
+       "skill_id": "shift_up",
+       "weight": 1,
+       "user_level": 0,
+       "required_level": 1
+      }
+     ]
+    },
+    "r_data": {
+     "role_id": "r_data",
+     "match_pct": 0.41666666666666663,
+     "role_growth": 0.8500604186202775,
+     "sdg_overlap": 1.0,
+     "rank_score": 0.8864872839222161,
+     "contributions": [
+      {
+       "skill_id": "u_turn",
+       "weight": 3,
+       "user_level": 1,
+       "required_level": 2,
+       "credit": 0.5
+      },
+      {
+       "skill_id": "sparse",
+       "weight": 1,
+       "user_level": 3,
+       "required_level": 2,
+       "credit": 1.0
+      }
+     ],
+     "gaps": [
+      {
+       "skill_id": "u_turn",
+       "weight": 3,
+       "user_level": 1,
+       "required_level": 2
+      },
+      {
+       "skill_id": "noisy_early",
+       "weight": 2,
+       "user_level": 0,
+       "required_level": 1
+      }
+     ]
+    },
+    "r_ops": {
+     "role_id": "r_ops",
+     "match_pct": 0.0,
+     "role_growth": 0.10761837523864395,
+     "sdg_overlap": 0.5,
+     "rank_score": 0.0,
+     "contributions": [],
+     "gaps": [
+      {
+       "skill_id": "shift_up",
+       "weight": 3,
+       "user_level": 0,
+       "required_level": 3
+      },
+      {
+       "skill_id": "shift_down",
+       "weight": 2,
+       "user_level": 0,
+       "required_level": 2
+      },
+      {
+       "skill_id": "unknown_exp",
+       "weight": 1,
+       "user_level": 0,
+       "required_level": 1
+      }
+     ]
+    },
+    "r_green": {
+     "role_id": "r_green",
+     "match_pct": 0.0,
+     "role_growth": 0.10598241807172126,
+     "sdg_overlap": 0.0,
+     "rank_score": 0.0,
+     "contributions": [],
+     "gaps": [
+      {
+       "skill_id": "faded",
+       "weight": 2,
+       "user_level": 0,
+       "required_level": 2
+      },
+      {
+       "skill_id": "exactly_3",
+       "weight": 2,
+       "user_level": 0,
+       "required_level": 1
+      }
+     ]
+    },
+    "r_ghost": {
+     "role_id": "r_ghost",
+     "match_pct": 0.5,
+     "role_growth": 0.965732494111105,
+     "sdg_overlap": 0.0,
+     "rank_score": 0.9828662470555525,
+     "contributions": [
+      {
+       "skill_id": "u_turn",
+       "weight": 2,
+       "user_level": 1,
+       "required_level": 1,
+       "credit": 1.0
+      }
+     ],
+     "gaps": [
+      {
+       "skill_id": "ghost",
+       "weight": 2,
+       "user_level": 0,
+       "required_level": 1
+      }
+     ]
+    },
+    "r_origin": {
+     "role_id": "r_origin",
+     "match_pct": 0.0,
+     "role_growth": 0.13049442566974867,
+     "sdg_overlap": 0.5,
+     "rank_score": 0.0,
+     "contributions": [],
+     "gaps": [
+      {
+       "skill_id": "shift_up",
+       "weight": 3,
+       "user_level": 0,
+       "required_level": 1
+      }
+     ]
+    },
+    "r_tie_a": {
+     "role_id": "r_tie_a",
+     "match_pct": 0.0,
+     "role_growth": 0.13049442566974867,
+     "sdg_overlap": 0.5,
+     "rank_score": 0.0,
+     "contributions": [],
+     "gaps": [
+      {
+       "skill_id": "shift_up",
+       "weight": 1,
+       "user_level": 0,
+       "required_level": 1
+      }
+     ]
+    }
+   }
+  }
+ }
+}
