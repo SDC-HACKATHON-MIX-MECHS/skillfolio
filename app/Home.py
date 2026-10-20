@@ -17,8 +17,22 @@ st.write(
     "Every number shows its source and date. Forecasts are estimates — you make the decision."
 )
 
-todo("lane C", [
-    "How it works in 3 steps (Profile → Market & Matches → Rebalance Plan)",
-    "Data freshness badge with the snapshot date",
-    "Malaysian labour-force context card from data.gov.my (lfs_qtr) with its date",
+retrieved = snapshot["retrieved_at"][:10]
+st.metric("Job-posting data as of", snapshot["snapshot_date"], help=f"Retrieved {retrieved}")
+st.caption(f"{len(snapshot['months'])} months of postings · {len(snapshot['skills'])} skills tracked")
+
+st.subheader("How it works")
+steps = [
+    ("👤", "1 · Profile", "Pick your skills, hours and the SDGs you care about.", "pages/1_Profile.py"),
+    ("📈", "2 · Market & matches", "See each skill's demand trend and AI exposure, and the future roles you can reach.", "pages/2_Skill_Market.py"),
+    ("🧭", "3 · Rebalance plan", "Get courses, in order and within your hours, that move you toward growing, harder-to-automate skills.", "pages/5_Rebalance_Plan.py"),
+]
+for col, (icon, title, text, page) in zip(st.columns(3), steps):
+    with col.container(border=True):
+        st.markdown(f"**{icon} {title}**")
+        st.write(text)
+        st.page_link(page, label="Open")
+
+todo("lane C + B", [
+    "Malaysian labour-force context card from data.gov.my (lfs_qtr) with its date — needs the data shape from lane B",
 ])
