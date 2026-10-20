@@ -79,35 +79,8 @@ def test_thin_data_flag_and_missing_exposure(example):
     assert fast["falling_skill"]["projected"] == pytest.approx(forecast.forecast_all(example, "fast")["falling_skill"]["projected"])
 
 
-# Recomputed independently (pandas/numpy, not engine code) from contracts/examples/snapshot.example.json.
-# Volatility uses ln(share + epsilon), the same epsilon as momentum (SPEC 5.1).
-# Longer, rule-by-rule golden tests live in tests/test_forecast_golden.py.
-GOLDEN = {
-    "rising_skill": {"momentum": 3.027632, "momentum_low": 2.714469, "momentum_high": 3.367197, "volatility": 0.092976},
-    "flat_skill": {"momentum": 0.0, "momentum_low": 0.0, "momentum_high": 0.0, "volatility": 0.0},
-    "falling_skill": {"momentum": -0.702039, "momentum_low": -0.747505, "momentum_high": -0.648386, "volatility": 0.159463},
-}
-PROJECTED = {
-    "moderate": {"rising_skill": 3.050965, "flat_skill": 0.003333, "falling_skill": -0.728706},
-    "fast": {"rising_skill": 3.097632, "flat_skill": 0.010000, "falling_skill": -0.782039},
-}
-
-
-@pytest.mark.parametrize("scenario", ["moderate", "fast"])
-def test_golden_numbers_on_example(example, scenario):
-    forecasts = forecast.forecast_all(example, scenario)
-    mean_exposure = (0.2 + 0.4 + 0.7) / 3
-    for skill, expected in GOLDEN.items():
-        f = forecasts[skill]
-        for key, value in expected.items():
-            assert f[key] == pytest.approx(value, abs=1e-5), f"{skill}.{key}"
-        assert f["projected"] == pytest.approx(PROJECTED[scenario][skill], abs=1e-5), f"{skill}.projected"
-        # the scenario shifts the whole interval, not just the midpoint
-        shift = config.SCENARIOS[scenario]["lambda"] * (f["exposure"] - mean_exposure)
-        assert f["projected_low"] == pytest.approx(f["momentum_low"] - shift, abs=1e-9)
-        assert f["projected_high"] == pytest.approx(f["momentum_high"] - shift, abs=1e-9)
-        assert f["history_months"] == 6
-    assert forecasts["rising_skill"]["index"] == pytest.approx([100, 110, 120, 140, 160, 180])
+# The golden numbers for the example snapshot moved to tests/fixtures/golden_example.json and are checked
+# in tests/test_forecast_golden.py (test_golden_example_snapshot), next to the other independent goldens.
 
 
 def _snapshot(totals, skills):

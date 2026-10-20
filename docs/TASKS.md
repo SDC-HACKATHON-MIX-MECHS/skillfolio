@@ -40,12 +40,12 @@ Everyone builds against [`contracts/`](../contracts/README.md). **Until the real
 |---|---|---|
 | Tue | Data contracts agreed (this repo) ✅ | contracts/README.md committed |
 | Wed | `forecast.py` on the example fixture | `tests/test_engine_spec.py` forecast tests pass |
-| Wed | `portfolio.py` (weights, covariance, metrics) — **write the missing tests** for covariance and metrics (hand-checked 2-skill portfolio) | weights test + your new tests pass; Aina's metrics look sane on the real snapshot |
+| Wed | `portfolio.py` (weights, covariance, metrics) — **write the missing tests** for covariance and metrics (hand-checked 2-skill portfolio) | weights test + your new tests pass; Aina's metrics look sane on the real snapshot. **Watch:** `R = Σw·projected` must not let one thin-data skill with a huge projected growth dominate (exclude or cap thin skills), and recalibrate γ now that projected growth spreads over about −45% … +120% (SPEC 5.1) |
 | Thu | Tests for `rank_roles`, `impact_allocation`, pathway prerequisites and `guardrails.keep_known` | new tests pass |
 | Thu | `matching.py` + curate `role_skills.csv` with D (≤10 skills per role, from B's generated file) | match test passes; Aina's top 5 makes sense to the team |
 | Thu | `sdg.py` | SDG test passes; every skill has ≥1 SDG |
 | Thu 9 pm | **Integration checkpoint** with C | all pages show real engine output |
-| Fri | `pathway.py`; tune λ, γ, α so neither term dominates on Aina and Ravi | plan test passes; Apply plan visibly moves Aina's dot |
+| Fri | `pathway.py`; tune γ, α so neither term dominates on Aina and Ravi (the scenario weights λ are already tuned: 0.5 / 1.5, SPEC 5.1) | plan test passes; Apply plan visibly moves Aina's dot |
 | Fri | Write the plain-English formula text for Methodology (with D) | page reviewed by the team |
 
 ## Lane B — Data & Trends

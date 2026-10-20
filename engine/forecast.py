@@ -1,8 +1,11 @@
-"""Skill forecasts: demand index, momentum, volatility, scenarios (SPEC 5.1). Lane A.
+"""Skill forecasts: demand index, damped momentum, volatility, scenarios (SPEC 5.1). Lane A.
 
 Input is one skill's entry from a snapshot (`counts`, `shares`, `exposure`)
 plus the snapshot's `months`. Output is a SkillForecast dict
 (contracts/README.md).
+
+Pipeline per skill: smooth -> fit a trend (annual log growth g, standard error s) -> damp noisy
+trends toward the all-skill average (shrinkage) -> apply the AI scenario in log space -> label.
 """
 
 from __future__ import annotations
@@ -60,30 +63,71 @@ def _ols_slope(y: list[float]) -> tuple[float, float]:
     return b, se
 
 
-def momentum(smoothed: list[float], total_posts: list[int]) -> tuple[float, float, float]:
-    """Annualised trend over the last MOMENTUM_WINDOW_MONTHS.
+def trend(smoothed: list[float], total_posts: list[int]) -> tuple[float, float]:
+    """Annual log growth g = 12 b and its standard error s = 12 SE_b.
 
-    OLS of ln(smoothed + epsilon) on the month index -> slope b and its standard error.
-    Returns (r, r_low, r_high) where r = e^(12b) - 1 and the interval uses INTERVAL_Z.
-    With fewer than MIN_HISTORY_MONTHS there is no trend to fit: returns (0, 0, 0) and
-    forecast_skill marks the skill as thin data with a "stable" label.
+    OLS of ln(smoothed + epsilon) on the month index over the last MOMENTUM_WINDOW_MONTHS.
+    With fewer than MIN_HISTORY_MONTHS there is no trend to fit: returns (0, 0).
     """
     n = min(config.MOMENTUM_WINDOW_MONTHS, len(smoothed))
     if n < config.MIN_HISTORY_MONTHS:
-        return 0.0, 0.0, 0.0
+        return 0.0, 0.0
     eps = epsilon(total_posts)
-    y = [math.log(s + eps) for s in smoothed[-n:]]
-    b, se = _ols_slope(y)
-    annual = lambda slope: math.exp(12 * slope) - 1
-    half = config.INTERVAL_Z * se
-    return annual(b), annual(b - half), annual(b + half)
+    b, se = _ols_slope([math.log(s + eps) for s in smoothed[-n:]])
+    return 12 * b, 12 * se
+
+
+def momentum(smoothed: list[float], total_posts: list[int]) -> tuple[float, float, float]:
+    """The raw (undamped) annual growth (r, r_low, r_high): r = e^g - 1, interval g -/+ INTERVAL_Z * s.
+
+    Not used by forecast_all (it works on trend() and damps it); kept as the plain fitted trend.
+    """
+    g, s = trend(smoothed, total_posts)
+    half = config.INTERVAL_Z * s
+    return math.exp(g) - 1, math.exp(g - half) - 1, math.exp(g + half) - 1
+
+
+def shrinkage_prior(estimates: list[tuple[float, float]]) -> dict | None:
+    """Average growth `mu` and between-skill spread `tau2` of well-observed skills (SPEC 5.1).
+
+    `estimates` are (g, s) of the reference skills. Fewer than SHRINK_MIN_SKILLS -> None (no damping).
+    DerSimonian-Laird: s* = max(s, SE_FLOOR), w = 1/s*^2, mu0 = sum(w g)/sum(w), Q = sum(w (g - mu0)^2),
+    tau2_DL = max(0, (Q - (k - 1)) / (sum(w) - sum(w^2)/sum(w))), tau2 = max(tau2_DL, TAU_FLOOR^2),
+    mu = sum(g / (s*^2 + tau2)) / sum(1 / (s*^2 + tau2)).
+    """
+    k = len(estimates)
+    if k < config.SHRINK_MIN_SKILLS:
+        return None
+    g = [e[0] for e in estimates]
+    s_star = [max(e[1], config.SE_FLOOR) for e in estimates]
+    w = [1 / s ** 2 for s in s_star]
+    w_sum = sum(w)
+    mu0 = sum(wi * gi for wi, gi in zip(w, g)) / w_sum
+    q = sum(wi * (gi - mu0) ** 2 for wi, gi in zip(w, g))
+    tau2_dl = max(0.0, (q - (k - 1)) / (w_sum - sum(wi ** 2 for wi in w) / w_sum))
+    tau2 = max(tau2_dl, config.TAU_FLOOR ** 2)
+    w2 = [1 / (s ** 2 + tau2) for s in s_star]
+    mu = sum(wi * gi for wi, gi in zip(w2, g)) / sum(w2)
+    return {"k": k, "mu": mu, "tau2_dl": tau2_dl, "tau2": tau2}
+
+
+def shrink(g: float, s: float, prior: dict | None) -> tuple[float, float]:
+    """Damp a trend toward the prior mean: B = tau2 / (tau2 + s^2), g' = mu + B (g - mu), s' = s sqrt(B).
+
+    Uses the skill's own (unfloored) s, so a skill with s = 0 is left exactly as it is.
+    No prior -> unchanged.
+    """
+    if prior is None:
+        return g, s
+    b = prior["tau2"] / (prior["tau2"] + s * s)
+    return prior["mu"] + b * (g - prior["mu"]), s * math.sqrt(b)
 
 
 def volatility(smoothed: list[float], eps: float) -> float:
     """Sample std dev of month-on-month change in ln(smoothed + eps), times sqrt(12).
 
     Uses the last VOLATILITY_WINDOW_MONTHS smoothed values. `eps` must be the same
-    epsilon(total_posts) that momentum uses; a zero share needs eps > 0.
+    epsilon(total_posts) that the trend uses; a zero share needs eps > 0.
     """
     window = smoothed[-config.VOLATILITY_WINDOW_MONTHS:]
     if any(v + eps <= 0 for v in window):
@@ -106,46 +150,68 @@ def trajectory(projected_low: float, projected_high: float) -> str:
     return "stable"
 
 
-def forecast_skill(skill_id: str, series: dict, months: list[dict], mean_exposure: float, scenario: str) -> dict:
-    """Build one SkillForecast. projected = momentum - lambda_s * (exposure - mean_exposure).
+def _is_thin(series: dict) -> bool:
+    """Too little history, or fewer than THIN_DATA_MIN_MEAN_COUNT posts a month over all months."""
+    counts = series["counts"]
+    mean_count = sum(counts) / len(counts) if counts else 0.0
+    return len(series["shares"]) < config.MIN_HISTORY_MONTHS or mean_count < config.THIN_DATA_MIN_MEAN_COUNT
 
-    A skill with unknown exposure gets no scenario shift. Thin data means fewer than
-    MIN_HISTORY_MONTHS of history, or fewer than THIN_DATA_MIN_MEAN_COUNT posts a month on
-    average (over all months). Thin skills are always labelled "stable": a number we cannot
-    trust must not become a headline. With too little history the trend and the scenario
-    shift are both zero placeholders.
+
+def forecast_skill(skill_id: str, series: dict, months: list[dict], mean_exposure: float, scenario: str,
+                   prior: dict | None = None) -> dict:
+    """Build one SkillForecast.
+
+    The trend is damped with `prior` (None = not damped), then the scenario shifts it in log space:
+    projected = e^(g' - lambda_s * (exposure - mean_exposure)) - 1. A skill with unknown exposure gets
+    no scenario shift. Thin data means fewer than MIN_HISTORY_MONTHS of history, or fewer than
+    THIN_DATA_MIN_MEAN_COUNT posts a month on average (over all months). Thin skills are always
+    labelled "stable": a number we cannot trust must not become a headline. With too little history
+    the trend and the scenario shift are both zero placeholders.
     """
     if scenario not in config.SCENARIOS:
         raise KeyError(f"unknown scenario {scenario!r}; expected one of {list(config.SCENARIOS)}")
     totals = [m["total_posts"] for m in months]
-    counts = series["counts"]
     history = len(series["shares"])
     smoothed = smooth(series["shares"])
-    r, r_low, r_high = momentum(smoothed, totals)
-    exposure = None if series.get("exposure") is None else float(series["exposure"])
+    g, s = trend(smoothed, totals)
     enough_history = history >= config.MIN_HISTORY_MONTHS
-    shift = 0.0
+    g_damped, s_damped = shrink(g, s, prior) if enough_history else (g, s)
+    half = config.INTERVAL_Z * s_damped
+    exposure = None if series.get("exposure") is None else float(series["exposure"])
+    delta = 0.0
     if exposure is not None and enough_history:
-        shift = config.SCENARIOS[scenario]["lambda"] * (exposure - mean_exposure)
-    mean_count = sum(counts) / len(counts) if counts else 0.0
-    thin = not enough_history or mean_count < config.THIN_DATA_MIN_MEAN_COUNT
+        delta = config.SCENARIOS[scenario]["lambda"] * (exposure - mean_exposure)
+    thin = _is_thin(series)
+    projected_low = math.exp(g_damped - half - delta) - 1
+    projected_high = math.exp(g_damped + half - delta) - 1
     return {
         "skill_id": skill_id,
         "scenario": scenario,
-        "momentum": r,
-        "momentum_low": r_low,
-        "momentum_high": r_high,
+        "momentum": math.exp(g_damped) - 1,
+        "momentum_low": math.exp(g_damped - half) - 1,
+        "momentum_high": math.exp(g_damped + half) - 1,
+        "momentum_raw": math.exp(g) - 1,
         "volatility": volatility(smoothed, epsilon(totals)),
         "exposure": exposure,
-        "projected": r - shift,
-        "projected_low": r_low - shift,
-        "projected_high": r_high - shift,
-        "trajectory": "stable" if thin else trajectory(r_low - shift, r_high - shift),
+        "projected": math.exp(g_damped - delta) - 1,
+        "projected_low": projected_low,
+        "projected_high": projected_high,
+        "trajectory": "stable" if thin else trajectory(projected_low, projected_high),
         "thin_data": thin,
         "history_months": history,
         "is_estimate": True,
         "index": demand_index(smoothed),
     }
+
+
+def prior_for_snapshot(snapshot: dict) -> dict | None:
+    """The shrinkage prior from a snapshot's reference skills (enough history and not thin data)."""
+    totals = [m["total_posts"] for m in snapshot["months"]]
+    reference = []
+    for series in snapshot["skills"].values():
+        if len(series["shares"]) >= config.MIN_HISTORY_MONTHS and not _is_thin(series):
+            reference.append(trend(smooth(series["shares"]), totals))
+    return shrinkage_prior(reference)
 
 
 def forecast_all(snapshot: dict, scenario: str = config.DEFAULT_SCENARIO) -> dict[str, dict]:
@@ -154,7 +220,8 @@ def forecast_all(snapshot: dict, scenario: str = config.DEFAULT_SCENARIO) -> dic
         raise KeyError(f"unknown scenario {scenario!r}; expected one of {list(config.SCENARIOS)}")
     known = [s["exposure"] for s in snapshot["skills"].values() if s.get("exposure") is not None]
     mean_exposure = sum(known) / len(known) if known else 0.0
+    prior = prior_for_snapshot(snapshot)
     return {
-        skill_id: forecast_skill(skill_id, series, snapshot["months"], mean_exposure, scenario)
+        skill_id: forecast_skill(skill_id, series, snapshot["months"], mean_exposure, scenario, prior)
         for skill_id, series in snapshot["skills"].items()
     }

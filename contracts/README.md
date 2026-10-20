@@ -124,17 +124,18 @@ File: `data/snapshots/YYYY-MM-DD.json` (owner B), copied to `latest.json`.
 ```json
 {
   "skill_id": "python", "scenario": "fast",
-  "momentum": 0.12, "momentum_low": 0.03, "momentum_high": 0.22,
+  "momentum": 0.12, "momentum_low": 0.03, "momentum_high": 0.22, "momentum_raw": 0.19,
   "volatility": 0.18, "exposure": 0.31,
   "projected": 0.115, "projected_low": 0.025, "projected_high": 0.215,
   "trajectory": "stable", "thin_data": false, "history_months": 25, "is_estimate": true,
   "index": [100, 103.2, 98.7]
 }
 ```
+- `momentum` (with `momentum_low` / `momentum_high`) is the **damped** yearly growth: noisy trends are pulled toward the all-skill average (SPEC 5.1). `momentum_raw` is the plain fitted trend, for transparency; the two are equal when there are fewer than 5 well-observed skills to estimate the average from. The scenario never changes `momentum`; it only changes `projected*` (`projected = (1 + momentum) × e^(−λ·(exposure − average exposure)) − 1`).
 - `history_months` is the number of monthly values in the skill's series (`len(shares)`); `index` always has that many entries, whatever the history (the example above shortens `index` to 3 entries to keep it readable).
 - `exposure` is a float, or `null` when unknown (then there's no scenario shift).
 - `trajectory` is `"rising"`, `"stable"` or `"declining"`.
-- When `history_months < 3`, `momentum`, its interval, `volatility` and `projected` / `projected_low` / `projected_high` are all `0.0` placeholders, `trajectory` is `"stable"` and `thin_data` is `true` — show "low data", not a trend.
+- When `history_months < 3`, `momentum`, `momentum_raw`, its interval, `volatility` and `projected` / `projected_low` / `projected_high` are all `0.0` placeholders, `trajectory` is `"stable"` and `thin_data` is `true` — show "low data", not a trend.
 - `thin_data` is also `true` when the skill's mean posts per month (its `counts`, over all months, empty ones included) is below 3. Then `trajectory` is always `"stable"`, but the numbers are real and should be shown greyed.
 
 ### Match — engine output per role (owner A)

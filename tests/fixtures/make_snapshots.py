@@ -1,6 +1,6 @@
 """Builds the illustrative snapshots used by the forecast golden tests. Pure Python, deterministic.
 
-Run:  python tests/fixtures/make_snapshots.py      (rewrites snapshot_30m.json and snapshot_3m.json)
+Run:  python tests/fixtures/make_snapshots.py      (rewrites snapshot_30m.json, snapshot_3m.json and snapshot_flat6.json)
 
 These are NOT real data. They exist so every rule in docs/SPEC.md section 5.1 changes at least
 one number: window sizes (12 / 24 / full), epsilon (mean vs min vs last month), late-appearing
@@ -47,6 +47,12 @@ def unknown_exp(m):
 
 SPARSE_PATTERN = [2, 0, 3, 1, 0, 4, 1, 2, 0, 1]  # mean 1.4 posts a month
 
+
+def noisy_counts(level0, slope, amp, seed):
+    import random
+    rng = random.Random(seed)  # deterministic: the same fixture on every machine
+    return [max(0, round(level0 + slope * m + amp * (rng.random() * 2 - 1))) for m in range(MONTHS)]
+
 SKILLS = {
     # skill: (counts, exposure)
     "u_turn": (from_share(u_turn), 0.30),
@@ -59,10 +65,28 @@ SKILLS = {
     "all_zero": ([0] * MONTHS, 0.90),
     "unknown_exp": (from_share(unknown_exp), None),
     # flat and well-observed, so the interval is narrow and the scenario shift decides the label:
-    "shift_up": (from_share(lambda m: 0.30), 0.10),     # sheltered: fast scenario lifts it clear of +5%, moderate does not
-    "shift_down": (from_share(lambda m: 0.30), 1.0),    # most exposed: fast scenario pushes it below -5%, moderate does not
+    "shift_up": (from_share(lambda m: 0.30), 0.37),     # a little under average exposure: fast lifts it clear of +5%, moderate does not
+    "shift_down": (from_share(lambda m: 0.30), 0.49),   # a little over average exposure: fast pushes it below -5%, moderate does not
     "faded": ([5] * 18 + [0] * 12, 0.40),               # mean 3.0 overall (not thin) but silent for the last 12 months
+    # well observed but very noisy: the point estimate passes +/-5% while the 80% interval straddles 0,
+    # so the label must come from the interval end (low for rising, high for declining), not the point:
+    "noisy_up": (noisy_counts(6, 0.12, 4, 67), 0.43),
+    "noisy_down": (noisy_counts(10, -0.12, 4, 12), 0.43),
 }
+
+
+
+def flat6_counts():
+    """12 months, constant thread size. Five well-observed skills that differ only by noise (so the
+    between-skill spread is ~0 and the floor binds) and one thin skill with a strong rising trend
+    that must NOT influence the prior."""
+    import math as _m
+    skills = {}
+    for i, drift in enumerate([-0.10, -0.05, 0.0, 0.05, 0.10]):
+        counts = [max(1, round(24 + 7 * _m.sin(1.1 * m) + drift * m)) for m in range(12)]
+        skills[f"noisy{i + 1}"] = (counts, 0.20 + 0.08 * i)
+    skills["thin_riser"] = ([0, 0, 1, 0, 1, 1, 2, 2, 3, 3, 4, 5], 0.30)  # mean 1.83 -> thin, strongly rising
+    return skills
 
 
 def build(totals, skills, note):
@@ -92,8 +116,9 @@ if __name__ == "__main__":
     three = {
         "rising3": ([10, 12, 16], 0.40),
         "falling3": ([20, 16, 10], 0.40),
-        "exposed3": ([30, 30, 30], 0.90),     # exactly flat, so the 3-month scenario shift alone moves its number and label
-        "sheltered3": ([30, 30, 30], 0.10),
+        "exposed3": ([30, 30, 30], 0.46),     # exactly flat, so the 3-month scenario shift alone moves its number and label
+        "sheltered3": ([30, 30, 30], 0.34),
     }
     (HERE / "snapshot_3m.json").write_bytes((json.dumps(build([200, 200, 200], three, note), indent=1) + "\n").encode("utf-8"))
+    (HERE / "snapshot_flat6.json").write_bytes((json.dumps(build([200] * 12, flat6_counts(), note), indent=1) + "\n").encode("utf-8"))
     print("totals:", TOTALS[:6], "... min", min(TOTALS), "max", max(TOTALS), "last", TOTALS[-1], "mean", sum(TOTALS) / MONTHS)

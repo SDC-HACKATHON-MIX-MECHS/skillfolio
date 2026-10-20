@@ -74,7 +74,7 @@
     0.15,
     0.15
    ],
-   "exposure": 0.9,
+   "exposure": 0.46,
    "exposure_n_occupations": 5,
    "exposure_method": "example"
   },
@@ -89,7 +89,7 @@
     0.15,
     0.15
    ],
-   "exposure": 0.1,
+   "exposure": 0.34,
    "exposure_n_occupations": 5,
    "exposure_method": "example"
   }

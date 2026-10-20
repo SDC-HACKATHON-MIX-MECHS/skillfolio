@@ -4,10 +4,13 @@ The Methodology page shows these values as assumptions, so keep the comments
 plain English.
 """
 
-# Scenarios: projected return = momentum - lambda * (skill exposure - average exposure)
+# Scenarios, applied to the yearly growth in log space:
+#   delta = lambda * (skill exposure - average exposure);  projected growth = e^(damped log growth - delta) - 1
+# A skill 0.1 more exposed than average has its yearly growth factor (1 + r) multiplied by about 0.95 (moderate) or 0.86 (fast).
+# These weights are assumptions, not estimates from data: today's job posts show no link between exposure and growth.
 SCENARIOS = {
-    "moderate": {"label": "Moderate AI disruption", "lambda": 0.10},
-    "fast": {"label": "Fast AI disruption", "lambda": 0.30},
+    "moderate": {"label": "Moderate AI disruption", "lambda": 0.5},
+    "fast": {"label": "Fast AI disruption", "lambda": 1.5},
 }
 DEFAULT_SCENARIO = "moderate"
 
@@ -20,6 +23,11 @@ INTERVAL_Z = 1.28               # 80% interval around momentum
 TREND_THRESHOLD = 0.05          # +/-5% a year separates rising / stable / declining
 THIN_DATA_MIN_MEAN_COUNT = 3    # fewer posts than this per month on average -> "thin data"
 MIN_HISTORY_MONTHS = 3          # fewer months than this -> no trend is estimated; label stays "stable"
+
+# Damping noisy trends (shrinkage toward the all-skill average, SPEC 5.1)
+SHRINK_MIN_SKILLS = 5           # need at least this many well-observed skills to estimate the average and spread; else no damping
+SE_FLOOR = 0.05                 # when estimating the spread, trend uncertainties below this (annual log units) count as this
+TAU_FLOOR = 0.10                # skills are assumed to differ in true yearly log growth by at least this much (so we never flatten everything)
 
 # Portfolio
 COVARIANCE_SHRINKAGE = 0.5      # pull the covariance halfway toward its diagonal for stability
