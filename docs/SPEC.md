@@ -59,7 +59,14 @@ Second persona: **Ravi, 27**, customer-service executive switching into tech.
 | Rebalancing | **Reskilling plan** | Greedy: best score gain per learning hour, within the hour budget |
 | ESG screen | **SDG lens** | Roles tagged to SDGs with cited reasons; chosen SDGs tilt the ranking |
 
-**How to read AI exposure (say this in the pitch):** exposure measures how much of an occupation's work already shows up in real AI usage. High exposure means the work is **changing fastest** — tasks are being automated *or* augmented — not that the job disappears. Like a stock's beta, it's sensitivity to the AI market, not a verdict. *(Lane B: confirm the exact definition from Anthropic's labour-market report and quote it on the Methodology page.)*
+**How to read AI exposure (say this in the pitch):** exposure measures how much of an occupation's work already shows up in real AI usage. High exposure means the work is **changing fastest** — tasks are being automated *or* augmented — not that the job disappears. Like a stock's beta, it's sensitivity to the AI market, not a verdict.
+
+**Definition (confirmed by lane B, 20 Oct 2026)** — from Massenkoff & McCrory, *Labor market impacts of AI: A new measure and early evidence*, Anthropic, 5 Mar 2026 (https://www.anthropic.com/research/labor-market-impacts):
+- Observed exposure asks: of the tasks LLMs could theoretically speed up, how many are *actually* used that way at work, based on real Claude usage in the Anthropic Economic Index.
+- Fully automated use counts in full; augmentative (human + AI) use counts half.
+- Task scores are averaged to the occupation, weighted by the share of time spent on each task. In `job_exposure.csv` it is a 0–1 fraction (e.g. Data Scientists 0.4605 ≈ 46% of the work).
+- Their headline finding, safe to quote on the Methodology page: "no systematic increase in unemployment for highly exposed workers since late 2022" — with suggestive signs that hiring of younger workers has slowed in exposed occupations.
+- So "changing fastest", not "disappearing", is the honest reading. Our skill-level exposure is **our** derived number: the mean over O*NET occupations that use the skill (or a proxy occupation) — say so wherever it's shown.
 
 ---
 
@@ -68,8 +75,8 @@ Second persona: **Ravi, 27**, customer-service executive switching into tech.
 | ID | Source | Access | What we use | Volume / freshness | Licence |
 |---|---|---|---|---|---|
 | `hn_whoishiring` | Hacker News "Ask HN: Who is hiring? (Month YYYY)" threads | HN Algolia API, no key: `https://hn.algolia.com/api/v1` | Top-level comments = one job post each | ~230–270 posts/month in Aug–Oct 2026; one thread per month for years; current month grows daily | Public API |
-| `aei_job_exposure` | Anthropic Economic Index — `labor_market_impacts/job_exposure.csv` | `https://huggingface.co/datasets/Anthropic/EconomicIndex/resolve/main/labor_market_impacts/job_exposure.csv` | `occ_code` (6-digit SOC, e.g. `15-2051`), `title`, `observed_exposure` | 756 occupations; dated releases (latest 2026-06-26) | CC-BY |
-| `onet_tech` | O*NET 31.0 **Technology Skills** (inside the database zip) | `https://www.onetcenter.org/dl_files/database/db_31_0_csv.zip` (also `_excel`, `_text`) | `O*NET-SOC Code`, `Example`, `Hot Technology` (Y/N), `In Demand` (Y/N) | ~33k rows; flags derived from employer job postings | CC BY 4.0 |
+| `aei_job_exposure` | Anthropic Economic Index — `labor_market_impacts/job_exposure.csv` | `https://huggingface.co/datasets/Anthropic/EconomicIndex/resolve/main/labor_market_impacts/job_exposure.csv` | `occ_code` (6-digit SOC, e.g. `15-2051`), `title`, `observed_exposure` | 756 occupations; dated releases (latest 2026-06-26) | CC-BY (data; the repo's code is MIT) |
+| `onet_tech` | O*NET 31.0 **Technology Skills** — in the 31.0 CSV zip the file is `db_31_0_csv/software_skills.csv` | `https://www.onetcenter.org/dl_files/database/db_31_0_csv.zip` (also `_excel`, `_text`) | `O*NET-SOC Code`, `Workplace Example` (older releases: `Example`), `Hot Technology` (Y/N), `In Demand` (Y/N) | 31,821 rows; flags derived from employer job postings | CC BY 4.0 (stated in the zip's Read Me) |
 | `my_lfs` | Malaysia Labour Force Survey, quarterly | `https://api.data.gov.my/data-catalogue/?id=lfs_qtr` | Latest labour force, unemployment rate (context panel only) | Quarterly since 2010 | Open data |
 
 **API recipes (lane B):**
@@ -96,7 +103,7 @@ data/skills.csv (canonical skills + aliases) ───────────�
 2. **`pipeline/extract_skills.py`** — cleans HTML (`html.unescape`, strip tags), then for every skill in `data/skills.csv` checks if **any alias** appears (word-boundary regex; case-insensitive unless the alias starts with `cs:`). Counts **posts**, not mentions (a post mentioning Python 5 times counts once). `count_month` returns `{total_posts, counts: {skill_id: n}}`; `build_snapshot.py` turns these into `counts[]` and `shares[] = counts / total_posts` per skill.
    - Ambiguous aliases must be case-sensitive or context-anchored: `Go`, `R`, `Spark`, `SAP`, `Swift`, `Rails`, `Excel`, `grid`, `battery`, `payments`, `analytics`, `embedded`. Lane B keeps a test file with ~15 hand-labelled posts.
 3. **`pipeline/load_exposure.py`** — joins skill → occupations → exposure:
-   - Each skill row in `skills.csv` lists `onet_examples` (exact O*NET `Example` names, `|`-separated).
+   - Each skill row in `skills.csv` lists `onet_examples` (exact O*NET `Example` / `Workplace Example` names, `|`-separated).
    - Find every O*NET occupation whose Technology Skills include one of those examples; take the first 7 chars of the O*NET-SOC code (`15-1252.00` → `15-1252`) and look up `observed_exposure`.
    - `skill.exposure` = mean over those occupations; record `exposure_n_occupations`. If a skill has no O*NET example (e.g. "Customer success"), use `proxy_soc_codes` from `skills.csv` instead and set `exposure_method = "proxy"`.
    - Also emits `data/role_skills.generated.csv`: for each role's SOC code, the O*NET tech skills flagged In Demand (weight 3) or Hot (weight 2) that map to our skills. Lane A/D curate this into `data/role_skills.csv` (≤10 skills per role).
