@@ -66,3 +66,73 @@ def test_assemble_matches_contract():
     assert py["exposure"] == 0.4 and py["exposure_method"] == "onet_tech"
     assert snap["skills"]["customer_success"]["counts"] == [0, 1]
     assert "is_example" not in snap
+
+
+# --- refresh (build(refresh_current_only=True)) ---
+
+import json  # noqa: E402
+
+import pytest  # noqa: E402
+
+PREVIOUS = {
+    "snapshot_date": "2026-10-01",
+    "retrieved_at": "2026-10-01T00:00:00Z",
+    "sources": [{"id": "hn_whoishiring", "retrieved_at": "old"}, {"id": "aei_job_exposure", "retrieved_at": "keep"}],
+    "months": [{"month": "2026-09", "story_id": 1, "url": "u1", "total_posts": 2},
+               {"month": "2026-10", "story_id": 2, "url": "u2", "total_posts": 2}],
+    "skills": {
+        "python": {"counts": [1, 1], "shares": [0.5, 0.5], "exposure": 0.4, "exposure_n_occupations": 2,
+                   "exposure_method": "onet_tech"},
+        "customer_success": {"counts": [0, 0], "shares": [0.0, 0.0], "exposure": 0.7, "exposure_n_occupations": 1,
+                             "exposure_method": "proxy"},
+        "nothing": {"counts": [0, 0], "shares": [0.0, 0.0], "exposure": None, "exposure_n_occupations": 0,
+                    "exposure_method": None},
+    },
+}
+
+
+def newest(month, story_id, texts):
+    return {"month": month, "story_id": story_id, "url": f"u{story_id}", "retrieved_at": "new",
+            "posts": [{"text": t} for t in texts]}
+
+
+def test_refresh_replaces_current_month():
+    snap = build_snapshot.refresh_latest(PREVIOUS, newest("2026-10", 2, ["Python", "python", "Rust"]), SKILLS,
+                                         "2026-10-21T08:00:00Z")
+    assert snap["snapshot_date"] == "2026-10-21"
+    assert [m["total_posts"] for m in snap["months"]] == [2, 3]
+    assert snap["skills"]["python"]["counts"] == [1, 2] and snap["skills"]["python"]["shares"] == [0.5, 0.6667]
+    assert snap["skills"]["python"]["exposure"] == 0.4  # reused, not recomputed
+    assert snap["sources"] == [{"id": "hn_whoishiring", "retrieved_at": "new"},
+                               {"id": "aei_job_exposure", "retrieved_at": "keep"}]
+    assert PREVIOUS["months"][-1]["total_posts"] == 2  # input not mutated
+
+
+def test_refresh_appends_new_month_and_keeps_window(monkeypatch):
+    monkeypatch.setattr(build_snapshot, "MONTHS", 2)
+    snap = build_snapshot.refresh_latest(PREVIOUS, newest("2026-11", 3, ["customer success"]), SKILLS, "2026-11-02T00:00:00Z")
+    assert [m["month"] for m in snap["months"]] == ["2026-10", "2026-11"]
+    assert snap["skills"]["customer_success"]["counts"] == [0, 1]
+    assert snap["skills"]["python"]["counts"] == [1, 0]
+
+
+def test_refresh_rejects_new_skills_and_old_months():
+    with pytest.raises(ValueError, match="full rebuild"):
+        build_snapshot.refresh_latest(PREVIOUS, newest("2026-10", 2, []),
+                                      SKILLS + [{"skill_id": "brand_new", "aliases": ["x"]}], "2026-10-21T00:00:00Z")
+    with pytest.raises(ValueError, match="older"):
+        build_snapshot.refresh_latest(PREVIOUS, newest("2026-08", 0, []), SKILLS, "2026-10-21T00:00:00Z")
+
+
+def test_failed_refresh_leaves_snapshot_untouched(monkeypatch, tmp_path):
+    (tmp_path / "latest.json").write_text(json.dumps(PREVIOUS), encoding="utf-8")
+    monkeypatch.setattr(build_snapshot, "SNAPSHOTS", tmp_path)
+
+    def offline(*args, **kwargs):
+        raise OSError("network down")
+
+    monkeypatch.setattr(build_snapshot.fetch_hn, "list_threads", offline)
+    with pytest.raises(build_snapshot.RefreshError, match="network down"):
+        build_snapshot.build(refresh_current_only=True)
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["latest.json"]
+    assert json.loads((tmp_path / "latest.json").read_text(encoding="utf-8")) == PREVIOUS

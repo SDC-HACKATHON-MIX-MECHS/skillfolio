@@ -9,9 +9,9 @@ golang,Go,GO,language,golang|cs:Go,Go,
 rust,Rust,RUST,language,rust,Rust programming language,
 cpp,C++,CPP,language,c++,C++,
 php,PHP,PHP,language,php|laravel,PHP|Hypertext preprocessor PHP,
-ruby,Ruby / Rails,RUBY,language,ruby|rails,Ruby|Ruby on Rails,
+ruby,Ruby / Rails,RUBY,language,ruby|ruby on rails|cs:Rails,Ruby|Ruby on Rails,
 kotlin,Kotlin,KT,mobile,kotlin,Kotlin,
-swift_ios,Swift / iOS,IOS,mobile,swift|swiftui|cs:iOS,Swift|Apple iOS,
+swift_ios,Swift / iOS,IOS,mobile,cs:Swift|swiftui|cs:iOS,Swift|Apple iOS,
 android,Android,DROID,mobile,android,Google Android,
 r_lang,R,RLNG,language,cs:R,R,
 react,React,RCT,frontend,react|reactjs|react.js|react native,React|React Native|React Redux,
@@ -41,9 +41,9 @@ bigquery,BigQuery,BQ,data,bigquery,BigQuery,
 data_eng,Data engineering,DENG,data,data engineer|data engineering|etl|data pipeline|data pipelines,Apache Hadoop|Informatica software|Informatica Corporation PowerCenter|Talend Big Data Integration|Microsoft SQL Server Integration Services SSIS|Amazon Data Pipeline,
 tableau,Tableau,TAB,analytics,tableau,Tableau,
 powerbi,Power BI,PBI,analytics,power bi|powerbi,Microsoft Power BI,
-excel,Excel,XLS,analytics,excel|spreadsheets,Microsoft Excel,
+excel,Excel,XLS,analytics,cs:Excel|microsoft excel|spreadsheets,Microsoft Excel,
 statistics,Statistics,STAT,analytics,statistics|statistical|a/b testing,IBM SPSS Statistics|SAS|StataCorp Stata|Minitab|Statistical software,
-data_analysis,Data analysis,DATA,analytics,data analyst|data analysis|analytics,Data analysis software|Google Analytics,
+data_analysis,Data analysis,DATA,analytics,data analyst|data analysis|data analytics|product analytics|business intelligence,Data analysis software|Google Analytics,
 ml,Machine learning,ML,ai,machine learning|ml engineer|scikit-learn|sklearn,Scikit-learn|TensorFlow|PyTorch|Keras,
 deep_learning,Deep learning,DL,ai,deep learning|neural network|neural networks,Neural network modeling software|TensorFlow|PyTorch|Keras,
 pytorch,PyTorch,TRCH,ai,pytorch,PyTorch,
@@ -58,14 +58,14 @@ pentest,Penetration testing,PNTS,security,penetration testing|pentest|pentesting
 figma_ui,Figma / UI design,FIG,design,figma|ui design|ui/ux,Figma|Adobe XD|Axure RP|InVision software|Balsamiq Studios Balsamiq Mockups,
 ux_research,UX research,UXR,design,ux research|user research|usability,Usability testing software,
 product_mgmt,Product management,PM,product,product manager|product management,,11-3021|11-2021
-project_mgmt,Project management / Agile,PROJ,business,project manager|project management|scrum|agile,,13-1199
+project_mgmt,Project management / Agile,PROJ,business,project manager|project management|scrum|cs:Agile,,13-1199
 crm,Salesforce / CRM,CRM,business,salesforce|crm|hubspot,Salesforce software|HubSpot software|Salesforce.com Salesforce CRM,
 erp,SAP / ERP,ERP,business,cs:SAP|erp,SAP software|SAP Business Objects,
 customer_success,Customer success,CUST,business,customer success|customer support|customer service,,43-4051
 technical_writing,Technical writing,DOCS,business,technical writer|technical writing,Adobe FrameMaker|MadCap Software MadCap Flare|Adobe RoboHelp|Author-it,
 sales_eng,Sales / solutions engineering,SALE,business,sales engineer|solutions engineer|solutions architect,,41-9031
 qa_testing,QA / test automation,QA,engineering,qa engineer|test automation|selenium|playwright|cypress,Selenium|Test automation software|Microsoft Playwright,
-embedded,Embedded / firmware,EMB,hardware,embedded|firmware|rtos,Real time operating system RTOS software|Embedded systems development software|Embedded systems testing software,
+embedded,Embedded / firmware,EMB,hardware,embedded systems|embedded software|embedded engineer|embedded engineering|embedded linux|embedded c|firmware|rtos,Real time operating system RTOS software|Embedded systems development software|Embedded systems testing software,
 iot,IoT,IOT,hardware,iot|internet of things,,17-2061
 robotics,Robotics,ROBO,hardware,robotics|cs:ROS,,17-2199|17-3024
 energy_climate,Energy & climate tech,NRG,green,climate tech|renewable|renewables|solar|battery|batteries|energy storage|grid,,47-2231|17-2071|49-9081

@@ -17,6 +17,12 @@ _SPACE_RE = re.compile(r"\s+")
 _NOT_FOLLOWED_BY = {
     # "Go to our careers page", "Go ahead and apply" are not the language.
     "cs:Go": r"\s+(?:to|ahead|here|through|back|live|check|apply|visit|see)\b",
+    # "R&D" is not the R language.
+    "cs:R": r"\s*&",
+    # "Excel at navigating ambiguity" is a verb.
+    "cs:Excel": r"\s+(?:at|in)\b",
+    # "battery-life" in device ads is not energy storage.
+    "battery": r"[-\s]life\b",
 }
 
 
