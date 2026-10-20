@@ -96,17 +96,24 @@ def fetch(months: int = 25, refresh_current: bool = True) -> list[Path]:
         if path.exists() and not (is_current and refresh_current):
             paths.append(path)
             continue
-        posts = fetch_thread(thread["story_id"])
-        path.write_text(json.dumps({
-            "story_id": thread["story_id"],
-            "month": thread["month"],
-            "url": thread["url"],
-            "retrieved_at": _now_iso(),
-            "posts": posts,
-        }), encoding="utf-8")
-        print(f"{thread['month']}  {len(posts):4d} posts  {thread['title']}")
+        raw = fetch_month(thread)
+        print(f"{thread['month']}  {len(raw['posts']):4d} posts  {thread['title']}")
         paths.append(path)
     return paths
+
+
+def fetch_month(thread: dict) -> dict:
+    """Download one thread from list_threads() and cache it as data/raw/hn/YYYY-MM.json."""
+    raw = {
+        "story_id": thread["story_id"],
+        "month": thread["month"],
+        "url": thread["url"],
+        "retrieved_at": _now_iso(),
+        "posts": fetch_thread(thread["story_id"]),
+    }
+    RAW_DIR.mkdir(parents=True, exist_ok=True)
+    (RAW_DIR / f"{thread['month']}.json").write_text(json.dumps(raw), encoding="utf-8")
+    return raw
 
 
 if __name__ == "__main__":
