@@ -1,12 +1,10 @@
-"""Acceptance tests for lane B's skill matcher (SPEC 4.2). xfail until implemented.
+"""Acceptance tests for lane B's skill matcher (SPEC 4.2).
 Lane B: grow this to ~15 hand-labelled real posts."""
 
 import pytest
 
 from engine.data import load_skills
 from pipeline import extract_skills
-
-todo = pytest.mark.xfail(raises=NotImplementedError, reason="lane B: not implemented yet", strict=False)
 
 CASES = [
     ("We use Python, PostgreSQL and AWS.", {"python", "postgres", "aws"}),
@@ -20,14 +18,12 @@ CASES = [
 ]
 
 
-@todo
 @pytest.mark.parametrize("text,expected", CASES)
 def test_skills_in_text(text, expected):
     patterns = extract_skills.compile_aliases(load_skills())
     assert extract_skills.skills_in_text(text, patterns) == expected
 
 
-@todo
 def test_count_month_counts_posts_not_mentions():
     patterns = extract_skills.compile_aliases(load_skills())
     posts = [{"text": "Python Python Python"}, {"text": "Rust"}, {"text": "Python and Rust"}]
@@ -36,6 +32,5 @@ def test_count_month_counts_posts_not_mentions():
     assert result["counts"]["python"] == 2 and result["counts"]["rust"] == 2
 
 
-@todo
 def test_clean_html_unescapes():
     assert extract_skills.clean_html("C&#x2B;&#x2B; <p>and</p> TypeScript &#x2F; React") == "C++ and TypeScript / React"
