@@ -5,7 +5,7 @@ import json
 
 import pytest
 
-from engine import forecast, matching, pathway, portfolio, sdg
+from engine import config, forecast, matching, pathway, portfolio, sdg
 from engine.data import EXAMPLE_SNAPSHOT
 
 todo = pytest.mark.xfail(raises=NotImplementedError, reason="lane A: not implemented yet", strict=False)
@@ -16,17 +16,14 @@ def example():
     return json.loads(EXAMPLE_SNAPSHOT.read_text(encoding="utf-8"))
 
 
-@todo
 def test_smooth_uses_trailing_mean():
     assert forecast.smooth([1, 2, 3, 4], window=3) == pytest.approx([1, 1.5, 2, 3])
 
 
-@todo
 def test_demand_index_rebases_to_100():
     assert forecast.demand_index([2, 4, 1]) == pytest.approx([100, 200, 50])
 
 
-@todo
 def test_momentum_sign_follows_trend(example):
     totals = [m["total_posts"] for m in example["months"]]
     for skill, expected in [("rising_skill", 1), ("falling_skill", -1)]:
@@ -36,7 +33,6 @@ def test_momentum_sign_follows_trend(example):
     assert r == pytest.approx(0, abs=1e-9)
 
 
-@todo
 def test_trajectory_labels():
     assert forecast.trajectory(0.06, 0.20) == "rising"
     assert forecast.trajectory(-0.30, -0.06) == "declining"
@@ -44,17 +40,19 @@ def test_trajectory_labels():
     # the whole interval must clear the 5% threshold, not just its midpoint
     assert forecast.trajectory(0.03, 0.20) == "stable"
     assert forecast.trajectory(-0.20, -0.03) == "stable"
+    # strictly beyond the threshold: exactly 5% is still stable
+    assert forecast.trajectory(0.05, 0.20) == "stable"
+    assert forecast.trajectory(-0.20, -0.05) == "stable"
 
 
-@todo
 def test_volatility_is_zero_for_a_flat_series(example):
     flat = forecast.smooth(example["skills"]["flat_skill"]["shares"])
     rising = forecast.smooth(example["skills"]["rising_skill"]["shares"])
-    assert forecast.volatility(flat) == pytest.approx(0, abs=1e-12)
-    assert forecast.volatility(rising) > 0
+    eps = forecast.epsilon([m["total_posts"] for m in example["months"]])
+    assert forecast.volatility(flat, eps) == pytest.approx(0, abs=1e-12)
+    assert forecast.volatility(rising, eps) > 0
 
 
-@todo
 def test_fast_scenario_penalises_exposed_skills(example):
     moderate = forecast.forecast_all(example, "moderate")
     fast = forecast.forecast_all(example, "fast")
@@ -62,6 +60,107 @@ def test_fast_scenario_penalises_exposed_skills(example):
     assert fast["falling_skill"]["projected"] < moderate["falling_skill"]["projected"]
     assert fast["rising_skill"]["projected"] > moderate["rising_skill"]["projected"]
     assert all(f["is_estimate"] for f in fast.values())
+
+
+def test_thin_data_flag_and_missing_exposure(example):
+    snap = json.loads(json.dumps(example))
+    snap["skills"]["rare_skill"] = {
+        "counts": [1, 0, 2, 1, 0, 1], "shares": [0.005, 0.0, 0.01, 0.005, 0.0, 0.005],
+        "exposure": None, "exposure_n_occupations": 0, "exposure_method": None,
+    }
+    moderate = forecast.forecast_all(snap, "moderate")
+    fast = forecast.forecast_all(snap, "fast")
+    assert moderate["rare_skill"]["thin_data"] is True
+    assert moderate["flat_skill"]["thin_data"] is False
+    # unknown exposure: no scenario shift for that skill...
+    assert fast["rare_skill"]["exposure"] is None
+    assert fast["rare_skill"]["projected"] == pytest.approx(moderate["rare_skill"]["projected"])
+    # ...and it must not drag the average exposure used for every other skill
+    assert fast["falling_skill"]["projected"] == pytest.approx(forecast.forecast_all(example, "fast")["falling_skill"]["projected"])
+
+
+# Recomputed independently (pandas/numpy, not engine code) from contracts/examples/snapshot.example.json.
+# Volatility uses ln(share + epsilon), the same epsilon as momentum (SPEC 5.1).
+# Longer, rule-by-rule golden tests live in tests/test_forecast_golden.py.
+GOLDEN = {
+    "rising_skill": {"momentum": 3.027632, "momentum_low": 2.714469, "momentum_high": 3.367197, "volatility": 0.092976},
+    "flat_skill": {"momentum": 0.0, "momentum_low": 0.0, "momentum_high": 0.0, "volatility": 0.0},
+    "falling_skill": {"momentum": -0.702039, "momentum_low": -0.747505, "momentum_high": -0.648386, "volatility": 0.159463},
+}
+PROJECTED = {
+    "moderate": {"rising_skill": 3.050965, "flat_skill": 0.003333, "falling_skill": -0.728706},
+    "fast": {"rising_skill": 3.097632, "flat_skill": 0.010000, "falling_skill": -0.782039},
+}
+
+
+@pytest.mark.parametrize("scenario", ["moderate", "fast"])
+def test_golden_numbers_on_example(example, scenario):
+    forecasts = forecast.forecast_all(example, scenario)
+    mean_exposure = (0.2 + 0.4 + 0.7) / 3
+    for skill, expected in GOLDEN.items():
+        f = forecasts[skill]
+        for key, value in expected.items():
+            assert f[key] == pytest.approx(value, abs=1e-5), f"{skill}.{key}"
+        assert f["projected"] == pytest.approx(PROJECTED[scenario][skill], abs=1e-5), f"{skill}.projected"
+        # the scenario shifts the whole interval, not just the midpoint
+        shift = config.SCENARIOS[scenario]["lambda"] * (f["exposure"] - mean_exposure)
+        assert f["projected_low"] == pytest.approx(f["momentum_low"] - shift, abs=1e-9)
+        assert f["projected_high"] == pytest.approx(f["momentum_high"] - shift, abs=1e-9)
+        assert f["history_months"] == 6
+    assert forecasts["rising_skill"]["index"] == pytest.approx([100, 110, 120, 140, 160, 180])
+
+
+def _snapshot(totals, skills):
+    return {"months": [{"month": f"m{i}", "total_posts": t} for i, t in enumerate(totals)], "skills": skills}
+
+
+def test_zero_post_skill_shows_no_trend_when_threads_shrink():
+    totals = [400 - 8 * i for i in range(25)]  # monthly threads shrink 400 -> 208
+    # exposures far from the average, so the fast scenario shifts "never" by more than the 5% threshold
+    snap = _snapshot(totals, {
+        "never": {"counts": [0] * 25, "shares": [0.0] * 25, "exposure": 0.9},
+        "steady": {"counts": [20] * 25, "shares": [20 / t for t in totals], "exposure": 0.1},
+    })
+    for scenario in ("moderate", "fast"):
+        f = forecast.forecast_all(snap, scenario)["never"]
+        assert f["momentum"] == pytest.approx(0, abs=1e-9)
+        assert f["volatility"] == pytest.approx(0, abs=1e-9)
+        assert f["trajectory"] == "stable" and f["thin_data"] is True
+
+
+@pytest.mark.parametrize("n_months", [1, 2])
+def test_short_history_is_stable_and_flagged(n_months):
+    snap = _snapshot([200] * n_months, {
+        "exposed": {"counts": [40] * n_months, "shares": [0.2] * n_months, "exposure": 0.7},
+        "sheltered": {"counts": [40] * n_months, "shares": [0.2] * n_months, "exposure": 0.2},
+    })
+    for f in forecast.forecast_all(snap, "fast").values():
+        assert f["history_months"] == n_months
+        assert f["thin_data"] is True       # too little history to trust
+        assert f["trajectory"] == "stable"  # the scenario alone must not decide the label
+        # no history -> placeholders: no trend, and no scenario shift either
+        for key in ("momentum", "momentum_low", "momentum_high", "projected", "projected_low", "projected_high"):
+            assert f[key] == 0.0, key
+
+
+def test_empty_series_does_not_crash():
+    f = forecast.forecast_all(_snapshot([], {"x": {"counts": [], "shares": [], "exposure": 0}}), "moderate")["x"]
+    assert f["history_months"] == 0 and f["thin_data"] is True and f["trajectory"] == "stable"
+    assert f["index"] == [] and isinstance(f["exposure"], float)
+
+
+def test_thin_data_cutoff_is_a_mean_below_3_posts_per_month(example):
+    exactly_3 = {"counts": [6, 0, 6, 0, 6, 0], "shares": [0.03, 0.0, 0.03, 0.0, 0.03, 0.0], "exposure": 0.4}
+    just_under = {"counts": [3, 3, 3, 3, 3, 2], "shares": [0.015] * 5 + [0.01], "exposure": 0.4}
+    out = forecast.forecast_all({"months": example["months"], "skills": {"a": exactly_3, "b": just_under}}, "moderate")
+    assert out["a"]["thin_data"] is False  # mean 3.0 is enough, even with empty months
+    assert out["b"]["thin_data"] is True   # mean 2.83
+
+
+def test_forecast_skill_rejects_unknown_scenario(example):
+    no_exposure = dict(example["skills"]["flat_skill"], exposure=None)  # no lambda lookup needed, must still reject
+    with pytest.raises(KeyError):
+        forecast.forecast_skill("flat_skill", no_exposure, example["months"], 0.4, "slow")
 
 
 @todo

@@ -1,0 +1,114 @@
+{
+ "epsilon": 0.0025,
+ "mean_exposure": 0.45000000000000007,
+ "skills": {
+  "rising3": {
+   "momentum": 2.887937286500999,
+   "momentum_low": 2.193577823589722,
+   "momentum_high": 3.7332669434601833,
+   "volatility": 0.10868280578375779,
+   "thin_data": false,
+   "history_months": 3,
+   "index": [
+    100.0,
+    110.0,
+    126.66666666666667
+   ],
+   "scenarios": {
+    "moderate": {
+     "projected": 2.892937286500999,
+     "projected_low": 2.198577823589722,
+     "projected_high": 3.738266943460183,
+     "trajectory": "rising"
+    },
+    "fast": {
+     "projected": 2.902937286500999,
+     "projected_low": 2.208577823589722,
+     "projected_high": 3.7482669434601834,
+     "trajectory": "rising"
+    }
+   }
+  },
+  "falling3": {
+   "momentum": -0.7877190790443214,
+   "momentum_low": -0.832177044626756,
+   "momentum_high": -0.7314837573824808,
+   "volatility": 0.12982088814503268,
+   "thin_data": false,
+   "history_months": 3,
+   "index": [
+    100.0,
+    90.0,
+    76.66666666666667
+   ],
+   "scenarios": {
+    "moderate": {
+     "projected": -0.7827190790443214,
+     "projected_low": -0.827177044626756,
+     "projected_high": -0.7264837573824808,
+     "trajectory": "declining"
+    },
+    "fast": {
+     "projected": -0.7727190790443214,
+     "projected_low": -0.817177044626756,
+     "projected_high": -0.7164837573824808,
+     "trajectory": "declining"
+    }
+   }
+  },
+  "exposed3": {
+   "momentum": 4.6629367034256575e-15,
+   "momentum_low": -6.439293542825908e-15,
+   "momentum_high": 1.554312234475219e-14,
+   "volatility": 0.0,
+   "thin_data": false,
+   "history_months": 3,
+   "index": [
+    100.0,
+    100.0,
+    100.0
+   ],
+   "scenarios": {
+    "moderate": {
+     "projected": -0.044999999999995335,
+     "projected_low": -0.04500000000000644,
+     "projected_high": -0.044999999999984455,
+     "trajectory": "stable"
+    },
+    "fast": {
+     "projected": -0.13499999999999532,
+     "projected_low": -0.13500000000000642,
+     "projected_high": -0.13499999999998444,
+     "trajectory": "declining"
+    }
+   }
+  },
+  "sheltered3": {
+   "momentum": 4.6629367034256575e-15,
+   "momentum_low": -6.439293542825908e-15,
+   "momentum_high": 1.554312234475219e-14,
+   "volatility": 0.0,
+   "thin_data": false,
+   "history_months": 3,
+   "index": [
+    100.0,
+    100.0,
+    100.0
+   ],
+   "scenarios": {
+    "moderate": {
+     "projected": 0.03500000000000467,
+     "projected_low": 0.03499999999999357,
+     "projected_high": 0.03500000000001555,
+     "trajectory": "stable"
+    },
+    "fast": {
+     "projected": 0.10500000000000469,
+     "projected_low": 0.10499999999999358,
+     "projected_high": 0.10500000000001557,
+     "trajectory": "rising"
+    }
+   }
+  }
+ }
+}

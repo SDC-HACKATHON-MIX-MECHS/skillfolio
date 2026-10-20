@@ -73,7 +73,7 @@ Everyone builds against [`contracts/`](../contracts/README.md). **Until the real
 |---|---|---|
 | Tue/Wed | Replit import works for everyone; `Run` serves the app | each teammate has opened it on Replit |
 | Wed | Profile page (picker, CV paste using `pipeline.extract_skills.skills_in_text`, samples, session state) | loading Aina fills the form |
-| Wed | Skill Market on the example fixture: ticker table + sparklines (Plotly), scenario toggle | flipping the toggle changes the table |
+| Wed | Skill Market on the example fixture: ticker table + sparklines (Plotly), scenario toggle; grey out `thin_data` skills with a "low data" badge; cap the sparkline axis (late-appearing skills can have huge index values) | flipping the toggle changes the table; thin skills are visibly greyed |
 | Thu | My Portfolio: metric cards, AI-exposure gauge, risk/return chart | Aina's dot + role bubbles render |
 | Thu | Matches: top 5 with breakdown, gaps, SDG badges + links | each match shows its citations |
 | Thu 9 pm | **Integration checkpoint** with A on the real snapshot | whole journey works end to end |

@@ -12,12 +12,14 @@ SCENARIOS = {
 DEFAULT_SCENARIO = "moderate"
 
 # Forecast windows
+EPSILON_POSTS = 0.5             # "half a post": added to every share before taking logs (relative to the average thread size)
 SMOOTHING_MONTHS = 3            # rolling mean before fitting trends
 MOMENTUM_WINDOW_MONTHS = 12     # momentum = trend over the last 12 months
 VOLATILITY_WINDOW_MONTHS = 24   # volatility = swing over the last 24 months
 INTERVAL_Z = 1.28               # 80% interval around momentum
 TREND_THRESHOLD = 0.05          # +/-5% a year separates rising / stable / declining
 THIN_DATA_MIN_MEAN_COUNT = 3    # fewer posts than this per month on average -> "thin data"
+MIN_HISTORY_MONTHS = 3          # fewer months than this -> no trend is estimated; label stays "stable"
 
 # Portfolio
 COVARIANCE_SHRINKAGE = 0.5      # pull the covariance halfway toward its diagonal for stability
