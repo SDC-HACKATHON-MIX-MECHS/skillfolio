@@ -168,6 +168,38 @@ File: `data/snapshots/YYYY-MM-DD.json` (owner B), copied to `latest.json`.
 ```
 `ai_exposure` is `null` when none of the profile's skills has a known exposure (the gauge should then show "n/a"). `growth` counts a thin-data skill at most ±5% (SPEC 5.2).
 
+### Analysis: `engine.api.analyse(profile, snapshot, scenario)` (owner A, the app's single front door)
+
+One call returns everything a page needs, as plain JSON-able data. Pages call this and read the result instead of importing the other engine modules.
+
+```python
+from engine import api
+from engine.data import load_profile, load_snapshot
+
+result = api.analyse(load_profile("aina"), load_snapshot("latest"), "moderate")   # scenario: "moderate" | "fast"
+```
+
+```json
+{
+  "profile_id": "aina", "scenario": "moderate", "snapshot_date": "2026-10-20",
+  "skills": [{"skill_id": "excel", "level": 3, "weight": 0.25, "projected": 0.337, "thin_data": false, "exposure": 0.0818, "sdgs": [4]}],
+  "dropped_skills": [],
+  "portfolio": {"growth": 0.097, "ai_exposure": 0.186, "volatility": 0.342, "diversification": 0.819, "readiness": 0.075},
+  "matches": [],
+  "sdg_allocation": [{"sdg": 4, "share": 1.0}],
+  "forecasts": {"python": {"...": "a SkillForecast for every skill in the snapshot, for this scenario"}},
+  "warnings": ["role_skills has no rows, so roles cannot be matched yet"]
+}
+```
+This is the real output today for Aina on the 2026-10-20 snapshot: `data/role_skills.csv` is still empty, so there are no matches and every skill has only the baseline SDG 4 (the donut is one 100% slice). Once the file is filled, `matches` holds Match objects and `sdgs` / `sdg_allocation` list the roles' SDGs too.
+- `skills` has one row per scored profile skill, in profile order (`weight` = level / sum of levels, `projected` = that skill's growth under the scenario, `sdgs` = baseline 4 first). A skill the snapshot has no data for is dropped (and logged); its id is listed in `dropped_skills`.
+- `portfolio` is the PortfolioMetrics shape; `matches` is the top 5 Match objects (see above), best first; `sdg_allocation` is the donut: shares sum to 1, ordered by share then SDG number (SDG 4 is the baseline and is always the largest, possibly tied).
+- `forecasts` is every SkillForecast for the chosen scenario: use it for the Skill Market page so it never disagrees with the portfolio. `analyse` needs a profile with at least one scorable skill, so before a profile exists the Skill Market can call `engine.forecast.forecast_all(snapshot, scenario)` directly (the numbers are the same) and join names and tickers from `data/skills.csv`.
+- **Whenever `matches` is empty, `warnings` says why** (no rows in `data/role_skills.csv`, or no future role has skills listed). Show the warning, never an empty chart without a reason. `profile_id` is `null` when the profile has none.
+- Errors, all `ValueError` with a message that names the problem: a profile without a `skills` list of `{skill_id, level}` entries, a level outside 1..3 or a repeated skill (checked for dropped skills too), no skill left after dropping, `risk_tolerance` not one of low/medium/high, `sdg_interests` not a list of integers 1..17 (a list of strings such as `["8"]` is an error, not silently zero overlap), a snapshot without `snapshot_date`. An unknown scenario is a `KeyError`. `risk_tolerance` defaults to "medium"; `sdg_interests` to none (`null` also means none).
+- Optional keyword arguments: `roles=` and `role_skills=` replace what is read from `data/` (an explicit empty list is respected); `top_n=` sets how many matches come back (default 5, `None` = every ranked role, for the roles-as-bubbles chart). Match objects carry SDG numbers only: join `sdg_rationale` and `sdg_source_url` from `data/roles.csv` by `role_id` for the badges and links.
+- The scenario toggle is just the `scenario` argument: call again, it takes a few milliseconds on the real snapshot.
+
 ### PlanResult — `engine.pathway.plan` output (owner A)
 
 ```json
