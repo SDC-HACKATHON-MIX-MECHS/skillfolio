@@ -38,6 +38,8 @@ THIN_GROWTH_CAP = 0.05          # a thin-data skill counts for at most +/-5% a y
 # Matching and planning
 SDG_TILT_ALPHA = 0.15           # how much a shared SDG lifts a role's rank
 PATHWAY_MATCH_BETA = 1.0        # weight of match gain vs readiness gain when choosing courses
+BUDGET_TOLERANCE = 1e-9         # a course that fits the hours (or RM) budget up to this much counts as fitting: 0.9h + 0.8h fits 1.7h although the float sum is 1.7000000000000002
+MIN_COURSE_HOURS = 0.01         # a course must take at least this long (36 seconds), so "gain per hour" cannot overflow to infinity
 TOP_N_ROLES = 5
 
 # SDG lens

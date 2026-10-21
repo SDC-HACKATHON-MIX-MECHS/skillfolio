@@ -2,16 +2,18 @@
 
 import os
 
+import _mutcheck
+
 from engine import matching
 
 M = {
     # --- validation ---
     "duplicate_rows_allowed": ('if row["skill_id"] in seen:', "if False:"),
-    "weight_unchecked": ('row["weight"] not in (1, 2, 3) or ', ""),
-    "weight_4_allowed": ('row["weight"] not in (1, 2, 3)', 'row["weight"] not in (1, 2, 3, 4)'),
-    "weight_0_allowed": ('row["weight"] not in (1, 2, 3)', 'row["weight"] not in (0, 1, 2, 3)'),
-    "required_level_unchecked": (' or row["required_level"] not in (1, 2, 3)', ""),
-    "required_level_4_allowed": ('row["required_level"] not in (1, 2, 3)', 'row["required_level"] not in (1, 2, 3, 4)'),
+    "weight_unchecked": ('for k in ("weight", "required_level")', 'for k in ("required_level",)'),
+    "weight_4_allowed": ('row[k] not in (1, 2, 3) for k', 'row[k] not in ((1, 2, 3, 4) if k == "weight" else (1, 2, 3)) for k'),
+    "weight_0_allowed": ('row[k] not in (1, 2, 3) for k', 'row[k] not in ((0, 1, 2, 3) if k == "weight" else (1, 2, 3)) for k'),
+    "required_level_unchecked": ('for k in ("weight", "required_level")', 'for k in ("weight",)'),
+    "required_level_4_allowed": ('row[k] not in (1, 2, 3) for k', 'row[k] not in ((1, 2, 3, 4) if k == "required_level" else (1, 2, 3)) for k'),
     "validation_skipped": ("    _validate(rows, user_levels)\n", "    pass\n"),
     "user_level_4_allowed": ("level not in (0, 1, 2, 3)", "level not in (0, 1, 2, 3, 4)"),
     "user_level_0_rejected": ("level not in (0, 1, 2, 3)", "level not in (1, 2, 3)"),
@@ -23,12 +25,12 @@ M = {
     "credit_uncapped": ('credit = min(level / row["required_level"], 1.0)', 'credit = level / row["required_level"]'),
     "credit_all_or_nothing": ('credit = min(level / row["required_level"], 1.0)', 'credit = 1.0 if level >= row["required_level"] else 0.0'),
     "credit_over_three": ('credit = min(level / row["required_level"], 1.0)', "credit = min(level / 3, 1.0)"),
-    "match_unweighted": ('match += row["weight"] * credit / total_weight', "match += credit / len(rows)"),
+    "match_unweighted": ('match_terms.append(row["weight"] * credit / total_weight)', "match_terms.append(credit / len(rows))"),
     "total_weight_is_count": ("total_weight = sum(r[\"weight\"] for r in rows)", "total_weight = len(rows)"),
     "total_weight_is_max": ("total_weight = sum(r[\"weight\"] for r in rows)", "total_weight = max(r[\"weight\"] for r in rows)"),
     # --- role growth ---
-    "growth_unweighted": ('growth += row["weight"] / total_weight * projected', "growth += projected / len(rows)"),
-    "growth_not_normalised": ('growth += row["weight"] / total_weight * projected', 'growth += row["weight"] * projected'),
+    "growth_unweighted": ('growth_terms.append(row["weight"] / total_weight * projected)', "growth_terms.append(projected / len(rows))"),
+    "growth_not_normalised": ('growth_terms.append(row["weight"] / total_weight * projected)', 'growth_terms.append(row["weight"] * projected)'),
     "growth_uses_momentum": ('projected = forecast["projected"]', 'projected = forecast["momentum"]'),
     "missing_forecast_is_an_error": ("forecast = forecasts.get(row[\"skill_id\"])", "forecast = forecasts[row[\"skill_id\"]]"),
     "thin_not_capped": ('if forecast.get("thin_data", False):', "if False:"),
@@ -113,12 +115,11 @@ M = {
 MUTANTS = dict(M)
 
 
+TARGET = matching
+
+
 def _apply(name):
-    old, new = MUTANTS[name]
-    path = matching.__file__
-    src = open(path, encoding="utf-8").read()
-    assert src.count(old) >= 1, f"mutation target not found for {name}"
-    exec(compile(src.replace(old, new), path, "exec"), matching.__dict__)
+    _mutcheck.apply(TARGET, MUTANTS, name)
 
 
 _name = os.environ.get("MUT")

@@ -2,6 +2,8 @@
 
 import os
 
+import _mutcheck
+
 from engine import config, forecast
 
 M = {
@@ -72,13 +74,13 @@ M = {
     "hc_se_floor": ("config.SE_FLOOR", "0.05"),
     "hc_tau_floor": ("config.TAU_FLOOR", "0.10"),
     "hc_lambda": ('config.SCENARIOS[scenario]["lambda"]', '{"moderate": 0.5, "fast": 1.5}[scenario]'),
-    "hc_interval_z": ("config.INTERVAL_Z", "1.28"),
+    "hc_interval_z": ("config.INTERVAL_Z", "1.28", 2),
     "hc_momentum_window": ("config.MOMENTUM_WINDOW_MONTHS", "12"),
     "hc_vol_window": ("config.VOLATILITY_WINDOW_MONTHS", "24"),
-    "hc_min_history": ("config.MIN_HISTORY_MONTHS", "3"),
-    "hc_trend_threshold": ("config.TREND_THRESHOLD", "0.05"),
+    "hc_min_history": ("config.MIN_HISTORY_MONTHS", "3", 4),
+    "hc_trend_threshold": ("config.TREND_THRESHOLD", "0.05", 2),
     "hc_thin_cutoff": ("config.THIN_DATA_MIN_MEAN_COUNT", "3"),
-    "hc_epsilon_posts": ("config.EPSILON_POSTS", "0.5"),
+    "hc_epsilon_posts": ("config.EPSILON_POSTS", "0.5", 2),
     # --- contract surface ---
     "skill_id_wrong": ('"skill_id": skill_id,', '"skill_id": "x",'),
     "scenario_field_wrong": ('"scenario": scenario,', '"scenario": "moderate",'),
@@ -89,12 +91,11 @@ M = {
 MUTANTS = {k: v for k, v in M.items()}
 
 
+TARGET = forecast
+
+
 def _apply(name):
-    old, new = MUTANTS[name]
-    path = forecast.__file__
-    src = open(path, encoding="utf-8").read()
-    assert src.count(old) >= 1, f"mutation target not found for {name}"
-    exec(compile(src.replace(old, new), path, "exec"), forecast.__dict__)
+    _mutcheck.apply(TARGET, MUTANTS, name)
 
 
 _name = os.environ.get("MUT")

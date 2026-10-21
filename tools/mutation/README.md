@@ -8,6 +8,7 @@ bash tools/mutation/run_all.sh mutplug_portfolio   # engine/portfolio.py (plug/m
 bash tools/mutation/run_all.sh mutplug_matching    # engine/matching.py (plug/mutplug_matching.py)
 bash tools/mutation/run_all.sh mutplug_sdg         # engine/sdg.py (plug/mutplug_sdg.py)
 bash tools/mutation/run_all.sh mutplug_api         # engine/api.py (plug/mutplug_api.py)
+bash tools/mutation/run_all.sh mutplug_pathway     # engine/pathway.py (plug/mutplug_pathway.py)
 ```
 
 **Expected today (forecast plug; the other plugs' expectations follow):** control exit code 0; 73 mutants, 71 killed; survivors `shrink_applied_without_history` and `reference_needs_no_history`, both **provably equivalent** (they change the code but never the result: damping a zero-history trend returns exactly 0, and the reference filter already excludes it).
@@ -17,7 +18,9 @@ bash tools/mutation/run_all.sh mutplug_api         # engine/api.py (plug/mutplug
 - Classify by pytest's **exit code**, never by searching the output for "failed" (`xfailed` contains it). `run_all.sh` already does this.
 - Nothing in the project is modified: the plug patches `engine.forecast` in memory when `MUT=<name>` is set.
 
-**Adding a mutant:** add `"name": ("exact old source text", "replacement")` to `M` in `plug/mutplug.py`. The old text must occur in `engine/forecast.py` (otherwise the harness reports a problem).
+**Adding a mutant:** add `"name": ("exact old source text", "replacement")` to `M` in `plug/mutplug.py`. The old text must occur **exactly once** in the target file. A constant that is deliberately replaced at every use takes a third element, the declared count: `"name": ("old", "new", 2)`. A target that is missing, occurs a different number of times, or gives source that does not compile or load is a **harness problem**, never a kill. `plug/_mutcheck.py` (shared by every plug) checks all targets up front (`run_all.sh` stops with exit 9 and lists them) and, if one slips through when a mutant is applied, exits with rc 97, which `run_all.sh` prints under "harness problems".
+
+**Pathway expected:** 101 mutants, 101 killed, no survivors (`bash tools/mutation/run_all.sh mutplug_pathway`). Two planned mutants were dropped as equivalent (a course whose level equals the user's gives a gain of exactly 0 and is never chosen; the match % does not depend on SDG interests) and the hours tie-break was removed from the engine, since different hours always change the score. The `>=` forms of the budget checks (`hours_exclusive`, `rm_exclusive`) are **not** equivalent: they differ at exactly remaining + `BUDGET_TOLERANCE`, and boundary tests in `tests/test_pathway_validation.py` kill them.
 
 **API expected:** 65 mutants, 65 killed, no survivors (`bash tools/mutation/run_all.sh mutplug_api`). The scenario check at the top of `analyse` is redundant with `forecast_all`'s own check, so no mutant targets it.
 

@@ -2,6 +2,8 @@
 
 import os
 
+import _mutcheck
+
 from engine import api
 
 M = {
@@ -9,7 +11,7 @@ M = {
     "risk_required": ('profile.get("risk_tolerance", DEFAULT_RISK)', 'profile["risk_tolerance"]'),
     "default_risk_low": ('DEFAULT_RISK = "medium"', 'DEFAULT_RISK = "low"'),
     "default_risk_high": ('DEFAULT_RISK = "medium"', 'DEFAULT_RISK = "high"'),
-    "risk_unchecked": ("if risk not in config.RISK_AVERSION:", "if False:"),
+    "risk_unchecked": ("    if not isinstance(risk, str) or risk not in config.RISK_AVERSION:\n", "    if False:\n"),
     "risk_ignored": ("portfolio.metrics(weights, forecasts, cov, risk)", 'portfolio.metrics(weights, forecasts, cov, "medium")'),
     "roles_arg_ignored": ("data.load_roles() if roles is None else roles", "data.load_roles()"),
     "role_skills_arg_ignored": ("data.load_role_skills() if role_skills is None else role_skills", "data.load_role_skills()"),
@@ -26,15 +28,15 @@ M = {
     "scenario_ignored": ("forecast.forecast_all(snapshot, scenario)", "forecast.forecast_all(snapshot)"),
     "covariance_wrong_order": ("portfolio.covariance(snapshot, list(weights))", "portfolio.covariance(snapshot, sorted(weights))"),
     "matches_use_weights_not_levels": ("matching.rank_roles(roles, role_skills, levels, forecasts,", "matching.rank_roles(roles, role_skills, weights, forecasts,"),
-    "sdg_interests_ignored": ('profile.get("sdg_interests", [])', "[]"),
-    "sdg_interests_required": ('profile.get("sdg_interests", [])', 'profile["sdg_interests"]'),
-    "match_snapshot_date_blank": ('profile.get("sdg_interests", []), snapshot["snapshot_date"])', 'profile.get("sdg_interests", []), "")'),
-    "top_n_hardcoded": ("matches[:config.TOP_N_ROLES]", "matches[:5]"),
-    "top_n_off_by_one": ("matches[:config.TOP_N_ROLES]", "matches[:config.TOP_N_ROLES - 1]"),
-    "top_n_missing": ("        matches = matches[:config.TOP_N_ROLES]\n", "        pass\n"),
+    "sdg_interests_ignored": ("interests = [] if interests is None else interests", "interests = []"),
+    "sdg_interests_required": ('interests = profile.get("sdg_interests")', 'interests = profile["sdg_interests"]'),
+    "match_snapshot_date_blank": ('forecasts, interests, snapshot["snapshot_date"])', 'forecasts, interests, "")'),
+    "top_n_hardcoded": ("top_n = config.TOP_N_ROLES if", "top_n = 3 if"),
+    "top_n_off_by_one": ("else matches[:top_n]", "else matches[:top_n - 1]"),
+    "top_n_missing": ("    matches = matches if top_n is None else matches[:top_n]\n", "    pass\n"),
     "no_warning_when_no_role_skills": ('        warnings.append("role_skills has no rows, so roles cannot be matched yet")\n', "        pass\n"),
-    "always_warns": ("    if role_skills:\n", "    warnings.append('x')\n    if role_skills:\n"),
-    "matches_when_no_role_skills_flipped": ("    if role_skills:\n", "    if not role_skills:\n"),
+    "always_warns": ("    if not role_skills:\n", "    warnings.append('x')\n    if not role_skills:\n"),
+    "matches_when_no_role_skills_flipped": ("    if not role_skills:\n", "    if role_skills:\n"),
     "allocation_uses_levels": ("sdg.impact_allocation(weights, roles, role_skills)", "sdg.impact_allocation(levels, roles, role_skills)"),
     # --- output shape ---
     "key_profile_id": ('"profile_id": profile.get("profile_id"),', '"id": profile.get("profile_id"),'),
@@ -79,12 +81,11 @@ M = {
 MUTANTS = dict(M)
 
 
+TARGET = api
+
+
 def _apply(name):
-    old, new = MUTANTS[name]
-    path = api.__file__
-    src = open(path, encoding="utf-8").read()
-    assert src.count(old) >= 1, f"mutation target not found for {name}"
-    exec(compile(src.replace(old, new), path, "exec"), api.__dict__)
+    _mutcheck.apply(TARGET, MUTANTS, name)
 
 
 _name = os.environ.get("MUT")

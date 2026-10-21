@@ -156,9 +156,10 @@ File: `data/snapshots/YYYY-MM-DD.json` (owner B), copied to `latest.json`.
 ### PathwayStep — engine output (owner A)
 
 ```json
-{"order": 1, "course_id": "sql_basics_x", "skill_id": "sql", "hours": 12, "cost_rm": 0,
+{"order": 1, "course_id": "sql_basics_x", "title": "SQL basics", "provider": "Example Provider", "skill_id": "sql",
+ "level_before": 1, "level_out": 2, "hours": 12, "cost_rm": 0,
  "url": "https://example.org/course", "hrdc_claimable": "unknown",
- "gain_per_hour": 0.0041, "cumulative_hours": 12}
+ "gain_per_hour": 0.0041, "cumulative_hours": 12, "cumulative_cost_rm": 0}
 ```
 
 ### PortfolioMetrics — engine output (owner A)
@@ -204,12 +205,14 @@ This is the real output today for Aina on the 2026-10-20 snapshot: `data/role_sk
 
 ```json
 {
-  "steps": [{"order": 1, "course_id": "sql_basics_x", "skill_id": "sql", "hours": 12, "cost_rm": 0,
+  "steps": [{"order": 1, "course_id": "sql_basics_x", "title": "SQL Basics", "provider": "Example Academy", "skill_id": "sql",
+             "level_before": 0, "level_out": 2, "hours": 12, "cost_rm": 0,
              "url": "https://example.org/course", "hrdc_claimable": "unknown",
-             "gain_per_hour": 0.0041, "cumulative_hours": 12}],
+             "gain_per_hour": 0.0041, "cumulative_hours": 12, "cumulative_cost_rm": 0}],
   "before": {"growth": 0.07, "ai_exposure": 0.38, "volatility": 0.14, "diversification": 0.71, "readiness": 0.04, "match_pct": 0.5},
   "after":  {"growth": 0.09, "ai_exposure": 0.33, "volatility": 0.12, "diversification": 0.75, "readiness": 0.07, "match_pct": 0.67},
-  "hours_used": 12
+  "hours_used": 12,
+  "cost_used": 0
 }
 ```
-`before` / `after` are PortfolioMetrics plus the target role's `match_pct`.
+`before` / `after` are PortfolioMetrics plus the target role's `match_pct`. `cost_used` is the total RM of the plan. Because budget checks allow `BUDGET_TOLERANCE` (1e-9), `hours_used` / `cost_used` may exceed the budget by up to that much. `engine.pathway.plan(user_levels, target_role, role_skills, courses, forecasts, snapshot, risk_tolerance, hours_budget, *, budget_rm=None)`: `user_levels` is `{skill_id: 1..3}` of skills in the snapshot (take them from `analyse(...)["skills"]`), `forecasts` is `analyse(...)["forecasts"]`. An empty `steps` list means nothing in the catalogue helps within the budgets. Rules: SPEC 5.4.
