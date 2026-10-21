@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Your skills are a portfolio. AI is the market. SDC Hackathon 2026, Domain 1."
 readme = "README.md"
 requires-python = ">=3.11"
-license = { text = "MIT" }
+license = { text = "Apache-2.0" }
 dependencies = [
     "streamlit>=1.38",
     "pandas>=2.2",

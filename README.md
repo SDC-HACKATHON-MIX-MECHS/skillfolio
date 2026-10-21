@@ -45,7 +45,7 @@ From Wednesday night, `main` must always run.
 
 Stack: **Python 3.12 · Streamlit · pandas · Plotly**.
 
-**On Replit:** Create App → Import from GitHub → `SDC-HACKATHON-MIX-MECHS/skillfolio` → **Run**. (`.replit` starts Streamlit on port 8501.)
+**On Replit:** see [Run on Replit](#run-on-replit) below.
 
 **Locally** (with [uv](https://docs.astral.sh/uv/)):
 ```
@@ -54,6 +54,31 @@ uv run pytest
 uv run streamlit run app/Home.py
 ```
 Until the first real data snapshot lands, the app runs on an illustrative fixture and shows an "EXAMPLE DATA" banner.
+
+## Run on Replit
+
+Replit is required for the hackathon. The GitHub repo stays the source of truth; Replit imports it and publishes the demo link.
+
+**One-time setup**
+1. **GitHub org owner:** allow the Replit app to read the org (Org → Settings → Third-party access / GitHub Apps). Without this, the import cannot see the repo.
+2. **One teammate** (the one who redeems the hackathon's Replit Core): Create App → **Import from GitHub** → `SDC-HACKATHON-MIX-MECHS/skillfolio`, branch `main`.
+3. Press **Run**. `.replit` and `.streamlit/config.toml` start Streamlit on port 8501 (Replit maps it to port 80). If packages are not installed, open **Shell** and run `pip install -r requirements.txt`.
+4. Invite the other three teammates as collaborators (Core allows up to 5). Everyone can then work in the same workspace.
+
+**Working together**
+- GitHub is where work lands: use branches (`app/<page>`, `engine/<topic>`) and pull requests into `main`. In Replit use the **Git** pane; **pull before you push**.
+- The **Replit Agent** may build and polish Streamlit pages in `app/` (lane C) on its own branch. It reads [`replit.md`](replit.md) for the rules: no invented data, hands off `engine/`, `tests/`, `pipeline/` and `data/`. Disclose its use in the pull request and in the proposal.
+- Never put keys in code. If we ever add one, store it in Replit **Secrets**.
+
+**Publishing the demo**
+1. Merge everything into `main`, pull in Replit, press Run and click through all pages.
+2. **Deploy / Publish** (Autoscale is fine). Open the public link on a phone.
+3. Do this by **Friday night** and re-check on Saturday before submitting.
+
+**Things to know**
+- A published app's disk is temporary. The committed snapshot in `data/snapshots/` is the source of truth; a "Refresh data" button on a published app cannot save anything permanently.
+- Autoscale can sleep between visits, so open the link before a live demo to wake it.
+- Backup: keep a screen recording of the demo in `docs/demo/`.
 
 ## Repo layout
 
@@ -85,4 +110,4 @@ Known limit: Hacker News postings are global and tech-heavy, so SkillFolio targe
 
 ## Team agreement
 
-Code is released under the [MIT licence](LICENSE). The project belongs equally to the four team members; any decision to continue it after the hackathon is made together.
+Code is released under the [Apache License 2.0](LICENSE) (copyright notice in [NOTICE](NOTICE)). The project belongs equally to the four team members; any decision to continue it after the hackathon is made together.

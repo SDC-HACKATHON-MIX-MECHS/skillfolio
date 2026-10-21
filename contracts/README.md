@@ -124,13 +124,19 @@ File: `data/snapshots/YYYY-MM-DD.json` (owner B), copied to `latest.json`.
 ```json
 {
   "skill_id": "python", "scenario": "fast",
-  "momentum": 0.12, "momentum_low": 0.03, "momentum_high": 0.22,
+  "momentum": 0.12, "momentum_low": 0.03, "momentum_high": 0.22, "momentum_raw": 0.19,
   "volatility": 0.18, "exposure": 0.31,
   "projected": 0.115, "projected_low": 0.025, "projected_high": 0.215,
-  "trajectory": "stable", "thin_data": false, "is_estimate": true,
+  "trajectory": "stable", "thin_data": false, "history_months": 25, "is_estimate": true,
   "index": [100, 103.2, 98.7]
 }
 ```
+- `momentum` (with `momentum_low` / `momentum_high`) is the **damped** yearly growth: noisy trends are pulled toward the all-skill average (SPEC 5.1). `momentum_raw` is the plain fitted trend, for transparency; the two are equal when there are fewer than 5 well-observed skills to estimate the average from. The scenario never changes `momentum`; it only changes `projected*` (`projected = (1 + momentum) × e^(−λ·(exposure − average exposure)) − 1`).
+- `history_months` is the number of monthly values in the skill's series (`len(shares)`); `index` always has that many entries, whatever the history (the example above shortens `index` to 3 entries to keep it readable).
+- `exposure` is a float, or `null` when unknown (then there's no scenario shift).
+- `trajectory` is `"rising"`, `"stable"` or `"declining"`.
+- When `history_months < 3`, `momentum`, `momentum_raw`, its interval, `volatility` and `projected` / `projected_low` / `projected_high` are all `0.0` placeholders, `trajectory` is `"stable"` and `thin_data` is `true` — show "low data", not a trend.
+- `thin_data` is also `true` when the skill's mean posts per month (its `counts`, over all months, empty ones included) is below 3. Then `trajectory` is always `"stable"`, but the numbers are real and should be shown greyed.
 
 ### Match — engine output per role (owner A)
 
@@ -142,10 +148,10 @@ File: `data/snapshots/YYYY-MM-DD.json` (owner B), copied to `latest.json`.
   "contributions": [{"skill_id": "sql", "weight": 3, "user_level": 2, "required_level": 2, "credit": 1.0}],
   "gaps": [{"skill_id": "ml", "weight": 3, "user_level": 0, "required_level": 2}],
   "sdgs": [9, 8],
-  "citations": [{"source_id": "aei_job_exposure", "snapshot_date": "2026-10-20"}]
+  "citations": [{"source_id": "hn_whoishiring", "snapshot_date": "2026-10-20"}, {"source_id": "aei_job_exposure", "snapshot_date": "2026-10-20"}, {"source_id": "onet_tech", "snapshot_date": "2026-10-20"}]
 }
 ```
-`match_pct` = (3 × 1.0 + 3 × 0) / (3 + 3) = 0.5 · `rank_score` = 0.5 × (1 + 0.09) × (1 + 0.15 × 0.5) = 0.5859. `gaps` are sorted by `weight` (high → low), then `required_level` (high → low).
+`match_pct` = (3 × 1.0 + 3 × 0) / (3 + 3) = 0.5 · `rank_score` = 0.5 × (1 + 0.09) × (1 + 0.15 × 0.5) = 0.5859. `gaps` are sorted by `weight` (high → low), then `required_level` (high → low), then `skill_id`. `contributions` hold the skills with some credit, sorted by `weight`, then `credit` (high → low), then `skill_id`; a partly met skill is in both lists. `citations` are the demand data (`hn_whoishiring`), the role's exposure source, and one entry per distinct source in the role's skill rows (`onet_in_demand` / `onet_hot` appear as `onet_tech`; a hand-curated row with source `team` appears as `team`). Rules for growth, ties and which roles are ranked are in SPEC 5.3.
 
 ### PathwayStep — engine output (owner A)
 
@@ -160,6 +166,39 @@ File: `data/snapshots/YYYY-MM-DD.json` (owner B), copied to `latest.json`.
 ```json
 {"growth": 0.07, "ai_exposure": 0.38, "volatility": 0.14, "diversification": 0.71, "readiness": 0.04}
 ```
+`ai_exposure` is `null` when none of the profile's skills has a known exposure (the gauge should then show "n/a"). `growth` counts a thin-data skill at most ±5% (SPEC 5.2).
+
+### Analysis: `engine.api.analyse(profile, snapshot, scenario)` (owner A, the app's single front door)
+
+One call returns everything a page needs, as plain JSON-able data. Pages call this and read the result instead of importing the other engine modules.
+
+```python
+from engine import api
+from engine.data import load_profile, load_snapshot
+
+result = api.analyse(load_profile("aina"), load_snapshot("latest"), "moderate")   # scenario: "moderate" | "fast"
+```
+
+```json
+{
+  "profile_id": "aina", "scenario": "moderate", "snapshot_date": "2026-10-20",
+  "skills": [{"skill_id": "excel", "level": 3, "weight": 0.25, "projected": 0.337, "thin_data": false, "exposure": 0.0818, "sdgs": [4]}],
+  "dropped_skills": [],
+  "portfolio": {"growth": 0.097, "ai_exposure": 0.186, "volatility": 0.342, "diversification": 0.819, "readiness": 0.075},
+  "matches": [],
+  "sdg_allocation": [{"sdg": 4, "share": 1.0}],
+  "forecasts": {"python": {"...": "a SkillForecast for every skill in the snapshot, for this scenario"}},
+  "warnings": ["role_skills has no rows, so roles cannot be matched yet"]
+}
+```
+This is the real output today for Aina on the 2026-10-20 snapshot: `data/role_skills.csv` is still empty, so there are no matches and every skill has only the baseline SDG 4 (the donut is one 100% slice). Once the file is filled, `matches` holds Match objects and `sdgs` / `sdg_allocation` list the roles' SDGs too.
+- `skills` has one row per scored profile skill, in profile order (`weight` = level / sum of levels, `projected` = that skill's growth under the scenario, `sdgs` = baseline 4 first). A skill the snapshot has no data for is dropped (and logged); its id is listed in `dropped_skills`.
+- `portfolio` is the PortfolioMetrics shape; `matches` is the top 5 Match objects (see above), best first; `sdg_allocation` is the donut: shares sum to 1, ordered by share then SDG number (SDG 4 is the baseline and is always the largest, possibly tied).
+- `forecasts` is every SkillForecast for the chosen scenario: use it for the Skill Market page so it never disagrees with the portfolio. `analyse` needs a profile with at least one scorable skill, so before a profile exists the Skill Market can call `engine.forecast.forecast_all(snapshot, scenario)` directly (the numbers are the same) and join names and tickers from `data/skills.csv`.
+- **Whenever `matches` is empty, `warnings` says why** (no rows in `data/role_skills.csv`, or no future role has skills listed). Show the warning, never an empty chart without a reason. `profile_id` is `null` when the profile has none.
+- Errors, all `ValueError` with a message that names the problem: a profile without a `skills` list of `{skill_id, level}` entries, a level outside 1..3 or a repeated skill (checked for dropped skills too), no skill left after dropping, `risk_tolerance` not one of low/medium/high, `sdg_interests` not a list of integers 1..17 (a list of strings such as `["8"]` is an error, not silently zero overlap), a snapshot without `snapshot_date`. An unknown scenario is a `KeyError`. `risk_tolerance` defaults to "medium"; `sdg_interests` to none (`null` also means none).
+- Optional keyword arguments: `roles=` and `role_skills=` replace what is read from `data/` (an explicit empty list is respected); `top_n=` sets how many matches come back (default 5, `None` = every ranked role, for the roles-as-bubbles chart). Match objects carry SDG numbers only: join `sdg_rationale` and `sdg_source_url` from `data/roles.csv` by `role_id` for the badges and links.
+- The scenario toggle is just the `scenario` argument: call again, it takes a few milliseconds on the real snapshot.
 
 ### PlanResult — `engine.pathway.plan` output (owner A)
 
