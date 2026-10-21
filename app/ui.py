@@ -328,6 +328,8 @@ def gauge_fig(exposure: float | None, before: float | None = None) -> go.Figure:
         fig = go.Figure(go.Indicator(mode="gauge", value=0, gauge={"axis": {"range": [0, 100]}, "bar": {"color": GRID}},
                                      title={"text": "AI impact: n/a"}))
         return style_fig(fig, height=240)
+    if before is not None and round(before * 100) == round(exposure * 100):
+        before = None   # no change at this precision: Plotly would draw a bare "-" under the number
     fig = go.Figure(go.Indicator(
         mode="gauge+number+delta" if before is not None else "gauge+number",
         value=round(exposure * 100),
@@ -359,47 +361,83 @@ def _wrap_label(title: str, width: int = 18) -> str:
     return " ".join(words[:cut]) + "<br>" + " ".join(words[cut:])
 
 
+# Pixel estimates for the risk/return chart's plot area at laptop width (14px text). On a phone a label can still
+# touch a neighbour; the hover text always has the full title.
+_PLOT_W, _PLOT_H, _CHAR_W, _LINE_H, _GAP = 760.0, 290.0, 7.5, 17.0, 3.0
+
+
+def _label_size(label: str) -> tuple[float, float]:
+    lines = label.split("<br>")
+    return max(map(len, lines)) * _CHAR_W, len(lines) * _LINE_H
+
+
+def _fit_ranges(points: list[tuple[float, float]], sizes: list[float], labels: list[str],
+                x_range: tuple[float, float], y_range: tuple[float, float]) -> tuple[tuple[float, float], tuple[float, float]]:
+    """Widen the axis ranges until every label fits centred above its dot, so no label is ever pushed past an edge
+    (or across your arrow) for lack of room."""
+    (x0, x1), (y0, y1) = x_range, y_range
+    for _ in range(3):   # each widening shrinks the scale a little, so repeat until it settles
+        x_unit, y_unit = (x1 - x0) / _PLOT_W, (y1 - y0) / _PLOT_H
+        for (x, y), size, label in zip(points, sizes, labels):
+            w, h = _label_size(label)
+            x0, x1 = min(x0, x - (w / 2 + _GAP) * x_unit), max(x1, x + (w / 2 + _GAP) * x_unit)
+            y1 = max(y1, y + (size / 2 + _GAP + h) * y_unit)
+    return (x0, x1), (y0, y1)
+
+
 def _place_labels(points: list[tuple[float, float]], sizes: list[float], labels: list[str], you: list[tuple[float, float]],
                   x_range: tuple[float, float], y_range: tuple[float, float]) -> list[str]:
-    """A text position per role dot: the first of above, right, left, below whose label box hits no dot, no other label,
-    your dot, your "You" label or your before-to-after arrow, and stays inside the chart. Boxes are estimated in pixels
-    for a laptop-width chart (14px text), so on a phone a label can still touch; the hover text is always there."""
-    width, height, char_w, line_h, gap = 760.0, 290.0, 7.5, 17.0, 3.0
-
+    """A text position per role dot: above, right, left, below or a diagonal, whichever label box hits nothing and stays
+    inside the chart. Covering your dot, your "You" label or your before-to-after arrow counts ten times worse than
+    touching a role's dot or label. Each label is re-placed against the others until none can do better, so an early
+    label does not take the only clear spot a later one needed."""
     def px(x: float, y: float) -> tuple[float, float]:
-        return ((x - x_range[0]) / (x_range[1] - x_range[0]) * width, (y - y_range[0]) / (y_range[1] - y_range[0]) * height)
+        return ((x - x_range[0]) / (x_range[1] - x_range[0]) * _PLOT_W, (y - y_range[0]) / (y_range[1] - y_range[0]) * _PLOT_H)
 
     def overlap(a, b) -> float:
         return max(0.0, min(a[2], b[2]) - max(a[0], b[0])) * max(0.0, min(a[3], b[3]) - max(a[1], b[1]))
 
     taken = [(cx - s / 2, cy - s / 2, cx + s / 2, cy + s / 2) for (cx, cy), s in zip((px(*p) for p in points), sizes)]
+    yours = []
     for i, (ux, uy) in enumerate(px(*p) for p in you):
-        taken.append((ux - 10, uy - 10, ux + 10, uy + 10))
+        yours.append((ux - 10, uy - 10, ux + 10, uy + 10))
         if i == 0:
-            taken.append((ux - 15, uy - 10 - gap - line_h, ux + 15, uy - 10))   # the "You" label below your dot
-    if len(you) == 2:   # the arrow, as small boxes along it
+            yours.append((ux - 15, uy - 10 - _GAP - _LINE_H, ux + 15, uy - 10))   # the "You" label below your dot
+    if len(you) == 2:   # the arrow, as 6px boxes every 4px along it
         (ax, ay), (bx, by) = px(*you[1]), px(*you[0])
-        taken += [(ax + (bx - ax) * t / 10 - 3, ay + (by - ay) * t / 10 - 3, ax + (bx - ax) * t / 10 + 3, ay + (by - ay) * t / 10 + 3)
-                  for t in range(11)]
+        n = max(2, int(((bx - ax) ** 2 + (by - ay) ** 2) ** 0.5 / 4))
+        yours += [(ax + (bx - ax) * t / n - 3, ay + (by - ay) * t / n - 3, ax + (bx - ax) * t / n + 3, ay + (by - ay) * t / n + 3)
+                  for t in range(n + 1)]
 
-    sides = []
-    for (cx, cy), size, label in zip((px(*p) for p in points), sizes, labels):
-        lines = label.split("<br>")
-        w, h, r = max(map(len, lines)) * char_w, len(lines) * line_h, size / 2 + gap
-        boxes = {
+    def candidates(cx: float, cy: float, size: float, label: str) -> dict[str, tuple]:
+        (w, h), r = _label_size(label), size / 2 + _GAP
+        return {
             "top center": (cx - w / 2, cy + r, cx + w / 2, cy + r + h),
             "middle right": (cx + r, cy - h / 2, cx + r + w, cy + h / 2),
             "middle left": (cx - r - w, cy - h / 2, cx - r, cy + h / 2),
             "bottom center": (cx - w / 2, cy - r - h, cx + w / 2, cy - r),
+            "top right": (cx + r, cy + r, cx + r + w, cy + r + h),
+            "top left": (cx - r - w, cy + r, cx - r, cy + r + h),
+            "bottom right": (cx + r, cy - r - h, cx + r + w, cy - r),
+            "bottom left": (cx - r - w, cy - r - h, cx - r, cy - r),
         }
 
-        def cost(box) -> float:
-            outside = (box[2] - box[0]) * (box[3] - box[1]) - overlap(box, (0, 0, width, height + line_h))
-            return sum(overlap(box, t) for t in taken) + 2 * outside
+    options = [candidates(*px(*p), size, label) for p, size, label in zip(points, sizes, labels)]
+    sides = ["top center"] * len(points)
 
-        side = next((sd for sd, box in boxes.items() if cost(box) == 0), None) or min(boxes, key=lambda sd: cost(boxes[sd]))
-        taken.append(boxes[side])
-        sides.append(side)
+    def cost(i: int, box: tuple) -> float:
+        others = [options[j][sides[j]] for j in range(len(points)) if j != i]
+        outside = (box[2] - box[0]) * (box[3] - box[1]) - overlap(box, (0, 0, _PLOT_W, _PLOT_H + _LINE_H))
+        return (sum(overlap(box, t) for t in taken + others) + 10 * sum(overlap(box, t) for t in yours) + 2 * outside)
+
+    for _ in range(4):
+        changed = False
+        for i, boxes in enumerate(options):
+            best = min(boxes, key=lambda sd: (cost(i, boxes[sd]), list(boxes).index(sd)))   # ties keep the earlier side
+            if cost(i, boxes[best]) < cost(i, boxes[sides[i]]):
+                sides[i], changed = best, True
+        if not changed:
+            break
     return sides
 
 
@@ -408,12 +446,13 @@ def risk_return_fig(matches: list[dict], user: dict, before: dict | None = None)
     top = matches[: config.TOP_N_ROLES]
     you = [(user["ai_exposure"] * 100, user["growth"] * 100)] + ([(before["ai_exposure"] * 100, before["growth"] * 100)] if before else [])
     roles = [(m["ai_exposure"] * 100, m["role_growth"] * 100) for m in top]
-    # Fixed ranges padded past the outermost dots, so the role labels above them are not cut off at the edges.
+    # Fixed ranges padded past the outermost dots, then widened so every role label fits (see _fit_ranges).
     xs, ys = [x for x, _ in roles + you], [y for _, y in roles + you]
     x_pad, y_span = max(8.0, 0.12 * (max(xs) - min(xs))), max(4.0, max(ys) - min(ys))
     x_range, y_range = (min(xs) - x_pad, max(xs) + x_pad), (min(ys) - 0.12 * y_span, max(ys) + 0.3 * y_span)
     labels = [_wrap_label(m["title"]) for m in top]
     sizes = [12 + 40 * m["match_pct"] for m in top]
+    x_range, y_range = _fit_ranges(roles, sizes, labels, x_range, y_range)
     sides = _place_labels(roles, sizes, labels, you, x_range, y_range)
 
     fig = go.Figure()
