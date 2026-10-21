@@ -168,7 +168,6 @@ def test_match_caps_credit_and_builds_rank_score():
     assert m["rank_score"] == pytest.approx(0.75 * 1.075 * 1.15)
 
 
-@todo
 def test_plan_stays_in_budget_and_catalogue(example):
     from engine.data import ROOT
     import csv
