@@ -3,13 +3,14 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-import pandas as pd
-import plotly.graph_objects as go
 import streamlit as st
 
+from app.dashboard import spark_values
+from app.page_components import PLAIN, ai_word, card_list, choice_control, skill_card, skill_list, skill_row
+from app.home_components import skill_pill
 from app.ui import (
-    DOWN, FLAT, HELP, LOW_DATA, TRAJECTORY, UP, call_or_wait, fmt_change, fmt_pct, fmt_score, page_setup, scenario,
-    show_fig, skill_label, skill_name, skill_ticker, source_caption, style_fig,
+    call_or_wait, demand_fig, fmt_pct, fmt_signed, page_header, page_setup, scenario, section_header, show, show_fig, side_panel,
+    skill_catalog, skill_label, skill_name, skill_ticker, source_caption, stat_row,
 )
 from engine import config
 from engine.data import list_snapshots
@@ -17,93 +18,114 @@ from engine.forecast import forecast_all
 from pipeline.build_snapshot import build
 
 snapshot = page_setup("Skill Market")
-st.title("2 · Skill Market")
-st.write(f"Every skill as a stock: how often job posts ask for it, and where it's heading under **{config.SCENARIOS[scenario()]['label'].lower()}**.")
+page_header(
+    "Skill Market",
+    "Which skills employers ask for more or less often in job posts. "
+    f"Scenario: {config.SCENARIOS[scenario()]['label']} (change it in the sidebar).",
+)
 
 forecasts = call_or_wait("A", "skill forecasts", forecast_all, snapshot, scenario())
 series = snapshot["skills"]
-INDEX_CAP = 400  # a skill that appears late can have a huge index; cap it so the sparkline stays readable
+catalog = skill_catalog()
+SORTS = ["Hiring trend", "AI impact", "A to Z"]
 
 
-def trend(f: dict | None, s: dict) -> list[float]:
-    return [min(v, INDEX_CAP) for v in f["index"]] if f else [round(x * 100, 2) for x in s["shares"]]
-
-
-def momentum_text(f: dict | None) -> str:
-    if not f or f.get("history_months", 3) < 3:
-        return "—"
-    return fmt_change(f["projected"]) + (" (low data)" if f["thin_data"] else "")
-
-
-# --- Ticker table ---------------------------------------------------------------------------------
-rows = []
-for sid, s in series.items():
+def entry(sid: str) -> dict:
+    """Everything one card needs, from the forecast (when it exists) and the snapshot series."""
     f = (forecasts or {}).get(sid)
-    thin = f["thin_data"] if f else False
-    rows.append({
-        "_id": sid,
-        "_thin": thin,
-        "Ticker": skill_ticker(sid),
-        "Skill": skill_name(sid),
-        "Trend": trend(f, s),
-        "Momentum": momentum_text(f),
-        "AI exposure": round(s["exposure"] * 100) if s.get("exposure") is not None else None,
-        "Trajectory": (LOW_DATA if thin else TRAJECTORY[f["trajectory"]]) if f else "—",
-        "_sort": f["projected"] if f else 0,
-    })
-# Low-data skills go to the bottom, greyed, and are never highlighted.
-df = pd.DataFrame(rows).sort_values(["_thin", "_sort"], ascending=[True, False])
-grey = df["_thin"].tolist()
-table = df.drop(columns=["_id", "_thin", "_sort"]).reset_index(drop=True)
+    s = series[sid]
+    return {
+        "id": sid, "f": f, "thin": bool(f["thin_data"]) if f else False,
+        "trend": spark_values(f["index"]) if f else [round(x * 100, 2) for x in s["shares"]],
+        "exposure": s.get("exposure"), "change": f["projected"] if f else None, "trajectory": f["trajectory"] if f else None,
+        "name": skill_name(sid), "ticker": skill_ticker(sid), "category": catalog.get(sid, {}).get("category"),
+    }
 
-st.dataframe(
-    table.style.apply(lambda row: [f"color: {FLAT}" if grey[row.name] else "" for _ in row], axis=1),
-    hide_index=True,
-    use_container_width=True,
-    column_config={
-        "Ticker": st.column_config.TextColumn(width="small"),
-        "Trend": st.column_config.LineChartColumn(
-            "Demand" if forecasts else "% of posts",
-            help="Demand index: 100 = the first month." if forecasts else "Share of job posts mentioning the skill, by month.",
-        ),
-        "Momentum": st.column_config.TextColumn(help=HELP["momentum"]),
-        "AI exposure": st.column_config.ProgressColumn(min_value=0, max_value=100, format="%d", help=HELP["exposure"]),
-        "Trajectory": st.column_config.TextColumn(help="Rising or declining only when the whole 80% range clears ±5% a year. An estimate."),
-    },
-)
-source_caption(snapshot, "hn_whoishiring", "aei_job_exposure")
-if any(grey):
-    st.caption("● low data (grey rows): fewer than 3 posts a month on average, so we don't call a trend.")
 
-# --- Skill detail ---------------------------------------------------------------------------------
-st.subheader("Look closer at one skill")
-pick = st.selectbox("Skill", options=list(df["_id"]), format_func=skill_label)
-f = (forecasts or {}).get(pick)
-s = series[pick]
-months = [m["month"] for m in snapshot["months"]]
-c1, c2, c3 = st.columns(3)
-c1.metric("Momentum", momentum_text(f), help=HELP["momentum"])
-c2.metric("AI exposure", fmt_score(s.get("exposure")), help=HELP["exposure"] if s.get("exposure") is not None else "No AI-exposure data for this skill yet.")
-c3.metric("Demand swing", fmt_pct(f["volatility"]) if f else "—", help=HELP["swing"])
-if f and f["thin_data"]:
-    st.caption("Low data: fewer than 3 posts a month on average, so this is not a trend call.")
-elif f:
-    st.caption(f"80% range for momentum: {fmt_change(f['projected_low'])} to {fmt_change(f['projected_high'])} a year · estimate")
+entries = [entry(sid) for sid in series]
+solid = sorted((e for e in entries if e["f"] and not e["thin"]), key=lambda e: (-e["change"], e["id"]))
+rising = [e for e in solid if e["trajectory"] == "rising"]
+falling = [e for e in solid if e["trajectory"] == "declining"]
+not_enough = [e for e in entries if e["thin"]]
 
-colour = {"rising": UP, "declining": DOWN}.get(f["trajectory"], FLAT) if f and not f["thin_data"] else FLAT
-y = trend(f, s)
-fig = go.Figure(go.Scatter(
-    x=months[-len(y):], y=y, mode="lines", line=dict(color=colour, width=2.5),
-    hovertemplate="%{x}<br>%{y:.1f}<extra></extra>",
-))
-fig.update_yaxes(title="Demand index (first month = 100)" if f else "% of job posts")
-show_fig(style_fig(fig, height=280))
-source_caption(snapshot, "hn_whoishiring")
+# --- A strip of three numbers -----------------------------------------------------------------------
+if forecasts:
+    show(stat_row([
+        ("Rising", f"{len(rising)}", "Skills whose whole estimated range is above +5% a year. An estimate."),
+        ("Falling", f"{len(falling)}", "Skills whose whole estimated range is below −5% a year. An estimate."),
+        ("Not enough data", f"{len(not_enough)}", "Skills mentioned in fewer than 3 posts a month on average. We do not call a trend for them."),
+    ]))
+    st.caption(f"Out of {len(entries)} skills we track.")
 
-# --- Refresh + snapshot fallback ------------------------------------------------------------------
-st.subheader("Data")
-st.caption(f"Snapshot {snapshot['snapshot_date']} · retrieved {snapshot['retrieved_at'][:16].replace('T', ' ')} UTC")
-if st.button("Refresh data", type="primary", use_container_width=True):
+list_col, detail_col = st.columns([11, 9], gap="large")
+
+# --- Left: the list ---------------------------------------------------------------------------------
+with list_col:
+    if forecasts:
+        show(section_header("Rising fastest", "Hiring trend is a 12-month estimate, not a prediction.", icon_name="line-chart", tight=True))
+        show(card_list(
+            [skill_card(e["name"], e["ticker"], e["category"], e["change"], e["trajectory"], False, e["exposure"], lead=i == 0)
+             for i, e in enumerate(solid[:3])],
+            empty_text="No skill has enough data to call a trend yet.",
+        ))
+        source_caption(snapshot, "hn_whoishiring", "aei_job_exposure")
+
+    with st.expander("Show all skills"):
+        sort_by = choice_control("Sort by", SORTS, SORTS[0], key="market_sort")
+        query = st.text_input("Find a skill", placeholder="Search by name or ticker", key="market_query").strip().lower()
+
+        def sort_key(e: dict):
+            if sort_by == "AI impact":
+                value = -(e["exposure"] if e["exposure"] is not None else -1)
+            elif sort_by == "A to Z":
+                value = e["name"].lower()
+            else:
+                value = -(e["change"] if e["change"] is not None else -9)
+            return (e["thin"], value, e["id"])      # skills without enough data always sit at the bottom
+
+        ordered = sorted(entries, key=sort_key)
+        matched = [e for e in ordered if not query or query in e["name"].lower() or query in e["ticker"].lower()]
+        show(skill_list(
+            [skill_row(e["name"], e["ticker"], e["change"], e["trajectory"], e["thin"], e["trend"], e["exposure"],
+                       sub=e["category"], with_ai=True) for e in matched],
+            with_ai=True, empty_text="No skill matches that search.",
+        ))
+        source_caption(snapshot, "hn_whoishiring", "aei_job_exposure")
+        st.caption("Grey rows: fewer than 3 posts a month on average, so we do not call a trend. AI impact: " + PLAIN["ai"])
+
+# --- Right: the detail panel ------------------------------------------------------------------------
+with detail_col:
+    show(section_header("One skill, closer", "Pick a skill to see its job-post demand over time.", icon_name="eye", tight=True))
+    with side_panel():
+        by_id = {e["id"]: e for e in entries}
+        ordered_ids = [e["id"] for e in sorted(entries, key=lambda e: (e["thin"], -(e["change"] if e["change"] is not None else -9), e["id"]))]
+        pick = st.selectbox("Skill", options=ordered_ids, format_func=skill_label, key="market_pick")
+        e = by_id[pick]
+        f = e["f"]
+        show(skill_pill(e["change"], e["trajectory"], e["thin"]))
+        ai_text = f"AI impact: {ai_word(e['exposure'])}" + (f" ({round(e['exposure'] * 100)} out of 100)" if e["exposure"] is not None else "")
+        st.write(ai_text)
+        if f and e["thin"]:
+            st.caption("Not enough data: fewer than 3 posts a month on average, so this is not a trend call.")
+        elif f:
+            st.caption(
+                f"Approximate range for the hiring trend: {fmt_signed(f['projected_low'])} to {fmt_signed(f['projected_high'])} a year · estimate. "
+                "How reliable the range is: see Methodology."
+            )
+        months = [m["month"] for m in snapshot["months"]]
+        y = e["trend"]
+        direction = {"rising": "up", "declining": "down"}.get(e["trajectory"], "flat") if f and not e["thin"] else "flat"
+        show_fig(demand_fig(months[-len(y):], y, direction, height=260))
+        source_caption(snapshot, "hn_whoishiring")
+        st.caption("Job-post demand: 100 is the first month with job posts for this skill. Technical name: demand index." if f
+                   else "Share of job posts mentioning the skill, by month (percent).")
+        with st.expander("More numbers for this skill"):
+            st.write(f"How much hiring bounces around: {fmt_pct(f['volatility']) if f else '—'}. {PLAIN['bounce']}")
+            st.write(f"Hiring trend: {PLAIN['trend']}")
+
+# --- Refresh (the one primary action) + snapshot fallback ----------------------------------------------
+show(section_header("Fresh data", f"Snapshot {snapshot['snapshot_date']}, retrieved {snapshot['retrieved_at'][:16].replace('T', ' ')} UTC.", icon_name="info"))
+if st.button("Refresh data", type="primary", use_container_width=True, icon=":material/refresh:"):
     with st.spinner("Fetching this month's job posts…"):
         try:
             build(refresh_current_only=True)
@@ -119,12 +141,13 @@ if st.button("Refresh data", type="primary", use_container_width=True):
 
 dates = list_snapshots()
 if dates:
-    current = st.session_state.get("snapshot_date", "latest")
-    options = ["latest"] + dates
-    choice = st.selectbox(
-        "Or view a saved snapshot", options, index=options.index(current) if current in options else 0,
-        format_func=lambda d: "Latest" if d == "latest" else d,
-    )
-    if choice != current:
-        st.session_state["snapshot_date"] = choice
-        st.rerun()
+    with st.expander("View a saved snapshot"):
+        current = st.session_state.get("snapshot_date", "latest")
+        options = ["latest"] + dates
+        choice = st.selectbox(
+            "Snapshot", options, index=options.index(current) if current in options else 0,
+            format_func=lambda d: "Latest" if d == "latest" else d,
+        )
+        if choice != current:
+            st.session_state["snapshot_date"] = choice
+            st.rerun()

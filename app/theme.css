@@ -1,0 +1,362 @@
+/* SkillFolio v4 theme (light): the ONE stylesheet, injected once per page by app/ui.py (page_setup -> inject_css).
+   Tokens (colours, font, radius, shadow) are generated from app/ui.py as CSS variables ahead of this file, so there is no hex
+   code in here. Tints are made with color-mix on those variables.
+   Rules: warm off-white page, white cards with a 1px soft border and a 10px radius (8px for buttons and inputs, 6px for chips),
+   Inter only, tabular numbers, amber for FILLS only (progress track, chart line, selected underline, nav marker), ink for
+   text and the primary button, 8px spacing grid (4px only for hairline gaps), no gradient, no glow, no blur, no mono, no serif.
+   Sections: base, layout, sidebar, page head, buttons and links, widgets, components, small screens. */
+
+/* ===== base ===== */
+.stApp { background-color: var(--sf-bg); color: var(--sf-text); font-variant-numeric: tabular-nums; }
+.stApp, .stApp p, .stApp li, .stApp label, .stApp h1, .stApp h2, .stApp h3, .stApp h4, .stApp code,
+.stApp button, .stApp input, .stApp textarea, .stApp [data-baseweb="select"],
+.stApp [data-testid="stMarkdownContainer"], .stApp [data-testid="stCaptionContainer"] { font-family: var(--sf-font); }
+[data-testid="stIconMaterial"], .material-symbols-rounded, .material-icons { font-family: "Material Symbols Rounded" !important; }
+.stApp p, .stApp li { font-size: 1rem; line-height: 1.5; }
+.stApp h2, .stApp h3 { font-weight: 600; letter-spacing: -0.01em; color: var(--sf-text); }
+.stApp h2 { font-size: 1.5rem; line-height: 1.3; }
+.stApp h3 { font-size: 1.25rem; line-height: 1.3; }
+.stApp a { color: var(--sf-text); text-decoration: underline; text-underline-offset: 3px; }
+.stApp [data-testid="stCaptionContainer"], .stApp [data-testid="stCaptionContainer"] * { color: var(--sf-muted) !important; opacity: 1 !important; }
+.stApp [data-testid="stCaptionContainer"], .stApp [data-testid="stCaptionContainer"] p { font-size: 0.875rem; line-height: 1.5; }
+.sf-vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* ===== layout ===== */
+.block-container, [data-testid="stMainBlockContainer"] { max-width: 1160px !important; padding: 56px 40px 80px !important; }
+/* text pages (one column) use a narrower measure; the page head carries the marker */
+.block-container:has(.sf-narrow), [data-testid="stMainBlockContainer"]:has(.sf-narrow) { max-width: 800px !important; }
+[data-testid="stHeader"] { background: transparent; }
+
+/* ===== sidebar: navigation on top; scenario control, data date and profile name at the bottom ===== */
+[data-testid="stSidebar"] { background: var(--sf-sidebar); border-right: 1px solid var(--sf-border); }
+[data-testid="stSidebarContent"] { display: flex !important; flex-direction: column; min-height: 100%; }
+[data-testid="stSidebarUserContent"] { margin-top: auto; padding-bottom: 24px; }
+[data-testid="stSidebarNav"] ul { gap: 4px; }
+/* the wordmark: plain Inter text above the navigation (decorative, so it lives in CSS, not in the page) */
+[data-testid="stSidebarNav"]::before {
+  content: "SkillFolio"; display: block; padding: 24px 16px 16px; font-size: 1.25rem; line-height: 1.2; font-weight: 700;
+  letter-spacing: -0.01em; color: var(--sf-text);
+}
+a[data-testid="stSidebarNavLink"] {
+  min-height: 44px; padding: 0 16px; border-radius: 8px; color: var(--sf-text); text-decoration: none; cursor: pointer;
+  transition: background-color 200ms ease;
+}
+a[data-testid="stSidebarNavLink"] p { font-size: 1rem; font-weight: 400; color: inherit; }
+a[data-testid="stSidebarNavLink"]:hover { background: var(--sf-raised); }
+a[data-testid="stSidebarNavLink"][aria-current="page"] { background: var(--sf-raised); box-shadow: inset 3px 0 0 var(--sf-amber); }
+a[data-testid="stSidebarNavLink"][aria-current="page"] p { font-weight: 700; }
+/* the file is named Rebalance_Plan (URLs must not change); the screen is "Your learning plan", so the nav says so */
+a[data-testid="stSidebarNavLink"][href$="/Rebalance_Plan"] p { font-size: 0 !important; line-height: 0; }
+a[data-testid="stSidebarNavLink"][href$="/Rebalance_Plan"] p::after { content: "Learning plan"; font-size: 1rem; line-height: 1.5; }
+.sf-side-label { font-size: 0.875rem; font-weight: 600; color: var(--sf-muted); margin: 8px 0 0; }
+[data-testid="stSidebar"] [data-testid="stCaptionContainer"] { font-size: 0.875rem; }
+.sf-profile { border-top: 1px solid var(--sf-border); margin-top: 16px; padding-top: 16px; }
+.sf-profile-label { font-size: 0.875rem; color: var(--sf-muted); }
+.sf-profile-name { font-size: 1rem; font-weight: 600; color: var(--sf-text); overflow-wrap: anywhere; }
+.sf-profile-sub { font-size: 0.875rem; color: var(--sf-muted); }
+/* segmented control (the AI scenario in the sidebar, the range tabs): a quiet track, the active item white with an amber underline */
+.stApp [data-testid="stButtonGroup"] { gap: 0; background: var(--sf-raised); border: 1px solid var(--sf-border); border-radius: 8px; padding: 4px; width: fit-content; max-width: 100%; }
+.stApp [data-testid="stButtonGroup"] button {
+  min-height: 40px; padding: 0 16px; border: 0; border-radius: 6px; background: transparent; color: var(--sf-text); cursor: pointer;
+  box-shadow: none; transition: background-color 200ms ease;
+}
+.stApp [data-testid="stButtonGroup"] button p { font-size: 0.9375rem; font-weight: 500; color: var(--sf-text); }
+.stApp [data-testid="stButtonGroup"] button:hover { background: var(--sf-card); }
+.stApp [data-testid="stButtonGroup"] button[data-testid$="Active"], .stApp [data-testid="stButtonGroup"] button[aria-checked="true"], .stApp [data-testid="stButtonGroup"] button[aria-pressed="true"] {
+  background: var(--sf-card); box-shadow: inset 0 -3px 0 var(--sf-amber);
+}
+.stApp [data-testid="stButtonGroup"] button[data-testid$="Active"] p, .stApp [data-testid="stButtonGroup"] button[aria-checked="true"] p, .stApp [data-testid="stButtonGroup"] button[aria-pressed="true"] p { font-weight: 700; }
+
+/* ===== page head: the title and one subtitle line. No eyebrow, no numbering. ===== */
+.sf-pagehead { margin: 0 0 32px; }
+.stApp h1, .stApp h1.sf-title { font-family: var(--sf-font); font-size: 2rem; line-height: 1.2; font-weight: 600; letter-spacing: -0.02em;
+                                color: var(--sf-text); margin: 0; padding: 0; overflow-wrap: anywhere; }
+.sf-lead { font-size: 1rem; line-height: 1.5; color: var(--sf-muted); margin: 8px 0 0; max-width: 64ch; }
+.sf-label { font-size: 0.875rem; line-height: 1.4; color: var(--sf-muted); margin: 0 0 4px; }
+.sf-sec { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin: 40px 0 16px; }
+.sf-sec-tight { margin-top: 0; }
+.sf-sec-title { display: flex; align-items: center; gap: 8px; font-size: 1.25rem; line-height: 1.3; font-weight: 600; letter-spacing: -0.01em; color: var(--sf-text); }
+.sf-sec-sub { color: var(--sf-muted); font-size: 0.9375rem; line-height: 1.5; margin-top: 4px; max-width: 60ch; }
+
+/* steps: one plain line of words (Home), or 'Step 2 of 4: Skills' with a thin amber bar (onboarding) */
+.stApp ol.sf-steps { display: flex; flex-wrap: wrap; gap: 8px 24px; list-style: none; padding: 0; margin: 0 0 24px; font-size: 1rem; color: var(--sf-muted); }
+.sf-steps li { font-size: 1rem; margin: 0; padding: 0; }
+.sf-steps li[aria-current="step"] { color: var(--sf-text); font-weight: 700; }
+.sf-stepper { margin: 0 0 32px; }
+.sf-step-text { font-size: 0.9375rem; font-weight: 600; color: var(--sf-text); margin: 0 0 8px; }
+
+/* ===== buttons and links: primary = ink fill with white text; secondary = white with a soft border; tertiary = an ink link ===== */
+.stButton > button, .stDownloadButton > button, [data-testid^="stBaseButton"], [data-testid="stPageLink-NavLink"] {
+  min-height: 44px; border-radius: 8px; cursor: pointer;
+  transition: background-color 200ms ease, border-color 200ms ease, color 200ms ease;
+}
+[data-testid="stBaseButton-secondary"] { background: var(--sf-card); border: 1px solid var(--sf-border); color: var(--sf-text); padding: 0 24px; }
+[data-testid="stBaseButton-secondary"] p { font-size: 1rem; font-weight: 500; color: var(--sf-text); }
+[data-testid="stBaseButton-secondary"]:hover { border-color: var(--sf-text); background: var(--sf-card); }
+[data-testid="stBaseButton-primary"], button[kind="primary"] { min-height: 48px; padding: 0 24px; background-color: var(--sf-text); border: 1px solid var(--sf-text); color: var(--sf-on-ink); }
+[data-testid="stBaseButton-primary"] p, [data-testid="stBaseButton-primary"] *, button[kind="primary"] * { color: var(--sf-on-ink); font-size: 1rem; font-weight: 600; }
+[data-testid="stBaseButton-primary"]:hover, button[kind="primary"]:hover { background-color: var(--sf-muted); border-color: var(--sf-muted); }
+[data-testid="stBaseButton-primary"]:disabled { background-color: var(--sf-raised); border: 1px solid var(--sf-border); }
+[data-testid="stBaseButton-primary"]:disabled p, [data-testid="stBaseButton-primary"]:disabled * { color: var(--sf-muted); }
+[data-testid="stBaseButton-tertiary"] { min-height: 44px; padding: 0 8px; color: var(--sf-text); text-decoration: underline; text-underline-offset: 4px; }
+[data-testid="stBaseButton-tertiary"] p { font-size: 1rem; color: var(--sf-text); }
+[data-testid="stPageLink-NavLink"]:hover { background-color: var(--sf-raised); }
+[data-testid="stPageLink-NavLink"] p { font-size: 1rem; }
+.stApp a:focus-visible, .stApp button:focus-visible, .stApp input:focus-visible, .stApp textarea:focus-visible,
+.stApp select:focus-visible, .stApp summary:focus-visible, .stApp [role="tab"]:focus-visible,
+.stApp [role="button"]:focus-visible, .stApp [tabindex]:focus-visible {
+  outline: 2px solid var(--sf-text); outline-offset: 2px; border-radius: 6px;
+}
+label[data-baseweb="radio"], [data-baseweb="tab"], [data-baseweb="select"], summary, [role="button"], [role="tab"] { cursor: pointer; }
+
+/* ===== Streamlit widgets (ink comes from primaryColor in .streamlit/config.toml, so nothing is blue) ===== */
+.stApp [data-testid="stWidgetLabel"] p, .stApp [data-testid="stWidgetLabel"] label { font-size: 1rem; font-weight: 500; color: var(--sf-text); }
+.stApp [data-baseweb="input"], .stApp [data-baseweb="textarea"], .stApp [data-baseweb="select"] > div, .stApp [data-testid="stNumberInputContainer"] {
+  background: var(--sf-card) !important; border: 1px solid var(--sf-border) !important; border-radius: 8px !important;
+}
+.stApp [data-baseweb="input"] input, .stApp [data-baseweb="textarea"] textarea, .stApp [data-baseweb="select"] input { font-size: 1rem; color: var(--sf-text); }
+/* the inner elements carry their own fill in Streamlit's theme, so every layer is white: no beige boxes inside the bordered field */
+.stApp [data-baseweb="base-input"], .stApp [data-baseweb="input"] > div, .stApp [data-baseweb="textarea"] textarea, .stApp [data-baseweb="select"] > div > div {
+  background-color: var(--sf-card) !important;
+}
+.stApp [data-testid="stTextAreaRootElement"], .stApp [data-testid="stTextInputRootElement"] {
+  background-color: var(--sf-card) !important; border: 1px solid var(--sf-border) !important; border-radius: 8px !important;
+}
+.stApp [data-testid="stTextAreaRootElement"]:focus-within, .stApp [data-testid="stTextInputRootElement"]:focus-within { border-color: var(--sf-text) !important; }
+.stApp [data-testid="stSelectbox"] [role="group"], .stApp [data-testid="stMultiSelect"] [role="group"] {
+  background-color: var(--sf-card) !important; border: 1px solid var(--sf-border) !important; border-radius: 8px !important;
+}
+.stApp [data-testid="stSelectbox"] [role="group"]:focus-within, .stApp [data-testid="stMultiSelect"] [role="group"]:focus-within { border-color: var(--sf-text) !important; }
+.stApp [data-baseweb="input"]:focus-within, .stApp [data-baseweb="textarea"]:focus-within, .stApp [data-baseweb="select"] > div:focus-within {
+  border-color: var(--sf-text) !important;
+}
+.stApp [data-testid="stExpander"] details { border: 1px solid var(--sf-border); background: var(--sf-card); border-radius: var(--sf-radius); box-shadow: var(--sf-shadow); }
+.stApp [data-testid="stExpander"] summary { min-height: 52px; font-size: 1rem; font-weight: 600; }
+.stApp [data-testid="stAlert"] { border-radius: var(--sf-radius); border: 1px solid var(--sf-border); background: var(--sf-card); color: var(--sf-text); }
+.stApp [data-testid="stAlert"] p { font-size: 1rem; color: var(--sf-text); }
+/* notices (info, warning, error) are neutral white cards with an ink icon, never Streamlit blue; the words and a left marker carry the status */
+.stApp [data-testid="stAlertContainer"] { background: var(--sf-card) !important; border: 1px solid var(--sf-border); border-radius: var(--sf-radius); color: var(--sf-text); }
+.stApp [data-testid="stAlertContainer"] p, .stApp [data-testid="stAlertContainer"] [data-testid="stIconMaterial"] { color: var(--sf-text) !important; }
+.stApp [data-testid="stAlertContainer"]:has([data-testid="stAlertContentError"]) { border-left: 4px solid var(--sf-down); }
+.stApp [data-testid="stAlertContainer"]:has([data-testid="stAlertContentWarning"]) { border-left: 4px solid var(--sf-amber); }
+.stApp [data-testid="stFileUploaderDropzone"] { background: var(--sf-card); border: 1px dashed var(--sf-border); border-radius: var(--sf-radius); }
+.stApp [data-testid="stDataFrame"] { border: 1px solid var(--sf-border); border-radius: var(--sf-radius); overflow: hidden; }
+/* unselected radio circles: Streamlit fills them with the page colour and a hairline border, which is nearly invisible; give them a real outline */
+.stApp [data-testid="stRadioOption"]:not(:has(input:checked)) > div > div:first-child {
+  box-sizing: border-box; border: 2px solid var(--sf-muted) !important; background-color: var(--sf-card) !important;
+}
+.stApp [data-baseweb="tag"] { background: var(--sf-raised) !important; border-radius: 6px; }
+.stApp [data-baseweb="tag"] span { color: var(--sf-text) !important; }
+[data-testid="stMetric"] { background: var(--sf-card); border: 1px solid var(--sf-border); border-radius: var(--sf-radius); padding: 16px; }
+.stApp [data-baseweb="tab-highlight"] { background-color: var(--sf-amber) !important; height: 3px !important; }
+.stApp [data-baseweb="tab-border"] { background-color: var(--sf-border) !important; }
+.stApp [data-baseweb="tab"] p { font-size: 1rem; font-weight: 500; color: var(--sf-text); }
+
+/* ===== components (built by app/ui.py, app/page_components.py, app/home_components.py) ===== */
+/* surfaces: one card look everywhere */
+.sf-card, .sf-scard, .sf-order, .sf-list, .sf-hero, .sf-stats, [class*="st-key-sf-card"], .st-key-sf-side {
+  background: var(--sf-card); border: 1px solid var(--sf-border); border-radius: var(--sf-radius); box-shadow: var(--sf-shadow);
+}
+[class*="st-key-sf-card"], .st-key-sf-side { padding: 24px !important; gap: 8px; }
+[class*="st-key-sf-card"] { margin-bottom: 16px; }
+.sf-card, .sf-scard { padding: 24px; }
+.sf-note { background: var(--sf-card); border: 1px solid var(--sf-border); border-radius: var(--sf-radius); padding: 24px; margin: 0 0 16px; font-size: 1rem; line-height: 1.5; color: var(--sf-text); }
+@media (min-width: 901px) {
+  [data-testid="stMain"] [data-testid="stColumn"]:has(.st-key-sf-side) { position: sticky; top: 24px; align-self: flex-start; }
+}
+
+.st-key-sf-side .sf-sec { margin-top: 24px; }
+.st-key-sf-side .sf-sec-tight { margin-top: 0; }
+
+/* hierarchy, not a row of identical cards: the first card (closest role, fastest-rising skill, first course) leads; the rest are quieter */
+[class*="st-key-sf-card"]:not(:has(.sf-role-lead)) { padding: 16px 24px !important; }
+.sf-scard-lead { padding: 24px; }
+.sf-scard-lead .sf-name { font-size: 1.25rem; }
+.sf-order-lead { border-color: var(--sf-text); }
+
+/* the big number */
+.sf-hero { padding: 24px; }
+.sf-hero-label { color: var(--sf-muted); font-size: 0.875rem; font-weight: 500; }
+.sf-hero-value { font-variant-numeric: tabular-nums; font-size: 2.25rem; line-height: 1.1; font-weight: 600; letter-spacing: -0.02em; margin: 4px 0 16px; color: var(--sf-text); }
+.sf-hero-cap { color: var(--sf-muted); font-size: 0.9375rem; margin-top: 16px; line-height: 1.5; }
+.sf-hero .sf-pill { white-space: normal; align-items: flex-start; text-align: left; }
+.sf-hero .sf-pill .sf-icon { margin-top: 2px; }
+
+/* change pills: arrow + word + sign, never colour alone. Small, flat, 6px radius. */
+.sf-icon { flex: none; vertical-align: -0.2em; }
+.sf-pill { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 6px; border: 0;
+           font-size: 0.875rem; font-weight: 600; line-height: 1.25; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.sf-pill-up { color: var(--sf-up-text); background: var(--sf-up-bg); }
+.sf-pill-down { color: var(--sf-down-text); background: var(--sf-down-bg); }
+.sf-pill-flat, .sf-pill-low { color: var(--sf-text); background: var(--sf-flat-bg); }
+
+/* status chips (words, never colour alone) and progress tracks (solid amber fill: no gradient) */
+.sf-status { display: inline-flex; align-items: center; flex: none; font-size: 0.875rem; font-weight: 600; padding: 4px 8px; border-radius: 6px;
+             border: 1px solid var(--sf-border); color: var(--sf-muted); background: transparent; white-space: nowrap; }
+.sf-status-plain { color: var(--sf-text); background: var(--sf-raised); }
+.sf-status-strong { color: var(--sf-text); background: color-mix(in srgb, var(--sf-amber) 28%, var(--sf-card)); border-color: color-mix(in srgb, var(--sf-amber) 60%, var(--sf-card)); }
+.sf-track { height: 8px; border-radius: 999px; background: color-mix(in srgb, var(--sf-text) 8%, var(--sf-card)); overflow: hidden; }
+.sf-track > i { display: block; height: 100%; border-radius: 999px; background: var(--sf-amber); }
+.sf-track-neutral > i { background: var(--sf-exposure); }       /* AI impact is not good or bad: a grey-brown fill, never amber, red or green */
+.sf-track-row { display: flex; align-items: center; gap: 16px; margin-top: 16px; }
+.sf-track-row .sf-track { flex: 1; }
+
+/* role card (Home and Matches): title + chip, Fit % + track, one sentence, hiring pill, strip with one button */
+.sf-role-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px 16px; }
+.sf-role-title { flex: 1 1 12rem; font-size: 1.125rem; line-height: 1.3; font-weight: 600; letter-spacing: -0.01em; color: var(--sf-text); overflow-wrap: anywhere; }
+.sf-role-lead .sf-role-title { font-size: 1.5rem; line-height: 1.25; }
+.sf-fitrow { display: flex; align-items: baseline; gap: 8px; margin: 16px 0 8px; }
+.sf-fit-num { font-variant-numeric: tabular-nums; font-size: 2rem; line-height: 1; font-weight: 600; letter-spacing: -0.02em; color: var(--sf-text); }
+.sf-role-lead .sf-fit-num { font-size: 3rem; }
+.sf-fit-label { font-size: 0.875rem; color: var(--sf-muted); }
+.sf-why { font-size: 1rem; line-height: 1.5; color: var(--sf-text); margin: 16px 0; overflow-wrap: anywhere; }
+.sf-role-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 16px 24px; margin-top: 8px; }
+.sf-role-exp { display: flex; align-items: center; gap: 8px; min-width: 224px; }
+.sf-role-exp .sf-exp { flex: 1; }
+.sf-missing { font-size: 1rem; line-height: 1.4; color: var(--sf-text); overflow-wrap: anywhere; }
+.sf-missing-label { color: var(--sf-muted); }
+/* compact rows (roles 2 and 3): title + chip, a small Fit with a thin track, one line of why; the link sits beside them */
+.sf-rrow { min-width: 0; }
+.sf-rrow-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px 16px; }
+.sf-rrow-title { flex: 1 1 10rem; font-size: 1rem; line-height: 1.4; font-weight: 600; color: var(--sf-text); overflow-wrap: anywhere; }
+.sf-rrow-fit { display: flex; align-items: center; gap: 8px; margin: 8px 0; }
+.sf-rrow-num { font-variant-numeric: tabular-nums; font-size: 1.25rem; line-height: 1.2; font-weight: 600; color: var(--sf-text); }
+.sf-rrow-fit .sf-track { flex: 0 1 160px; height: 4px; margin-left: 8px; }
+.sf-rrow-sub { font-size: 0.9375rem; line-height: 1.5; color: var(--sf-muted); overflow-wrap: anywhere; }
+[class*="st-key-sf-row-"] { gap: 0; }
+[class*="st-key-sf-row-sep-"] { border-top: 1px solid var(--sf-border); padding-top: 16px; margin-top: 8px; }
+[class*="st-key-sf-row-"] [data-testid="stPageLink-NavLink"] { justify-content: flex-start; padding: 0; margin-top: 8px; text-decoration: underline; text-underline-offset: 4px; }
+[class*="st-key-sf-row-"] [data-testid="stPageLink-NavLink"] p { font-weight: 500; }
+/* the strip: text on the left, one button on the right. Flex row; the text may wrap, the button never shrinks, so they cannot overlap. */
+[class*="st-key-sf-strip"] {
+  flex-direction: row !important; flex-wrap: nowrap !important; align-items: center !important; justify-content: space-between; gap: 8px 16px !important;
+  background: var(--sf-bg); border: 1px solid var(--sf-border); border-radius: 8px; padding: 8px 8px 8px 16px; margin-top: 16px;
+}
+[class*="st-key-sf-strip"] > div { width: auto !important; min-width: 0; }
+[class*="st-key-sf-strip"] > div:first-child { flex: 1 1 0 !important; }
+[class*="st-key-sf-strip"] > div:last-child { flex: 0 0 auto !important; }
+[class*="st-key-sf-strip"] [data-testid="stMarkdownContainer"] { margin-bottom: 0 !important; }
+[class*="st-key-sf-strip"] button { white-space: nowrap; }
+
+/* up to three big numbers: ONE surface with dividers (a KPI strip), not three identical cards */
+.sf-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; margin-top: 16px; overflow: hidden; }
+.sf-stat { padding: 24px; border-left: 1px solid var(--sf-border); }
+.sf-stat:first-child { border-left: 0; }
+.sf-stat-label, .sf-num-label { font-size: 0.875rem; font-weight: 500; color: var(--sf-muted); }
+.sf-stat-value, .sf-stat-big { font-variant-numeric: tabular-nums; font-size: 2.25rem; line-height: 1.2; font-weight: 600; letter-spacing: -0.02em; margin-top: 4px; color: var(--sf-text); }
+.sf-stat-pill { margin-top: 8px; }
+.sf-stat-pill .sf-pill, .sf-stat-pill .sf-status { box-sizing: border-box; height: 28px; }
+.sf-stats { margin-bottom: 24px; }
+.sf-stat-sub { color: var(--sf-muted); font-size: 0.875rem; line-height: 1.4; margin-top: 8px; }
+.sf-nums { display: flex; flex-direction: column; gap: 24px; margin: 8px 0 24px; }
+.sf-num-value { font-variant-numeric: tabular-nums; font-size: 2rem; line-height: 1.2; font-weight: 600; color: var(--sf-text); margin: 4px 0; }
+.sf-num-help { font-size: 1rem; line-height: 1.5; color: var(--sf-muted); max-width: 60ch; }
+.sf-detail-title { font-size: 1.125rem; font-weight: 600; color: var(--sf-text); margin: 24px 0 4px; }
+
+/* skill lists: rows with a little line (long list) and simple name + pill rows (Home panel) */
+.sf-list { overflow: hidden; margin-bottom: 16px; }
+.sf-list-head, .sf-row {
+  display: grid; grid-template-columns: minmax(0, 1.7fr) 88px 168px minmax(0, 1fr); gap: 16px; align-items: center;
+  grid-template-areas: "name spark pill exp"; padding: 0 24px;
+}
+.sf-list-head { min-height: 48px; color: var(--sf-muted); font-size: 0.875rem; font-weight: 600; border-bottom: 1px solid var(--sf-border); }
+.sf-row { min-height: 72px; border-top: 1px solid var(--sf-border); transition: background-color 200ms ease; }
+.sf-list-head + .sf-row { border-top: 0; }
+.sf-row:hover { background: var(--sf-raised); }
+.sf-row.sf-row-3 { grid-template-columns: minmax(0, 1.7fr) 88px auto; grid-template-areas: "name spark pill"; }
+.sf-row.sf-row-3 .sf-c-pill { justify-self: end; }
+.sf-c-name { grid-area: name; min-width: 0; }
+.sf-c-spark { grid-area: spark; }
+.sf-c-pill { grid-area: pill; }
+.sf-c-exp { grid-area: exp; }
+.sf-name { font-weight: 600; color: var(--sf-text); font-size: 1rem; overflow-wrap: anywhere; }
+.sf-tick { font-weight: 400; color: var(--sf-muted); font-size: 0.875rem; margin-left: 4px; }
+.sf-sub { color: var(--sf-muted); font-size: 0.875rem; }
+.sf-row-thin .sf-name { color: var(--sf-muted); }
+.sf-spark { display: block; width: 88px; height: 32px; }
+.sf-exp { display: flex; align-items: center; gap: 8px; }
+.sf-bar { flex: 1; height: 8px; min-width: 32px; background: color-mix(in srgb, var(--sf-text) 8%, var(--sf-card)); border-radius: 4px; overflow: hidden; }
+.sf-bar > i { display: block; height: 100%; border-radius: 4px; }
+.sf-exp-num { font-size: 0.875rem; min-width: 2.2ch; text-align: right; font-variant-numeric: tabular-nums; }
+.sf-empty { padding: 24px; color: var(--sf-muted); font-size: 1rem; }
+.sf-skills { display: flex; flex-direction: column; margin: 8px 0 16px; }
+.sf-skill { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 16px; min-height: 56px; padding: 12px 0; border-top: 1px solid var(--sf-border); }
+.sf-skill:first-child { border-top: 0; }
+.sf-skill-name { font-size: 1rem; font-weight: 500; color: var(--sf-text); overflow-wrap: anywhere; }
+
+/* the quiet table in "Show details": hairlines only, no fill; each row stacks name and trend, then a small meta line */
+.sf-table { width: 100%; border-collapse: collapse; margin: 8px 0 16px; }
+.sf-table tbody tr { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 16px; padding: 12px 0; border-top: 1px solid var(--sf-border); }
+.sf-table tbody tr:first-child { border-top: 0; }
+.stApp .sf-table th, .stApp .sf-table td { border: 0; background: transparent; }
+.sf-table td { padding: 0; font-size: 1rem; color: var(--sf-text); overflow-wrap: anywhere; }
+.sf-t-name { font-weight: 600; }
+.sf-t-trend { text-align: right; font-variant-numeric: tabular-nums; }
+.sf-t-meta { grid-column: 1 / -1; font-size: 0.875rem !important; color: var(--sf-muted) !important; }
+
+/* skill cards (Skill Market), course cards (learning plan), concept and source blocks (Methodology) */
+.sf-cards { display: flex; flex-direction: column; gap: 16px; margin-bottom: 16px; }
+.sf-scard-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.sf-order { display: grid; grid-template-columns: 48px minmax(0, 1fr) auto; gap: 16px; align-items: center; grid-template-areas: "n main link"; padding: 24px; min-height: 96px; }
+.sf-ord-n { grid-area: n; font-size: 1.25rem; font-weight: 600; color: var(--sf-text); }
+.sf-ord-main { grid-area: main; min-width: 0; }
+.sf-ord-link { grid-area: link; }
+.sf-chiprow { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.sf-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+.sf-chip { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 8px; border: 1px solid var(--sf-border);
+           background: var(--sf-card); color: var(--sf-text) !important; text-decoration: none !important; font-size: 0.875rem; transition: border-color 200ms ease; }
+a.sf-chip { cursor: pointer; }
+a.sf-chip:hover { border-color: var(--sf-text); }
+.sf-chip b { font-weight: 600; }
+.sf-linkbtn { display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 8px; border: 1px solid var(--sf-border); background: var(--sf-card);
+              color: var(--sf-text) !important; text-decoration: none !important; font-weight: 500; cursor: pointer; transition: border-color 200ms ease; }
+.sf-linkbtn:hover { border-color: var(--sf-text); }
+/* Methodology reads as a document: unboxed blocks separated by hairlines, not a stack of identical cards */
+.sf-concept { border-top: 1px solid var(--sf-border); padding: 24px 0 8px; }
+.sf-concept-title { font-size: 1.25rem; font-weight: 600; margin-bottom: 8px; }
+.sf-concept p { color: var(--sf-text); font-size: 1rem; line-height: 1.6; margin: 0 0 16px; }
+.sf-formula { font-size: 0.9375rem; color: var(--sf-muted); background: var(--sf-raised); border-radius: 8px; padding: 8px 16px; margin: 0 0 16px; overflow-wrap: anywhere; }
+.sf-src { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 16px; align-items: center; padding: 24px; border-top: 1px solid var(--sf-border); }
+.sf-src:first-child { border-top: 0; }
+.sf-src-name { font-weight: 600; font-size: 1rem; overflow-wrap: anywhere; }
+
+/* ===== small screens ===== */
+@media (max-width: 900px) {
+  [data-testid="stMain"] [data-testid="stHorizontalBlock"] { flex-wrap: wrap; }
+  [data-testid="stMain"] [data-testid="stColumn"] { min-width: 100% !important; width: 100% !important; flex: 1 1 100% !important; }
+  .sf-sec { margin-top: 32px; }
+}
+@media (max-width: 640px) {
+  .block-container, [data-testid="stMainBlockContainer"] { padding: 32px 16px 48px !important; }
+  .stApp h1, .stApp h1.sf-title { font-size: 1.75rem; }
+  .sf-pagehead { margin-bottom: 24px; }
+  [class*="st-key-sf-card"], .st-key-sf-side, [class*="st-key-sf-card"]:not(:has(.sf-role-lead)) { padding: 16px !important; }
+  .sf-role-lead .sf-role-title { font-size: 1.25rem; }
+  .sf-hero-value { font-size: 2rem; }
+  .sf-hero { padding: 16px; }
+  .sf-note { padding: 16px; }
+  .sf-stats { grid-template-columns: minmax(0, 1fr); }
+  .sf-stat { padding: 16px; border-left: 0; border-top: 1px solid var(--sf-border); }
+  .sf-stat:first-child { border-top: 0; }
+  .sf-sec { margin-top: 24px; flex-wrap: wrap; }
+  .sf-list-head { display: none; }
+  .sf-row { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name pill" "spark exp"; row-gap: 8px; padding: 16px; }
+  .sf-row.sf-row-3 { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name pill"; }
+  .sf-row.sf-row-3 .sf-c-spark { display: none; }
+  .sf-c-exp { min-width: 120px; }
+  .sf-c-pill { justify-self: end; }
+  .sf-order { grid-template-columns: 32px minmax(0, 1fr); grid-template-areas: "n main" ". link"; row-gap: 8px; padding: 16px; }
+  .sf-role-exp { min-width: 0; width: 100%; }
+  .sf-src { grid-template-columns: minmax(0, 1fr); padding: 16px; }
+  .sf-scard-lead { padding: 16px; }
+  .stApp [data-testid="stBaseButton-primary"] { width: 100%; }
+}
+@media (max-width: 480px) {
+  /* the strip stacks: text, then the button full width */
+  [class*="st-key-sf-strip"] { flex-direction: column !important; align-items: stretch !important; padding: 16px 8px 8px; }
+  [class*="st-key-sf-strip"] > div:first-child, [class*="st-key-sf-strip"] > div:last-child { flex: 0 0 auto !important; width: 100% !important; }
+  [class*="st-key-sf-strip"] > div:first-child { padding: 0 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+}
