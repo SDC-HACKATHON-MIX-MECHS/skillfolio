@@ -1,0 +1,16 @@
+{
+  "profile_id": "mei",
+  "display_name": "Mei (synthetic)",
+  "synthetic": true,
+  "headline": "Accounts clerk at an SME whose bookkeeping is being automated, Johor Bahru",
+  "hours_budget": 150,
+  "budget_rm": 200,
+  "risk_tolerance": "low",
+  "sdg_interests": [8, 10],
+  "skills": [
+    {"skill_id": "excel", "level": 3},
+    {"skill_id": "erp", "level": 2},
+    {"skill_id": "data_analysis", "level": 1},
+    {"skill_id": "customer_success", "level": 1}
+  ]
+}
