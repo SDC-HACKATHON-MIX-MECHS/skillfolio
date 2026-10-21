@@ -32,6 +32,22 @@ PLAN_PAGE = "pages/5_Rebalance_Plan.py"
 RANGE_TABS = ("1Y", "6M", "All")   # the order of the tabs above the chart
 
 
+def go_plan(role_id: str) -> None:
+    """Button callback: remember which role's plan to open (the plan page reads plan_target, as the Matches page sets it)."""
+    st.session_state["plan_target"] = role_id
+
+
+def plan_link(role_id: str, key: str) -> None:
+    """A quiet 'See your plan' link for one role: sets the target role, then opens the plan page."""
+    kwargs = {"key": key, "on_click": go_plan, "args": (role_id,)}
+    try:
+        clicked = st.button("See your plan", type="tertiary", icon=":material/arrow_forward:", **kwargs)
+    except Exception:                                        # older Streamlit has no tertiary buttons
+        clicked = st.button("See your plan", **kwargs)
+    if clicked:
+        st.switch_page(PLAN_PAGE)
+
+
 def load_demo_profile() -> None:
     """Button callback: put the sample profile in session state (made-up person, see data/profiles)."""
     ids = list_profiles()
@@ -72,7 +88,7 @@ if roles:
         name, "these roles fit you best",
         lead="Fit is how much of a role's skill list you already cover. Hiring trends are estimates for the next 12 months.",
     ))
-    if st.button("See my learning plan", type="primary", key="sf_cta"):
+    if st.button("See my learning plan", type="primary", key="sf_cta", on_click=go_plan, args=(roles[0]["role_id"],)):
         st.switch_page(PLAN_PAGE)
     show(kpi_strip(kpi_items(result)))
 else:
@@ -87,14 +103,15 @@ with roles_col:
             show(role_card(lead_match, skill_name, rank=1, lead=True))
             with strip_container("home-0"):
                 show(missing_strip(lead_match, skill_name))
-                if st.button("See your plan", key="sf_plan_0"):
+                plan_link_btn = st.button("See your plan", key="sf_plan_0", on_click=go_plan, args=(lead_match["role_id"],))
+                if plan_link_btn:
                     st.switch_page(PLAN_PAGE)
         if others:                                               # roles 2 and 3: compact rows on ONE shared surface
             with card_container():
                 for i, match in enumerate(others, start=2):
                     with row_container(f"home-{i}", separated=i > 2):
                         show(role_row(match, skill_name, rank=i))
-                        st.page_link(PLAN_PAGE, label="See your plan", icon=":material/arrow_forward:")
+                        plan_link(match["role_id"], f"sf_plan_{i - 1}")
     elif result["matches"]:
         show(note(NO_FIT_MESSAGE))
         st.page_link("pages/1_Profile.py", label="Update my skills", icon=":material/person:")
@@ -107,7 +124,7 @@ with panel_col:
     with side_panel():
         held = holdings(result)
         weights = {s["skill_id"]: s["weight"] for s in result["skills"]}
-        indices = {sid: result["forecasts"][sid]["index"] for sid in weights}
+        indices = {sid: (result["forecasts"].get(sid) or {}).get("index", []) for sid in weights}
         thin_ids = {s["skill_id"] for s in result["skills"] if s["thin_data"]}
         all_months = [mo["month"] for mo in snapshot["months"]]
 

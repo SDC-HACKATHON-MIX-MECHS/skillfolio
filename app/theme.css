@@ -225,8 +225,8 @@ label[data-baseweb="radio"], [data-baseweb="tab"], [data-baseweb="select"], summ
 .sf-rrow-sub { font-size: 0.9375rem; line-height: 1.5; color: var(--sf-muted); overflow-wrap: anywhere; }
 [class*="st-key-sf-row-"] { gap: 0; }
 [class*="st-key-sf-row-sep-"] { border-top: 1px solid var(--sf-border); padding-top: 16px; margin-top: 8px; }
-[class*="st-key-sf-row-"] [data-testid="stPageLink-NavLink"] { justify-content: flex-start; padding: 0; margin-top: 8px; text-decoration: underline; text-underline-offset: 4px; }
-[class*="st-key-sf-row-"] [data-testid="stPageLink-NavLink"] p { font-weight: 500; }
+[class*="st-key-sf-row-"] [data-testid="stBaseButton-tertiary"] { justify-content: flex-start; padding: 0; margin-top: 8px; }
+[class*="st-key-sf-row-"] [data-testid="stBaseButton-tertiary"] p { font-weight: 500; }
 /* the strip: text on the left, one button on the right. Flex row; the text may wrap, the button never shrinks, so they cannot overlap. */
 [class*="st-key-sf-strip"] {
   flex-direction: row !important; flex-wrap: nowrap !important; align-items: center !important; justify-content: space-between; gap: 8px 16px !important;

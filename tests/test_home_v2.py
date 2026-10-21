@@ -148,9 +148,24 @@ def test_each_card_has_a_chip_a_fit_track_and_a_missing_strip_with_one_button(ra
     assert html.count('class="sf-missing"') == 1                         # the lead card has the strip; rows say it in their sentence
     text = plain(html)
     assert text.count("Missing:") + text.count("Level up:") + text.count("Nothing missing") == 1
-    assert [b.label for b in ranked.button if b.proto.type != "primary"] == ["See your plan"]
-    assert len(ranked.button) == 2                                      # one primary + the lead card's button, nothing else
-    assert [p.proto.label for p in ranked.get("page_link")].count("See your plan") == 2   # roles 2 and 3 each link to the plan
+    assert [b.label for b in ranked.button if b.proto.type != "primary"] == ["See your plan"] * 3
+    assert len(ranked.button) == 4                                      # one primary + one "See your plan" per role, nothing else
+
+
+def _ranked_role_ids(at) -> list[str]:
+    from app.home_components import top_roles
+    from app.ui import scenario  # noqa: F401  (the page uses the default scenario in a fresh session)
+    result = api.analyse(aina(), data.load_snapshot("latest"), "moderate", top_n=None)
+    return [m["role_id"] for m in top_roles(result["matches"])]
+
+
+@pytest.mark.parametrize("key,index", [("sf_cta", 0), ("sf_plan_0", 0), ("sf_plan_1", 1), ("sf_plan_2", 2)])
+def test_every_see_your_plan_opens_the_plan_for_its_own_role(ranked, key, index):
+    """The plan page preselects the role from session_state['plan_target'] (the Matches page sets it the same way). Home used to
+    leave it unset, so 'See your plan' under role 3 opened the plan for role 1."""
+    expected = _ranked_role_ids(ranked)[index]
+    ranked.button(key=key).click().run()
+    assert ranked.session_state["plan_target"] == expected
 
 
 def test_role_cards_come_in_the_engines_order(ranked):
