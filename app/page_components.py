@@ -12,7 +12,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from app.home_components import skill_pill
-from app.ui import CARD, SDG_COLOURS, TEXT, esc, exposure_bar, icon, lead, pill, small_label, sparkline, status_chip, style_fig  # noqa: F401  (lead: re-exported)
+from app.ui import CARD, SDG_COLOURS, TEXT, esc, exposure_bar, icon, lead, pill, range_tabs, small_label, sparkline, status_chip, style_fig  # noqa: F401  (lead: re-exported)
 
 # --- Plain-English words (brief v2 rule 3). Precise terms live only in expanders and on Methodology. ----------
 
@@ -27,10 +27,9 @@ PLAIN = {
 
 
 def choice_control(label: str, options: list[str], default: str, key: str) -> str:
-    """A single-choice control (segmented where Streamlit has it, otherwise horizontal radio). Never returns None."""
-    if hasattr(st, "segmented_control"):
-        return st.segmented_control(label, options, default=default, key=key, label_visibility="collapsed") or default
-    return st.radio(label, options, index=options.index(default), horizontal=True, key=key, label_visibility="collapsed")
+    """A single-choice control (segmented where Streamlit has it, otherwise horizontal radio). Never returns None.
+    One implementation with the chart range tabs: deselecting the active choice keeps the default."""
+    return range_tabs(key, tuple(options), default, label=label)
 
 
 # --- Small pieces -------------------------------------------------------------------------------------

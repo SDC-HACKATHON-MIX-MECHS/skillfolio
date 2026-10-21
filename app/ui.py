@@ -105,18 +105,19 @@ def _scenario_control() -> None:
                  on_change=_keep_scenario, label_visibility="collapsed")
 
 
-def range_tabs(key: str, options: tuple[str, ...] = ("1Y", "6M", "All"), default: str = "1Y") -> str:
-    """The range tabs above a chart: a segmented control (a horizontal radio on a Streamlit without it). Returns the chosen option;
-    clicking the active tab (which would clear it) keeps the default instead of leaving the chart without a range."""
+def range_tabs(key: str, options: tuple[str, ...] = ("1Y", "6M", "All"), default: str = "1Y", label: str = "Range") -> str:
+    """A one-choice segmented control (a horizontal radio on a Streamlit without it): the range tabs above a chart, the sort control
+    on Skill Market. Returns the chosen option; clicking the active tab (which would clear it) keeps the default instead of leaving
+    nothing selected. `label` is the accessible name (the control shows no visible label)."""
     def _keep() -> None:
         if st.session_state.get(key) not in options:
             st.session_state[key] = default
 
     if hasattr(st, "segmented_control"):
-        choice = st.segmented_control("Range", options=list(options), default=default, key=key, selection_mode="single",
+        choice = st.segmented_control(label, options=list(options), default=default, key=key, selection_mode="single",
                                       label_visibility="collapsed", on_change=_keep)
     else:
-        choice = st.radio("Range", options=list(options), index=list(options).index(default), key=key, horizontal=True,
+        choice = st.radio(label, options=list(options), index=list(options).index(default), key=key, horizontal=True,
                           label_visibility="collapsed")
     return choice if choice in options else default
 
@@ -158,7 +159,7 @@ def scenario() -> str:
 def require_profile() -> dict:
     """Return the saved profile, or point the user to the Profile page and stop."""
     profile = st.session_state.get("profile")
-    if not profile or not profile["skills"]:
+    if not profile or not profile.get("skills"):
         st.info("Set up your profile first — pick your skills or load a sample.")
         st.page_link("pages/1_Profile.py", label="Go to 1 · Profile", icon=":material/person:")
         st.stop()

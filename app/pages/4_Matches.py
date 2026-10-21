@@ -6,7 +6,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import pandas as pd
 import streamlit as st
 
-from app.home_components import NO_FIT_MESSAGE, fit_label, fit_percent, hiring_pill, missing_strip, role_card, top_roles
+from app.home_components import GOOD_FIT, NO_FIT_MESSAGE, STRONG_FIT, fit_label, fit_percent, hiring_pill, missing_strip, role_card, top_roles
 from app.page_components import link_button, role_extras, sdg_chips
 from app.ui import (
     HELP, LEVEL_LABELS, SDG_NAMES, card_container, page_header, page_setup, require_profile, role_catalog, run_engine, show,
@@ -53,7 +53,7 @@ def card(rank: int, match: dict, nested: bool = False) -> None:
                 f"**Rank score {match['rank_score']:.2f}** = fit {match['match_pct']:.2f} "
                 f"× (1 + demand growth {match['role_growth']:+.2f}) × (1 + {config.SDG_TILT_ALPHA} × shared SDGs {match['sdg_overlap']:.2f})"
             )
-            st.caption(f"Fit label: Strong fit is 70% or more, Good fit is 40 to 69%, Stretch is below 40% (this role: {fit_label(fit_percent(match))}).")
+            st.caption(f"Fit label: Strong fit is {STRONG_FIT}% or more, Good fit is {GOOD_FIT} to {STRONG_FIT - 1}%, Stretch is below {GOOD_FIT}% (this role: {fit_label(fit_percent(match))}).")
             if match["contributions"]:
                 st.markdown("**What counts**")
                 st.dataframe(
