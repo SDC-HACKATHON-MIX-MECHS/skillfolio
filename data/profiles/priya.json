@@ -1,0 +1,18 @@
+{
+  "profile_id": "priya",
+  "display_name": "Priya (synthetic)",
+  "synthetic": true,
+  "headline": "Marketing executive moving into data and digital product work, Petaling Jaya",
+  "hours_budget": 300,
+  "budget_rm": 800,
+  "risk_tolerance": "high",
+  "sdg_interests": [10, 12],
+  "skills": [
+    {"skill_id": "crm", "level": 2},
+    {"skill_id": "excel", "level": 2},
+    {"skill_id": "data_analysis", "level": 1},
+    {"skill_id": "html_css", "level": 1},
+    {"skill_id": "figma_ui", "level": 1},
+    {"skill_id": "product_mgmt", "level": 1}
+  ]
+}

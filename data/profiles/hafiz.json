@@ -1,0 +1,18 @@
+{
+  "profile_id": "hafiz",
+  "display_name": "Hafiz (synthetic)",
+  "synthetic": true,
+  "headline": "Fresh electrical-engineering graduate interested in renewable energy, Kuching",
+  "hours_budget": 250,
+  "budget_rm": 400,
+  "risk_tolerance": "medium",
+  "sdg_interests": [7, 13],
+  "skills": [
+    {"skill_id": "cpp", "level": 2},
+    {"skill_id": "embedded", "level": 2},
+    {"skill_id": "python", "level": 1},
+    {"skill_id": "excel", "level": 2},
+    {"skill_id": "iot", "level": 1},
+    {"skill_id": "energy_climate", "level": 1}
+  ]
+}
