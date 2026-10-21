@@ -8,7 +8,7 @@ import streamlit as st
 
 from app.ui import (
     HELP, LEVEL_LABELS, SDG_NAMES, fmt_change, fmt_score, page_setup, require_profile, role_catalog, run_engine,
-    skill_label, source_caption,
+    show_warnings, skill_label, source_caption,
 )
 from engine import config
 
@@ -17,11 +17,11 @@ st.title("4 · Future roles for you")
 profile = require_profile()
 
 result = run_engine(profile, snapshot)
-if result is None or result["matches"] is None:
+if result is None:
     st.stop()
 matches = result["matches"][: config.TOP_N_ROLES]
 if not matches:
-    st.info("No roles matched yet. Add more skills on your Profile.")
+    show_warnings(result)
     st.stop()
 
 st.write(

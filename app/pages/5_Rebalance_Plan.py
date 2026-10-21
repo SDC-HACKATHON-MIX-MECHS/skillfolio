@@ -9,7 +9,7 @@ import streamlit as st
 from app.ui import (
     HELP, call_or_wait, course_catalog, fmt_change, fmt_pct, fmt_rm, fmt_score, gauge_fig, page_setup, require_profile,
     risk_return_fig, role_catalog, role_skill_rows, run_engine, sdg_donut, show_fig, skill_label, source_caption,
-    user_levels,
+    show_warnings, user_levels,
 )
 from engine import portfolio, sdg
 from engine.pathway import plan
@@ -19,7 +19,10 @@ st.title("5 · Rebalance plan")
 profile = require_profile()
 
 result = run_engine(profile, snapshot)
-if result is None or not result["matches"]:
+if result is None:
+    st.stop()
+if not result["matches"]:
+    show_warnings(result)
     st.stop()
 
 # --- Target role ----------------------------------------------------------------------------------
@@ -82,19 +85,22 @@ c3.metric("Readiness score", f"{now['readiness'] * 100:.1f}",
           delta=f"{(after['readiness'] - before['readiness']) * 100:+.1f}" if applied else None, help=HELP["readiness"])
 
 show_fig(gauge_fig(now["ai_exposure"], before=before["ai_exposure"] if applied else None))
-show_fig(risk_return_fig(result["matches"], now, before=before if applied else None))
+if now["ai_exposure"] is not None and before["ai_exposure"] is not None:
+    show_fig(risk_return_fig(result["matches"], now, before=before if applied else None))
 source_caption(snapshot, "hn_whoishiring", "aei_job_exposure")
 
 if applied:
     new_levels = user_levels(profile["skills"])
     for s in steps:
-        new_levels[s["skill_id"]] = max(new_levels.get(s["skill_id"], 0), courses.get(s["course_id"], {}).get("level_out") or 0)
+        level_out = courses.get(s["course_id"], {}).get("level_out")
+        if level_out:  # only courses.csv rows can change a level
+            new_levels[s["skill_id"]] = max(new_levels.get(s["skill_id"], 0), level_out)
     new_weights = call_or_wait("A", "portfolio weights", portfolio.weights, [{"skill_id": k, "level": v} for k, v in new_levels.items()])
     allocation = new_weights and call_or_wait(
         "A", "the SDG lens", sdg.impact_allocation, new_weights, list(roles.values()), role_skill_rows())
     st.subheader("Where your skills point after the plan")
 else:
-    allocation = result["allocation"]
+    allocation = {a["sdg"]: a["share"] for a in result["sdg_allocation"]}
     st.subheader("Where your skills point today")
 if allocation:
     show_fig(sdg_donut(allocation))

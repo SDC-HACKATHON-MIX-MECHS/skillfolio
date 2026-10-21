@@ -7,7 +7,7 @@ import streamlit as st
 
 from app.ui import (
     HELP, fmt_change, fmt_pct, fmt_score, gauge_fig, page_setup, require_profile, risk_return_fig, run_engine,
-    sdg_donut, show_fig, source_caption,
+    sdg_donut, show_fig, show_warnings, source_caption,
 )
 
 snapshot = page_setup("My Portfolio")
@@ -16,9 +16,9 @@ profile = require_profile()
 st.write(f"**{profile['display_name']}**'s skills, read like an investment portfolio.")
 
 result = run_engine(profile, snapshot)
-if result is None or result["metrics"] is None:
+if result is None:
     st.stop()
-m = result["metrics"]
+m = result["portfolio"]
 
 # --- Metric cards ---------------------------------------------------------------------------------
 c1, c2, c3 = st.columns(3)
@@ -37,17 +37,19 @@ source_caption(snapshot, "hn_whoishiring", "aei_job_exposure")
 # --- Risk / return --------------------------------------------------------------------------------
 st.subheader("You vs the future roles")
 st.write("Up is more demand growth; left is less exposed to AI. Bigger bubbles are roles you already match more closely.")
-if result["matches"]:
+if not result["matches"]:
+    show_warnings(result)
+elif m["ai_exposure"] is None:
+    st.info("None of your skills has AI-exposure data yet, so we can't place you on this chart.")
+else:
     show_fig(risk_return_fig(result["matches"], m))
     source_caption(snapshot, "hn_whoishiring", "aei_job_exposure")
-elif result["matches"] is not None:
-    st.info("No future roles to compare yet — add more skills on your Profile.")
 
 # --- SDG impact -----------------------------------------------------------------------------------
 st.subheader("Where your skills point")
-if result["allocation"]:
+if result["sdg_allocation"]:
     st.write("Share of your skills linked to each UN Sustainable Development Goal.")
-    show_fig(sdg_donut(result["allocation"]))
+    show_fig(sdg_donut({a["sdg"]: a["share"] for a in result["sdg_allocation"]}))
     st.caption("Source: roles.csv SDG links (see Matches for each reason) · every skill supports SDG 4.4")
 
 st.page_link("pages/4_Matches.py", label="Next: your matching roles", icon="🎯")

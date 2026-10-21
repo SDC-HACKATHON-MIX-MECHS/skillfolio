@@ -28,12 +28,13 @@ SDG_NAMES = {
 }
 LEVEL_LABELS = {1: "1 · basic", 2: "2 · working", 3: "3 · strong"}
 RISK_LABELS = {"low": "Low — play it safe", "medium": "Medium", "high": "High — chase growth"}
-TRAJECTORY = {"rising": "▲ rising", "stable": "■ stable", "declining": "▼ declining"}
+TRAJECTORY = {"rising": "▲ rising", "stable": "● stable", "declining": "▼ declining"}
+LOW_DATA = "● low data"
 
 # Tooltips (DESIGN.md §6)
 HELP = {
     "momentum": "How fast job posts mentioning this skill grew over the last 12 months, adjusted for the AI scenario. Above zero means rising. An estimate.",
-    "exposure": "How much AI is already used on tasks linked to this skill, 0–100. It is not a forecast of job loss.",
+    "exposure": "How much of this work already shows up in real AI use, 0–100. It means the work is changing fastest, not that the job disappears.",
     "swing": "How much demand jumps around month to month. Lower means steadier.",
     "growth": "Your skills' average demand trend, weighted by your level in each. An estimate.",
     "spread": "How evenly your learning is spread across skills, 0–100. Higher means less riding on one skill.",
@@ -146,7 +147,7 @@ def source_caption(snapshot: dict, *source_ids: str) -> None:
 # --- Number formats (DESIGN.md §2) --------------------------------------------------------------
 
 def arrow(x: float, threshold: float = 0.005) -> str:
-    return "▲" if x > threshold else "▼" if x < -threshold else "■"
+    return "▲" if x > threshold else "▼" if x < -threshold else "●"
 
 
 def fmt_change(x: float | None) -> str:
@@ -176,26 +177,25 @@ def user_levels(skills: list[dict]) -> dict[str, int]:
 
 
 def run_engine(profile: dict, snapshot: dict) -> dict | None:
-    """Forecasts, portfolio metrics, ranked matches and SDG allocation for a profile.
-    Shows a waiting note and returns None if a lane-A function isn't built yet."""
-    from engine import matching, portfolio, sdg
-    from engine.forecast import forecast_all
+    """engine.api.analyse for this profile and the sidebar scenario, with every role ranked (pages slice the top N).
+    Shows the problem and returns None if the profile can't be scored."""
+    from engine import api
 
-    forecasts = call_or_wait("A", "skill forecasts", forecast_all, snapshot, scenario())
-    if forecasts is None:
+    try:
+        result = call_or_wait("A", "the engine", api.analyse, profile, snapshot, scenario(), top_n=None)
+    except ValueError as exc:
+        st.error(f"We couldn't score this profile: {exc}")
+        st.page_link("pages/1_Profile.py", label="Fix it on 1 · Profile", icon="👤")
         return None
-    levels = user_levels(profile["skills"])
-    weights = call_or_wait("A", "portfolio weights", portfolio.weights, profile["skills"])
-    cov = call_or_wait("A", "the covariance matrix", portfolio.covariance, snapshot, list(levels))
-    if weights is None or cov is None:
-        return None
-    metrics = call_or_wait("A", "portfolio metrics", portfolio.metrics, weights, forecasts, cov, profile["risk_tolerance"])
-    matches = call_or_wait(
-        "A", "role matching", matching.rank_roles, list(role_catalog().values()), role_skill_rows(),
-        levels, forecasts, profile["sdg_interests"], snapshot["snapshot_date"],
-    )
-    allocation = call_or_wait("A", "the SDG lens", sdg.impact_allocation, weights, list(role_catalog().values()), role_skill_rows())
-    return {"forecasts": forecasts, "weights": weights, "metrics": metrics, "matches": matches, "allocation": allocation}
+    if result and result["dropped_skills"]:
+        st.caption("No job-post data yet for: " + ", ".join(skill_name(s) for s in result["dropped_skills"]) + " — left out of the numbers.")
+    return result
+
+
+def show_warnings(result: dict) -> None:
+    """The engine says why something is empty (e.g. no role skills yet); show that instead of an empty chart."""
+    for warning in result["warnings"]:
+        st.info(f"Nothing to show yet: {warning}.")
 
 
 # --- Charts (DESIGN.md §5) ----------------------------------------------------------------------
@@ -217,8 +217,12 @@ def show_fig(fig: go.Figure) -> None:
     st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
 
 
-def gauge_fig(exposure: float, before: float | None = None) -> go.Figure:
-    """AI-exposure gauge, 0–100, one hue (never red/green)."""
+def gauge_fig(exposure: float | None, before: float | None = None) -> go.Figure:
+    """AI-exposure gauge, 0–100, one hue (never red/green). Empty with "n/a" when exposure is unknown."""
+    if exposure is None:
+        fig = go.Figure(go.Indicator(mode="gauge", value=0, gauge={"axis": {"range": [0, 100]}, "bar": {"color": GRID}},
+                                     title={"text": "AI exposure: n/a"}))
+        return style_fig(fig, height=240)
     fig = go.Figure(go.Indicator(
         mode="gauge+number+delta" if before is not None else "gauge+number",
         value=round(exposure * 100),
