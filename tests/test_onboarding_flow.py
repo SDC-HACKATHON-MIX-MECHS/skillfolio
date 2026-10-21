@@ -66,7 +66,9 @@ def test_paste_resume_to_finished_profile():
     at.button(key="ob_start").click().run()
     assert not at.exception
     assert primary_buttons(at) == ["Find my skills"]
-    assert "Please do not use a real resume" in visible_text(at) and "discarded" in visible_text(at)
+    notice = visible_text(at)
+    assert "Please do not use a real resume" in notice and "discarded" in notice
+    assert "sent to this app's server" in notice and "sent anywhere" not in notice      # honest: the text does reach the app's server
 
     at.text_area(key="ob_resume_text").set_value(RESUME)
     at.button(key="ob_find").click().run()

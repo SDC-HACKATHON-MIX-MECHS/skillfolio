@@ -49,7 +49,7 @@ WELCOME_LEAD = ("See which of your skills employers want more or less, how much 
                 "It takes about two minutes. We never ask your age or gender.")
 
 NOTICE = ("Please do not use a real resume or personal details in this competition demo: use a made-up or sample one. "
-          "Nothing you enter is stored or sent anywhere; it is read in memory and discarded.")
+          "What you add is sent to this app's server, read in memory and discarded. We do not save it or pass it on.")
 PDF_MISSING = "PDF upload is not available on this server, so paste the text or upload a .txt file instead."
 
 
