@@ -163,6 +163,7 @@ def test_pills_use_direction_classes_and_an_arrow():
     ({"display_name": "Aina (synthetic)"}, "Aina"), ({"display_name": "  Mei  Ling "}, "Mei"),
     ({"display_name": ""}, ""), ({"display_name": None}, ""), ({}, ""), (None, ""), ({"display_name": 7}, ""),
     ({"display_name": "(synthetic)"}, ""), ({"display_name": "Zoë"}, "Zoë"),
+    ({"display_name": "You"}, ""), ({"display_name": "you (demo)"}, ""), ({"display_name": "Youssef"}, "Youssef"),   # the default name is not greeted
 ])
 def test_first_name(profile, expected):
     assert hc.first_name(profile) == expected

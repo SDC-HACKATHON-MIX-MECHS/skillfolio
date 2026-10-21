@@ -141,6 +141,10 @@ label[data-baseweb="radio"], [data-baseweb="tab"], [data-baseweb="select"], summ
 .stApp [data-testid="stAlertContainer"]:has([data-testid="stAlertContentWarning"]) { border-left: 4px solid var(--sf-amber); }
 .stApp [data-testid="stFileUploaderDropzone"] { background: var(--sf-card); border: 1px dashed var(--sf-border); border-radius: var(--sf-radius); }
 .stApp [data-testid="stDataFrame"] { border: 1px solid var(--sf-border); border-radius: var(--sf-radius); overflow: hidden; }
+/* unselected radio circles: Streamlit fills them with the page colour and a hairline border, which is nearly invisible; give them a real outline */
+.stApp [data-testid="stRadioOption"]:not(:has(input:checked)) > div > div:first-child {
+  box-sizing: border-box; border: 2px solid var(--sf-muted) !important; background-color: var(--sf-card) !important;
+}
 .stApp [data-baseweb="tag"] { background: var(--sf-raised) !important; border-radius: 6px; }
 .stApp [data-baseweb="tag"] span { color: var(--sf-text) !important; }
 [data-testid="stMetric"] { background: var(--sf-card); border: 1px solid var(--sf-border); border-radius: var(--sf-radius); padding: 16px; }

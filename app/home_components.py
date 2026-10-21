@@ -37,7 +37,8 @@ def first_name(profile: dict | None) -> str:
     if not isinstance(raw, str):
         return ""
     cleaned = re.sub(r"\s*\(.*?\)\s*", " ", raw).strip()
-    return cleaned.split()[0] if cleaned else ""
+    first = cleaned.split()[0] if cleaned else ""
+    return "" if first.lower() == "you" else first             # the wizard's default name is "You": not a name to greet
 
 
 def list_phrase(names: list[str], limit: int = 2) -> str:

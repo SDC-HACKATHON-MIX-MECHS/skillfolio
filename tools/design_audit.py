@@ -69,6 +69,7 @@ def token_pairs() -> list[tuple[str, str, str, float]]:
         ("'Strong fit' chip text on its amber tint", ui.TEXT, strong_chip, 7.0),
         ("active nav item text on its fill", ui.TEXT, ui.RAISED, 7.0),
         ("disabled button label on its fill", ui.MUTED, ui.RAISED, 4.5),
+        ("unselected radio outline against the page (non-text)", ui.MUTED, ui.BG, 3.0),
         ("rising arrow or chart mark against a card (non-text)", ui.UP, ui.CARD, 3.0),
         ("falling arrow or chart mark against a card (non-text)", ui.DOWN, ui.CARD, 3.0),
     ]
