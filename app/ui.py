@@ -386,9 +386,10 @@ def _fit_ranges(points: list[tuple[float, float]], sizes: list[float], labels: l
 
 
 def _place_labels(points: list[tuple[float, float]], sizes: list[float], labels: list[str], you: list[tuple[float, float]],
+                  path: list[tuple[float, float]], before_side: str | None,
                   x_range: tuple[float, float], y_range: tuple[float, float]) -> list[str]:
     """A text position per role dot: above, right, left, below or a diagonal, whichever label box hits nothing and stays
-    inside the chart. Covering your dot, your "You" label or your before-to-after arrow counts ten times worse than
+    inside the chart. Covering your dots, their labels or your before-to-after path counts ten times worse than
     touching a role's dot or label. Each label is re-placed against the others until none can do better, so an early
     label does not take the only clear spot a later one needed."""
     def px(x: float, y: float) -> tuple[float, float]:
@@ -401,13 +402,13 @@ def _place_labels(points: list[tuple[float, float]], sizes: list[float], labels:
     yours = []
     for i, (ux, uy) in enumerate(px(*p) for p in you):
         yours.append((ux - 10, uy - 10, ux + 10, uy + 10))
-        if i == 0:
-            yours.append((ux - 15, uy - 10 - _GAP - _LINE_H, ux + 15, uy - 10))   # the "You" label below your dot
-    if len(you) == 2:   # the arrow, as 6px boxes every 4px along it
-        (ax, ay), (bx, by) = px(*you[1]), px(*you[0])
-        n = max(2, int(((bx - ax) ** 2 + (by - ay) ** 2) ** 0.5 / 4))
-        yours += [(ax + (bx - ax) * t / n - 3, ay + (by - ay) * t / n - 3, ax + (bx - ax) * t / n + 3, ay + (by - ay) * t / n + 3)
-                  for t in range(n + 1)]
+        if i == 0:   # the "You" label below your dot
+            yours.append((ux - 15, uy - 10 - _GAP - _LINE_H, ux + 15, uy - 10))
+        elif before_side == "top center":
+            yours.append((ux - 27, uy + 10, ux + 27, uy + 10 + _GAP + _LINE_H))
+        elif before_side == "bottom center":
+            yours.append((ux - 27, uy - 10 - _GAP - _LINE_H, ux + 27, uy - 10))
+    yours += [(x - 3, y - 3, x + 3, y + 3) for x, y in (px(*q) for q in path)]   # the path, as 6px boxes along it
 
     def candidates(cx: float, cy: float, size: float, label: str) -> dict[str, tuple]:
         (w, h), r = _label_size(label), size / 2 + _GAP
@@ -441,8 +442,32 @@ def _place_labels(points: list[tuple[float, float]], sizes: list[float], labels:
     return sides
 
 
+def _plan_path(start: tuple[float, float], end: tuple[float, float], x_range: tuple[float, float],
+               y_range: tuple[float, float], gap_start: float = 14.0, gap_end: float = 15.0) -> list[tuple[float, float]]:
+    """Points along a gentle curve from your before dot to your dot, stopping short of both (in pixels) so the line
+    never cuts into a dot. Empty when the dots are too close for a line to show."""
+    def px(x, y):
+        return (x - x_range[0]) / (x_range[1] - x_range[0]) * _PLOT_W, (y - y_range[0]) / (y_range[1] - y_range[0]) * _PLOT_H
+
+    def data(x, y):
+        return x_range[0] + x / _PLOT_W * (x_range[1] - x_range[0]), y_range[0] + y / _PLOT_H * (y_range[1] - y_range[0])
+
+    (ax, ay), (bx, by) = px(*start), px(*end)
+    length = ((bx - ax) ** 2 + (by - ay) ** 2) ** 0.5
+    if length < gap_start + gap_end + 12:
+        return []
+    bend = 0.18 * length   # how far the curve bows out from the straight line, sideways
+    cx, cy = (ax + bx) / 2 - (by - ay) / length * bend, (ay + by) / 2 + (bx - ax) / length * bend
+    curve = [((1 - t) ** 2 * ax + 2 * (1 - t) * t * cx + t ** 2 * bx, (1 - t) ** 2 * ay + 2 * (1 - t) * t * cy + t ** 2 * by)
+             for t in (i / 80 for i in range(81))]
+    kept = [(x, y) for x, y in curve
+            if ((x - ax) ** 2 + (y - ay) ** 2) ** 0.5 >= gap_start and ((x - bx) ** 2 + (y - by) ** 2) ** 0.5 >= gap_end]
+    return [data(x, y) for x, y in kept] if len(kept) >= 2 else []
+
+
 def risk_return_fig(matches: list[dict], user: dict, before: dict | None = None) -> go.Figure:
-    """x = AI exposure, y = growth. Roles as grey bubbles sized by match %, the user as the amber dot with an ink ring."""
+    """x = AI exposure, y = growth. Roles as grey bubbles sized by match %, the user as the amber dot with an ink ring;
+    with `before`, a faded dot where you were and a dotted curve to where the plan takes you."""
     top = matches[: config.TOP_N_ROLES]
     you = [(user["ai_exposure"] * 100, user["growth"] * 100)] + ([(before["ai_exposure"] * 100, before["growth"] * 100)] if before else [])
     roles = [(m["ai_exposure"] * 100, m["role_growth"] * 100) for m in top]
@@ -453,7 +478,9 @@ def risk_return_fig(matches: list[dict], user: dict, before: dict | None = None)
     labels = [_wrap_label(m["title"]) for m in top]
     sizes = [12 + 40 * m["match_pct"] for m in top]
     x_range, y_range = _fit_ranges(roles, sizes, labels, x_range, y_range)
-    sides = _place_labels(roles, sizes, labels, you, x_range, y_range)
+    path = _plan_path(you[1], you[0], x_range, y_range) if before is not None else []
+    before_side = None if before is None else "top center" if you[1][1] >= you[0][1] else "bottom center"
+    sides = _place_labels(roles, sizes, labels, you, path, before_side, x_range, y_range)
 
     fig = go.Figure()
     fig.add_trace(go.Scatter(
@@ -469,15 +496,20 @@ def risk_return_fig(matches: list[dict], user: dict, before: dict | None = None)
         name="Future roles",
     ))
     if before is not None:
+        # You before the plan: a faded copy of your dot, joined to it by a dotted amber curve that ends in an arrowhead.
         fig.add_trace(go.Scatter(
-            x=[before["ai_exposure"] * 100], y=[before["growth"] * 100], mode="markers",
-            marker=dict(size=18, color="rgba(0,0,0,0)", line=dict(color=TEXT, width=2)),
-            hovertemplate="You, before the plan<extra></extra>", name="Before",
+            x=[you[1][0]], y=[you[1][1]], mode="markers+text", text=["Before"], textposition=before_side,
+            textfont=dict(color=MUTED), cliponaxis=False,
+            marker=dict(size=16, color="rgba(232,163,61,0.28)", line=dict(color=AMBER, width=2)),   # AMBER at 28%, full ring
+            hovertemplate="You, before the plan<br>AI exposure %{x:.0f}/100<br>Growth %{y:+.1f}%<extra></extra>", name="Before",
         ))
-        fig.add_annotation(
-            x=user["ai_exposure"] * 100, y=user["growth"] * 100, ax=before["ai_exposure"] * 100, ay=before["growth"] * 100,
-            xref="x", yref="y", axref="x", ayref="y", showarrow=True, arrowhead=3, arrowcolor=TEXT, arrowwidth=2,
-        )
+        if path:
+            fig.add_trace(go.Scatter(
+                x=[x for x, _ in path], y=[y for _, y in path], mode="lines+markers",
+                line=dict(color=AMBER, width=3, dash="dot", shape="spline"),
+                marker=dict(symbol="arrow-wide", angleref="previous", size=[0] * (len(path) - 1) + [13], color=AMBER, line=dict(width=0)),
+                hoverinfo="skip", showlegend=False, cliponaxis=False,
+            ))
     fig.add_trace(go.Scatter(
         x=[user["ai_exposure"] * 100], y=[user["growth"] * 100], mode="markers+text", text=["You"], textposition="bottom center",
         marker=dict(size=18, color=AMBER, line=dict(color=TEXT, width=2)),
