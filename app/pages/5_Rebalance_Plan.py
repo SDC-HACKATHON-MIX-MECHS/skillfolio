@@ -108,7 +108,9 @@ with st.expander("Show details", expanded=applied):
     ready_delta = delta(after["readiness"] - before["readiness"], f"{(after['readiness'] - before['readiness']) * 100:+.1f}".replace("-", "−"))
     # AI impact is not good or bad, so its change is never green or red.
     if applied and before["ai_exposure"] is not None and after["ai_exposure"] is not None:
-        ai_delta = (f"{(after['ai_exposure'] - before['ai_exposure']) * 100:+.0f} points".replace("-", "−"), "flat")
+        # From the rounded scores, so "21 -> 22" reads "+1 points", matching the gauge (not "+0" from 21.1 -> 21.6).
+        ai_change = round(after["ai_exposure"] * 100) - round(before["ai_exposure"] * 100)
+        ai_delta = (f"{ai_change:+d} points".replace("-", "−"), "flat")
     else:
         ai_delta = (None, "flat")
     show(compare_cards([

@@ -343,22 +343,90 @@ def gauge_fig(exposure: float | None, before: float | None = None) -> go.Figure:
         },
         title={"text": "AI impact"},
     ))
-    return style_fig(fig, height=240)
+    fig = style_fig(fig, height=260)
+    fig.update_layout(margin=dict(t=56))   # room for the title above the arc
+    return fig
+
+
+def _wrap_label(title: str, width: int = 18) -> str:
+    """Break a long role title onto two lines (at ' / ' or the middle space) so it fits beside the chart's edge."""
+    if len(title) <= width:
+        return title
+    if " / " in title:
+        return title.replace(" / ", " /<br>", 1)
+    words = title.split()
+    cut = min(range(1, len(words)), key=lambda i: abs(len(" ".join(words[:i])) - len(title) / 2))
+    return " ".join(words[:cut]) + "<br>" + " ".join(words[cut:])
+
+
+def _place_labels(points: list[tuple[float, float]], sizes: list[float], labels: list[str], you: list[tuple[float, float]],
+                  x_range: tuple[float, float], y_range: tuple[float, float]) -> list[str]:
+    """A text position per role dot: the first of above, right, left, below whose label box hits no dot, no other label,
+    your dot, your "You" label or your before-to-after arrow, and stays inside the chart. Boxes are estimated in pixels
+    for a laptop-width chart (14px text), so on a phone a label can still touch; the hover text is always there."""
+    width, height, char_w, line_h, gap = 760.0, 290.0, 7.5, 17.0, 3.0
+
+    def px(x: float, y: float) -> tuple[float, float]:
+        return ((x - x_range[0]) / (x_range[1] - x_range[0]) * width, (y - y_range[0]) / (y_range[1] - y_range[0]) * height)
+
+    def overlap(a, b) -> float:
+        return max(0.0, min(a[2], b[2]) - max(a[0], b[0])) * max(0.0, min(a[3], b[3]) - max(a[1], b[1]))
+
+    taken = [(cx - s / 2, cy - s / 2, cx + s / 2, cy + s / 2) for (cx, cy), s in zip((px(*p) for p in points), sizes)]
+    for i, (ux, uy) in enumerate(px(*p) for p in you):
+        taken.append((ux - 10, uy - 10, ux + 10, uy + 10))
+        if i == 0:
+            taken.append((ux - 15, uy - 10 - gap - line_h, ux + 15, uy - 10))   # the "You" label below your dot
+    if len(you) == 2:   # the arrow, as small boxes along it
+        (ax, ay), (bx, by) = px(*you[1]), px(*you[0])
+        taken += [(ax + (bx - ax) * t / 10 - 3, ay + (by - ay) * t / 10 - 3, ax + (bx - ax) * t / 10 + 3, ay + (by - ay) * t / 10 + 3)
+                  for t in range(11)]
+
+    sides = []
+    for (cx, cy), size, label in zip((px(*p) for p in points), sizes, labels):
+        lines = label.split("<br>")
+        w, h, r = max(map(len, lines)) * char_w, len(lines) * line_h, size / 2 + gap
+        boxes = {
+            "top center": (cx - w / 2, cy + r, cx + w / 2, cy + r + h),
+            "middle right": (cx + r, cy - h / 2, cx + r + w, cy + h / 2),
+            "middle left": (cx - r - w, cy - h / 2, cx - r, cy + h / 2),
+            "bottom center": (cx - w / 2, cy - r - h, cx + w / 2, cy - r),
+        }
+
+        def cost(box) -> float:
+            outside = (box[2] - box[0]) * (box[3] - box[1]) - overlap(box, (0, 0, width, height + line_h))
+            return sum(overlap(box, t) for t in taken) + 2 * outside
+
+        side = next((sd for sd, box in boxes.items() if cost(box) == 0), None) or min(boxes, key=lambda sd: cost(boxes[sd]))
+        taken.append(boxes[side])
+        sides.append(side)
+    return sides
 
 
 def risk_return_fig(matches: list[dict], user: dict, before: dict | None = None) -> go.Figure:
     """x = AI exposure, y = growth. Roles as grey bubbles sized by match %, the user as the amber dot with an ink ring."""
     top = matches[: config.TOP_N_ROLES]
+    you = [(user["ai_exposure"] * 100, user["growth"] * 100)] + ([(before["ai_exposure"] * 100, before["growth"] * 100)] if before else [])
+    roles = [(m["ai_exposure"] * 100, m["role_growth"] * 100) for m in top]
+    # Fixed ranges padded past the outermost dots, so the role labels above them are not cut off at the edges.
+    xs, ys = [x for x, _ in roles + you], [y for _, y in roles + you]
+    x_pad, y_span = max(8.0, 0.12 * (max(xs) - min(xs))), max(4.0, max(ys) - min(ys))
+    x_range, y_range = (min(xs) - x_pad, max(xs) + x_pad), (min(ys) - 0.12 * y_span, max(ys) + 0.3 * y_span)
+    labels = [_wrap_label(m["title"]) for m in top]
+    sizes = [12 + 40 * m["match_pct"] for m in top]
+    sides = _place_labels(roles, sizes, labels, you, x_range, y_range)
+
     fig = go.Figure()
     fig.add_trace(go.Scatter(
-        x=[m["ai_exposure"] * 100 for m in top],
-        y=[m["role_growth"] * 100 for m in top],
+        x=[x for x, _ in roles],
+        y=[y for _, y in roles],
         mode="markers+text",
-        text=[m["title"] for m in top],
-        textposition="top center",
-        marker=dict(size=[12 + 40 * m["match_pct"] for m in top], color=EXPOSURE_STEPS[1], opacity=0.7),
-        customdata=[[round(m["match_pct"] * 100)] for m in top],
-        hovertemplate="%{text}<br>AI exposure %{x:.0f}/100<br>Growth %{y:+.1f}%<br>Match %{customdata[0]}%<extra></extra>",
+        text=labels,
+        textposition=sides,
+        cliponaxis=False,
+        marker=dict(size=sizes, color=EXPOSURE_STEPS[1], opacity=0.7),
+        customdata=[[round(m["match_pct"] * 100), m["title"]] for m in top],
+        hovertemplate="%{customdata[1]}<br>AI exposure %{x:.0f}/100<br>Growth %{y:+.1f}%<br>Match %{customdata[0]}%<extra></extra>",
         name="Future roles",
     ))
     if before is not None:
@@ -376,9 +444,9 @@ def risk_return_fig(matches: list[dict], user: dict, before: dict | None = None)
         marker=dict(size=18, color=AMBER, line=dict(color=TEXT, width=2)),
         hovertemplate="You<br>AI exposure %{x:.0f}/100<br>Growth %{y:+.1f}%<extra></extra>", name="You",
     ))
-    fig.update_xaxes(title="AI exposure (0–100) — lower is harder to automate")
-    fig.update_yaxes(title="Expected demand growth (%/yr)")
-    return style_fig(fig, height=380)
+    fig.update_xaxes(title="AI exposure (0–100) — lower is harder to automate", range=list(x_range))
+    fig.update_yaxes(title="Expected demand growth (%/yr)", range=list(y_range))
+    return style_fig(fig, height=400)
 
 
 SDG_COLOURS = [AMBER, "#F2CB8A", "#D9C7A3", "#B8AA90", "#F7E3BD", "#CFC8BA", "#E3B46B", "#EFE6D2"]   # warm neutrals + amber; ink text stays >= 7:1 on all
