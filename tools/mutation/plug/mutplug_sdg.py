@@ -2,6 +2,8 @@
 
 import os
 
+import _mutcheck
+
 from engine import sdg
 
 M = {
@@ -13,7 +15,7 @@ M = {
     'threshold_3': ('row["weight"] >= config.ROLE_SDG_MIN_WEIGHT', 'row["weight"] >= 3'),
     'threshold_any_weight': ('row["weight"] >= config.ROLE_SDG_MIN_WEIGHT', 'row["weight"] >= 1'),
     'hc_threshold': ('config.ROLE_SDG_MIN_WEIGHT', '2'),
-    'hc_baseline': ('config.BASELINE_SKILL_SDG', '4'),
+    'hc_baseline': ('config.BASELINE_SKILL_SDG', '4', 2),
     'unknown_roles_not_ignored': (' and row["role_id"] in by_role', ''),
     'other_skills_rows_used': ('if row["skill_id"] == skill_id and ', 'if '),
     'only_future_style_roles': ('by_role = {role["role_id"]: role["sdgs"] for role in roles}', 'by_role = {role["role_id"]: role["sdgs"] for role in roles if role.get("role_type") != "origin"}'),
@@ -38,12 +40,11 @@ M = {
 MUTANTS = dict(M)
 
 
+TARGET = sdg
+
+
 def _apply(name):
-    old, new = MUTANTS[name]
-    path = sdg.__file__
-    src = open(path, encoding="utf-8").read()
-    assert src.count(old) >= 1, f"mutation target not found for {name}"
-    exec(compile(src.replace(old, new), path, "exec"), sdg.__dict__)
+    _mutcheck.apply(TARGET, MUTANTS, name)
 
 
 _name = os.environ.get("MUT")

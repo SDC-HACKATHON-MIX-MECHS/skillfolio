@@ -2,6 +2,8 @@
 
 import os
 
+import _mutcheck
+
 from engine import portfolio
 
 M = {
@@ -58,7 +60,7 @@ M = {
     "thin_zeroed_not_capped": ("r = max(-cap, min(cap, r))", "r = 0.0"),
     "growth_equal_weights": ("growth += weight * r", "growth += r / len(ids)"),
     "growth_uses_momentum": ('r = f["projected"]', 'r = f["momentum"]'),
-    "exposure_drops_zero": ('if forecasts[i]["exposure"] is not None]', 'if forecasts[i]["exposure"]]'),
+    "exposure_drops_zero": ('if forecasts[i]["exposure"] is not None]', 'if forecasts[i]["exposure"]]', 2),
     "exposure_not_renormalised": ("/ sum(weight for weight, _ in known) if known", "/ 1 if known"),
     "exposure_none_becomes_zero": ("if known else None", "if known else 0.0"),
     "exposure_unknown_as_zero": ('known = [(weight, forecasts[i]["exposure"]) for i, weight in zip(ids, w) if forecasts[i]["exposure"] is not None]',
@@ -81,12 +83,11 @@ M = {
 MUTANTS = dict(M)
 
 
+TARGET = portfolio
+
+
 def _apply(name):
-    old, new = MUTANTS[name]
-    path = portfolio.__file__
-    src = open(path, encoding="utf-8").read()
-    assert src.count(old) >= 1, f"mutation target not found for {name}"
-    exec(compile(src.replace(old, new), path, "exec"), portfolio.__dict__)
+    _mutcheck.apply(TARGET, MUTANTS, name)
 
 
 _name = os.environ.get("MUT")
