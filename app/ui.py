@@ -222,10 +222,30 @@ def source(snapshot: dict, source_id: str) -> dict:
     return next((s for s in snapshot["sources"] if s["id"] == source_id), {"name": source_id, "retrieved_at": "????-??-??"})
 
 
+SOURCE_LABELS = {"hn_whoishiring": "Hacker News job posts", "aei_job_exposure": "Anthropic Economic Index (AI impact)"}
+
+
+def source_html(items: list[str], note: str | None = "estimates, not predictions") -> str:
+    """The quiet source line under a chart or table: a small icon, then 'Source:' and each source as one unbreakable chunk (so a date
+    never splits across two lines), then the estimate note. One line of HTML; every piece of text is escaped."""
+    chunks = " · ".join(f'<span class="sf-src-i">{esc(item)}</span>' for item in items)
+    tail = f" · {esc(note)}" if note else ""
+    return f'<div class="sf-source">{icon("file-text", 16)}<span>Source: {chunks}{tail}</span></div>'
+
+
 def source_caption(snapshot: dict, *source_ids: str) -> None:
-    """The caption under every chart and table (DESIGN.md §5)."""
-    parts = [f"{source(snapshot, sid)['name']} · retrieved {source(snapshot, sid)['retrieved_at'][:10]}" for sid in source_ids]
-    st.caption("Source: " + " · ".join(parts) + " · estimates, not predictions")
+    """The source line under every chart and table, with the plain name of each source and the date it was retrieved."""
+    items = []
+    for sid in source_ids:
+        src = source(snapshot, sid)
+        name = SOURCE_LABELS.get(sid) or str(src["name"]).split(" — ")[0]
+        items.append(f"{name}, retrieved {src['retrieved_at'][:10]}")
+    show(source_html(items))
+
+
+def source_note(text: str, note: str | None = None) -> None:
+    """The same source line for a source that is not in the snapshot (our own files), e.g. the SDG links or the course list."""
+    show(source_html([text], note))
 
 
 # --- Number formats (DESIGN.md §2) --------------------------------------------------------------
@@ -323,16 +343,17 @@ def demand_fig(months: list[str], values: list[float], direction: str = "flat", 
 
 
 def gauge_fig(exposure: float | None, before: float | None = None) -> go.Figure:
-    """AI-exposure gauge, 0-100, one neutral grey-brown scale with an amber bar (never red/green). Empty with "n/a" when unknown."""
+    """AI-exposure gauge, 0-100, one neutral grey-brown scale with an amber bar (never red/green). Empty with "n/a" when unknown.
+    `before` is accepted for the callers but not drawn: the before and after numbers are written out in the cards next to the chart,
+    and a delta glyph inside the gauge only added clutter."""
     if exposure is None:
         fig = go.Figure(go.Indicator(mode="gauge", value=0, gauge={"axis": {"range": [0, 100]}, "bar": {"color": GRID}},
-                                     title={"text": "AI impact: n/a"}))
-        return style_fig(fig, height=240)
+                                     title={"text": "AI impact: n/a", "font": {"size": 16}}))
+        return style_fig(fig, height=260).update_layout(margin=dict(l=40, r=40, t=64, b=8))
     fig = go.Figure(go.Indicator(
-        mode="gauge+number+delta" if before is not None else "gauge+number",
+        mode="gauge+number",
         value=round(exposure * 100),
-        number={"suffix": "/100"},
-        delta={"reference": round(before * 100), "increasing": {"color": FLAT}, "decreasing": {"color": FLAT}} if before is not None else None,
+        number={"suffix": "/100", "font": {"size": 40}},
         gauge={
             "axis": {"range": [0, 100], "tickcolor": MUTED},
             "bar": {"color": AMBER},
@@ -341,44 +362,90 @@ def gauge_fig(exposure: float | None, before: float | None = None) -> go.Figure:
             "steps": [{"range": [0, 33], "color": EXPOSURE_STEPS[0]}, {"range": [33, 66], "color": EXPOSURE_STEPS[1]},
                       {"range": [66, 100], "color": EXPOSURE_STEPS[2]}],
         },
-        title={"text": "AI impact"},
+        title={"text": "AI impact", "font": {"size": 16}},
     ))
-    return style_fig(fig, height=240)
+    return style_fig(fig, height=260).update_layout(margin=dict(l=40, r=40, t=64, b=8))
 
 
-def risk_return_fig(matches: list[dict], user: dict, before: dict | None = None) -> go.Figure:
-    """x = AI exposure, y = growth. Roles as grey bubbles sized by match %, the user as the amber dot with an ink ring."""
+def _label_side(x: float, y: float, others: list[tuple[float, float]], xr: tuple[float, float], yr: tuple[float, float]) -> str:
+    """Which side of the dot a short label goes on: the side whose WHOLE label area is furthest from every other dot and stays inside the
+    plot. (Works in 0..1 plot units: a label to the left or right is about 0.2 wide, one above or below about 0.12 wide.)"""
+    def norm(px, py):
+        return (px - xr[0]) / (xr[1] - xr[0] or 1), (py - yr[0]) / (yr[1] - yr[0] or 1)
+
+    nx, ny = norm(x, y)
+    far = [norm(*o) for o in others]
+    areas = {                                   # sample points covering the label, as (dx, dy) from the dot
+        "middle right": [(0.04, 0.0), (0.10, 0.0), (0.16, 0.0), (0.22, 0.0)],
+        "middle left": [(-0.04, 0.0), (-0.10, 0.0), (-0.16, 0.0), (-0.22, 0.0)],
+        "top center": [(-0.06, 0.08), (0.0, 0.08), (0.06, 0.08)],
+        "bottom center": [(-0.06, -0.08), (0.0, -0.08), (0.06, -0.08)],
+    }
+    best, best_gap = "top center", -1.0
+    for side, offsets in areas.items():
+        pts = [(nx + dx, ny + dy) for dx, dy in offsets]
+        if any(not (0.0 <= px <= 1.0 and 0.0 <= py <= 1.0) for px, py in pts):
+            continue
+        gap = min((((px - ox) ** 2 + (py - oy) ** 2) ** 0.5 for px, py in pts for ox, oy in far), default=1.0)
+        if gap > best_gap:
+            best, best_gap = side, gap
+    return best
+
+
+def risk_return_fig(matches: list[dict], user: dict, before: dict | None = None, user_label: str = "You") -> go.Figure:
+    """x = AI impact, y = hiring growth. Each role is a grey-brown bubble with its RANK NUMBER inside (sized by fit); the names are in the
+    key under the chart (see `risk_return_key`), so no label can overlap or run off the edge. The user is the amber dot with an ink ring.
+    With `before`, a hollow ring marks where the user is today and an arrow shows the move."""
     top = matches[: config.TOP_N_ROLES]
+    xs = [m["ai_exposure"] * 100 for m in top]
+    ys = [m["role_growth"] * 100 for m in top]
+    ux, uy = user["ai_exposure"] * 100, user["growth"] * 100
+    pts_x = xs + [ux] + ([before["ai_exposure"] * 100] if before is not None else [])
+    pts_y = ys + [uy] + ([before["growth"] * 100] if before is not None else [])
+    xr = (max(-4.0, min(pts_x) - 8), min(104.0, max(pts_x) + 8))
+    yr = (min(pts_y) - 1.5, max(pts_y) + 1.5)
+
     fig = go.Figure()
     fig.add_trace(go.Scatter(
-        x=[m["ai_exposure"] * 100 for m in top],
-        y=[m["role_growth"] * 100 for m in top],
-        mode="markers+text",
-        text=[m["title"] for m in top],
-        textposition="top center",
-        marker=dict(size=[12 + 40 * m["match_pct"] for m in top], color=EXPOSURE_STEPS[1], opacity=0.7),
-        customdata=[[round(m["match_pct"] * 100)] for m in top],
-        hovertemplate="%{text}<br>AI exposure %{x:.0f}/100<br>Growth %{y:+.1f}%<br>Match %{customdata[0]}%<extra></extra>",
-        name="Future roles",
+        x=xs, y=ys, mode="markers+text",
+        text=[str(i) for i in range(1, len(top) + 1)], textposition="middle center", textfont=dict(size=14, color=TEXT),
+        marker=dict(size=[26 + 24 * m["match_pct"] for m in top], color=EXPOSURE_STEPS[1], opacity=0.9, line=dict(color=CARD, width=2)),
+        customdata=[[m["title"], round(m["match_pct"] * 100)] for m in top],
+        hovertemplate="%{customdata[0]}<br>Fit %{customdata[1]}%<br>AI impact %{x:.0f}/100<br>Hiring growth %{y:+.1f}% a year<extra></extra>",
+        name="Roles", showlegend=False,
     ))
+    others = list(zip(xs, ys))
     if before is not None:
+        bx, by = before["ai_exposure"] * 100, before["growth"] * 100
         fig.add_trace(go.Scatter(
-            x=[before["ai_exposure"] * 100], y=[before["growth"] * 100], mode="markers",
+            x=[bx], y=[by], mode="markers+text", text=["Today"], textposition=_label_side(bx, by, others + [(ux, uy)], xr, yr),
             marker=dict(size=18, color="rgba(0,0,0,0)", line=dict(color=TEXT, width=2)),
-            hovertemplate="You, before the plan<extra></extra>", name="Before",
+            hovertemplate="Where you are today<extra></extra>", name="Today", showlegend=False,
         ))
-        fig.add_annotation(
-            x=user["ai_exposure"] * 100, y=user["growth"] * 100, ax=before["ai_exposure"] * 100, ay=before["growth"] * 100,
-            xref="x", yref="y", axref="x", ayref="y", showarrow=True, arrowhead=3, arrowcolor=TEXT, arrowwidth=2,
-        )
+        fig.add_annotation(x=ux, y=uy, ax=bx, ay=by, xref="x", yref="y", axref="x", ayref="y",
+                           showarrow=True, arrowhead=3, arrowcolor=TEXT, arrowwidth=2)
+        others = others + [(bx, by)]
     fig.add_trace(go.Scatter(
-        x=[user["ai_exposure"] * 100], y=[user["growth"] * 100], mode="markers+text", text=["You"], textposition="bottom center",
-        marker=dict(size=18, color=AMBER, line=dict(color=TEXT, width=2)),
-        hovertemplate="You<br>AI exposure %{x:.0f}/100<br>Growth %{y:+.1f}%<extra></extra>", name="You",
+        x=[ux], y=[uy], mode="markers+text", text=[user_label], textposition=_label_side(ux, uy, others, xr, yr),
+        textfont=dict(size=14, color=TEXT),
+        marker=dict(size=20, color=AMBER, line=dict(color=TEXT, width=2)),
+        hovertemplate=f"{user_label}<br>AI impact %{{x:.0f}}/100<br>Hiring growth %{{y:+.1f}}% a year<extra></extra>",
+        name="You", showlegend=False,
     ))
-    fig.update_xaxes(title="AI exposure (0–100) — lower is harder to automate")
-    fig.update_yaxes(title="Expected demand growth (%/yr)")
-    return style_fig(fig, height=380)
+    fig.update_xaxes(title=dict(text="AI impact: 0 is little, 100 is a lot", font=dict(size=14, color=MUTED)), range=list(xr), dtick=20)
+    fig.update_yaxes(title=dict(text="Hiring growth a year", font=dict(size=14, color=MUTED)), range=list(yr), ticksuffix="%")
+    fig.update_layout(margin=dict(l=56, r=16, t=16, b=48))
+    return style_fig(fig, height=340).update_layout(showlegend=False, margin=dict(l=56, r=16, t=16, b=48))
+
+
+def risk_return_key(matches: list[dict]) -> str:
+    """The key under the chart: the bubble numbers with the role names, each with its fit. One line of HTML, every name escaped."""
+    top = matches[: config.TOP_N_ROLES]
+    items = "".join(
+        f'<li><span class="sf-keynum" aria-hidden="true">{i}</span><span class="sf-keyname">{esc(m["title"])}</span>'
+        f'<span class="sf-sub">{round(m["match_pct"] * 100)}% fit</span></li>'
+        for i, m in enumerate(top, 1))
+    return f'<ol class="sf-key" aria-label="Roles on the chart, in the order of the numbers in the bubbles">{items}</ol>' if items else ""
 
 
 SDG_COLOURS = [AMBER, "#F2CB8A", "#D9C7A3", "#B8AA90", "#F7E3BD", "#CFC8BA", "#E3B46B", "#EFE6D2"]   # warm neutrals + amber; ink text stays >= 7:1 on all
@@ -417,7 +484,7 @@ def _css_vars() -> str:
         f"--sf-text:{TEXT};--sf-muted:{MUTED};--sf-on-ink:{ON_INK};--sf-amber:{AMBER};"
         f"--sf-up:{UP};--sf-up-text:{UP_TEXT};--sf-down:{DOWN};--sf-down-text:{DOWN_TEXT};"
         f"--sf-up-bg:color-mix(in srgb,{UP} 12%,{CARD});--sf-down-bg:color-mix(in srgb,{DOWN} 10%,{CARD});"
-        f"--sf-flat-bg:{RAISED};--sf-exposure:{EXPOSURE_HIGH};"
+        f"--sf-flat-bg:{RAISED};--sf-exposure:{EXPOSURE_HIGH};--sf-exposure-soft:{EXPOSURE_STEPS[1]};"
         f"--sf-font:{FONT_TEXT};--sf-radius:{RADIUS}px;--sf-shadow:{SHADOW};"
         "}"
     )
