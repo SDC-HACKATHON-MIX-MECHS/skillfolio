@@ -11,3 +11,14 @@ enableWebsocketCompression = false
 
 [browser]
 gatherUsageStats = false
+
+# Colours from docs/DESIGN.md section 1.
+[theme]
+base = "light"
+primaryColor = "#4338CA"
+backgroundColor = "#FFFFFF"
+secondaryBackgroundColor = "#F4F5F7"
+textColor = "#1F2328"
+
+[client]
+toolbarMode = "minimal"
