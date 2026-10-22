@@ -8,7 +8,7 @@ import streamlit as st
 from app.dashboard import holdings, spark_values
 from app.page_components import PLAIN, sdg_bars, skill_list, skill_row
 from app.ui import (
-    LEVEL_LABELS, SDG_NAMES, fmt_pct, fmt_score, fmt_signed, page_header, page_setup, require_profile, risk_return_fig, run_engine,
+    SDG_NAMES, fmt_pct, fmt_score, fmt_signed, page_header, page_setup, require_profile, risk_return_fig, run_engine,
     show, show_fig, show_warnings, skill_name, skill_ticker, source_caption, source_note, stat_row,
 )
 
@@ -42,8 +42,7 @@ with st.expander(f"Your {len(held)} skills"):
     show(skill_list([
         skill_row(
             skill_name(h["skill_id"]), skill_ticker(h["skill_id"]), h["projected"], h["trajectory"], h["thin"],
-            spark_values(h["index"]), h["exposure"],
-            sub=f"Level {LEVEL_LABELS[h['level']]} · {h['weight'] * 100:.0f}% of your skills", with_ai=True,
+            spark_values(h["index"]), h["exposure"], with_ai=True,
         )
         for h in held
     ], with_ai=True))
