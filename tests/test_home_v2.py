@@ -144,7 +144,8 @@ def test_role_cards_show_the_engines_fit_titles_and_why(ranked, monkeypatch):
 
 def test_each_card_has_a_chip_a_fit_track_and_a_missing_strip_with_one_button(ranked):
     html = markdown_html(ranked)
-    assert html.count('class="sf-status sf-status-') == 3 and html.count('role="progressbar"') == 3
+    assert html.count('class="sf-status sf-status-') == 3
+    assert html.count('role="progressbar"') == 4          # the lead role's Fit arc, the two rows' Fit bars, and the good-fit tile's bar
     assert html.count('class="sf-missing"') == 1                         # the lead card has the strip; rows say it in their sentence
     text = plain(html)
     assert text.count("Missing:") + text.count("Level up:") + text.count("Nothing missing") == 1
@@ -192,8 +193,9 @@ def test_details_expander_holds_the_numbers_help_and_source(ranked):
     assert "Source: Hacker News job posts" in outside                                  # but the chart keeps a short source line
 
 
-def test_right_panel_has_one_small_chart_with_1y_6m_all_tabs(ranked):
-    assert len(ranked.get("plotly_chart")) == 1
+def test_dark_card_has_the_bars_and_the_1y_6m_all_tabs(ranked):
+    assert len(ranked.get("plotly_chart")) == 0                                         # Home draws its demand chart as thick bars in the charcoal card
+    assert markdown_html(ranked).count('class="sf-bars"') == 1
     tabs = [b for b in ranked.get("button_group") if list(b.options) == ["1Y", "6M", "All"]]
     assert len(tabs) == 1 and tabs[0].value == "1Y"                                    # the range tabs, in this order, 1Y first
     assert "in the last 12 months" in plain(markdown_html(ranked))
@@ -260,3 +262,24 @@ def test_jargon_scan_home_surface(monkeypatch, state):
         assert not BANNED.findall(text), BANNED.findall(text)
     emoji = re.compile("[\U0001F300-\U0001FAFF☀-➿]")
     assert not emoji.search(page_text(at.main, True))
+
+
+# --- the bento (reference: one charcoal card, a mint arc panel, two tiles) ---------------------------------------------
+
+def test_home_is_a_bento_of_cards_not_a_row_of_numbers(ranked):
+    html = markdown_html(ranked)
+    assert html.count('class="sf-trend-head"') == 1 and html.count('class="sf-bars"') == 1          # the one charcoal card: big number + bars
+    assert html.count('class="sf-arc"') == 1 and html.count('class="sf-fitpanel"') == 1             # the lead role: Fit as an arc on a mint panel
+    assert html.count('class="sf-tile sf-tile-mint"') == 1 and html.count('class="sf-tile sf-tile-charcoal"') == 1
+    assert 'class="sf-stats"' not in html                                                            # the three-number strip is gone: its numbers moved into the cards
+
+
+def test_the_estimate_bar_is_hatched_and_the_measured_bars_are_not(ranked):
+    html = markdown_html(ranked)
+    bars = re.findall(r'<div class="sf-bar sf-bar-(?:m|est)[^"]*"', html)
+    assert len(bars) == 7 and sum("sf-hatch" in b for b in bars) == 1 and "sf-bar-est sf-hatch" in bars[-1]      # six measured months + one hatched estimate
+
+
+def test_home_shows_the_next_two_roles_and_still_three_plan_buttons(ranked):
+    assert ranked.markdown and len(re.findall(r'class="sf-rrow"', markdown_html(ranked))) == 2
+    assert [b.label for b in ranked.button if b.proto.type != "primary"] == ["See your plan"] * 3

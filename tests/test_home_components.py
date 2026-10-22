@@ -1,6 +1,8 @@
 """Pure-logic tests for Home v2 (app/home_components.py): the one-sentence "why", the top-3 filter, trend words
 and HTML escaping. Contrast and stylesheet rules: tests/test_design_audit.py."""
 
+import re
+
 import pytest
 
 from app import home_components as hc
@@ -344,3 +346,74 @@ def test_the_lead_role_card_is_marked_and_the_others_are_not():
     other = hc.role_card(match(), name_of, rank=2)
     assert "sf-role sf-role-lead" in lead and "Role 1:" in lead
     assert "sf-role-lead" not in other and "Role 2:" in other
+
+
+# --- the bento pieces (reference: charcoal card with thick bars, arc gauge, mint and charcoal tiles) ------------------------
+
+MONTHS = [f"2026-{m:02d}" for m in range(1, 11)]
+
+
+def test_trend_bars_show_measured_months_solid_and_the_forecast_hatched():
+    html = hc.trend_bars(MONTHS, [100, 104, 99, 108, 112, 109, 115, 118, 121, 119], 0.097, n=6)
+    assert html.count('class="sf-bar sf-bar-m') == 6 and html.count("sf-bar-est") == 1       # six measured months + one estimate
+    assert html.count("sf-bar-now") == 1 and html.index("sf-bar-now") < html.index("sf-bar-est")  # the latest month is marked; the estimate comes last
+    assert "sf-hatch" in html.split("sf-bar-est")[1][:120]                                         # the estimate is hatched, never solid
+    assert "Estimate" in html and 'role="img"' in html and "\n" not in html
+    assert hc.trend_bars(MONTHS, [], 0.1) == ""
+
+
+def test_trend_bar_heights_come_from_the_numbers_and_stay_in_range():
+    values = [100, 120, 80, 90, 110, 100]
+    html = hc.trend_bars(MONTHS[:6], values, -0.2, n=6)
+    heights = [int(h) for h in re.findall(r"height:(\d+)%", html)]
+    assert len(heights) == 7 and max(heights) == 100 and min(heights) >= 12                   # the tallest fills the plot; none is a sliver
+    assert heights.index(100) == 1 and heights[2] < heights[1]                                # 120 is tallest, 80 is shorter
+    assert heights[-1] < heights[-2] or heights[-1] == 12                                    # a falling forecast is a shorter bar, not a taller one
+    assert hc.trend_bars(MONTHS[:6], values, None).count("sf-bar-est") == 0                   # no forecast, no estimate bar
+
+
+def test_trend_bars_escape_labels_and_survive_bad_numbers():
+    html = hc.trend_bars([HOSTILE, "2026-02"], [100, float("nan")], 0.05, n=2)
+    assert "<script>" not in html
+    assert hc.trend_bars(["2026-01"], [0], 0.0, n=3) != ""                                    # all-zero data still draws something sensible
+    labels = hc.trend_bars(["2026-10", "2026-11"], [100, 110], None, n=2)
+    assert ">Oct<" in labels and ">Nov<" in labels and "Oct 26" not in labels                 # month names only: the bars are always the latest months, and long labels collide
+
+
+def test_fit_arc_marks_the_share_you_cover_and_hatches_the_rest():
+    html = hc.fit_arc(68)
+    assert 'role="progressbar"' in html and 'aria-valuenow="68"' in html and "Fit" in html
+    assert 'stroke-dasharray="68 100"' in html and 'pathLength="100"' in html and "<pattern" in html and "\n" not in html
+    assert 'aria-valuenow="100"' in hc.fit_arc(150) and 'aria-valuenow="0"' in hc.fit_arc(-5) and 'aria-valuenow="0"' in hc.fit_arc("x")
+    assert "#" not in re.sub(r'url\(#[\w-]+\)|id="#?[\w-]+"', "", html)                      # no hex colours: it reads the theme variables
+
+
+def test_tile_is_mint_or_charcoal_and_escapes_text():
+    mint = hc.tile("Roles that are a good fit", "6", "of 17 roles", tone="mint", fraction=6 / 17)
+    dark = hc.tile("Skills you have", "6", "2 rising", tone="charcoal")
+    assert "sf-tile-mint" in mint and "sf-tile-charcoal" in dark and 'role="progressbar"' in mint and "progressbar" not in dark
+    assert "of 17 roles" in mint and "Roles that are a good fit" in mint
+    assert "sf-tile-mint" in hc.tile("a", "b", "c", tone="violet")                              # unknown tone falls back to mint (there is no violet)
+    assert "<script>" not in hc.tile(HOSTILE, HOSTILE, HOSTILE) and "\n" not in mint
+
+
+def test_the_lead_card_shows_the_fit_as_an_arc_and_other_cards_keep_the_bar():
+    lead = hc.role_card(match(), name_of, rank=1, lead=True)
+    other = hc.role_card(match(), name_of, rank=2)
+    assert "sf-arc" in lead and "sf-track" not in lead and lead.count('role="progressbar"') == 1
+    assert "sf-arc" not in other and "sf-track" in other and other.count('role="progressbar"') == 1
+
+
+def test_trend_head_is_a_label_a_big_number_a_word_and_one_line_of_help():
+    item = hc.kpi_items({"portfolio": {"growth": 0.097}, "matches": [], "skills": [], "forecasts": {}})[0]
+    html = hc.trend_head(item)
+    assert html.count('class="sf-trend-head"') == 1 and "Hiring trend for your skills" in html and "+9.7%" in html
+    assert "Rising" in html and "Estimate for the next 12 months" in html and "\n" not in html
+    assert "<script>" not in hc.trend_head({"label": HOSTILE, "value": HOSTILE, "pill": ("up", HOSTILE), "sub": HOSTILE})
+
+
+def test_kpi_items_carry_the_fraction_for_the_good_fit_tile():
+    items = hc.kpi_items({"portfolio": {"growth": 0.1}, "matches": [{"match_pct": 0.7}, {"match_pct": 0.2}, {"match_pct": 0.45}, {"match_pct": 0.1}],
+                          "skills": [], "forecasts": {}})
+    assert items[1]["fraction"] == pytest.approx(2 / 4)                       # two of four roles reach the "good fit" line
+    assert hc.kpi_items({"portfolio": {}, "matches": [], "skills": [], "forecasts": {}})[1]["fraction"] is None

@@ -13,22 +13,22 @@ maxUploadSize = 2
 [browser]
 gatherUsageStats = false
 
-# SkillFolio v4 theme: LIGHT, warm off-white, ink text, Inter. Tokens match app/ui.py and docs/DESIGN.md section 1.
+# SkillFolio mint-and-charcoal theme: LIGHT sage page, off-white cards, ink text, Inter. Tokens match app/ui.py and docs/DESIGN.md section 1.
 # primaryColor is INK (not amber: amber fails as text), so Streamlit's own widgets (radio, checkbox, slider, selection) are
-# dark, not blue; amber is added to fills by app/theme.css. Inter is loaded by app/ui.py (system-ui fallback offline).
+# dark, not blue; mint is added to fills by app/theme.css. Inter is loaded by app/ui.py (system-ui fallback offline).
 [theme]
 base = "light"
-primaryColor = "#1B1A17"
-backgroundColor = "#F7F5F0"
-secondaryBackgroundColor = "#F1EEE6"
-textColor = "#1B1A17"
+primaryColor = "#171A18"
+backgroundColor = "#D9E0D6"
+secondaryBackgroundColor = "#E2E8DE"
+textColor = "#171A18"
 font = "sans serif"
-baseRadius = "8px"
-borderColor = "#E7E2D8"
+baseRadius = "16px"
+borderColor = "#C9D2C5"
 
 [theme.sidebar]
-backgroundColor = "#FBFAF7"
-secondaryBackgroundColor = "#F1EEE6"
+backgroundColor = "#E9EEE6"
+secondaryBackgroundColor = "#E2E8DE"
 
 [client]
 toolbarMode = "minimal"
