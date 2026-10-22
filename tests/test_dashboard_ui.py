@@ -198,49 +198,55 @@ def test_css_has_the_non_negotiables():
     assert "Instrument" not in css and "JetBrains" not in css and "monospace" not in css     # Inter only: no serif, no mono
 
 
-# --- the risk chart: numbered bubbles, names in the key, no overlapping labels ---------------------------------
+# --- the risk chart: short names beside the dots, Before / Now / Both inside the chart ---------------------------
 
 def _matches(n=5):
-    return [{"title": f"Role number {i}", "role_id": f"r{i}", "match_pct": 0.7 - 0.08 * i, "ai_exposure": 0.1 + 0.12 * i,
-             "role_growth": 0.04 + 0.01 * i} for i in range(n)]
+    return [{"title": f"Role number {i} / Long Specialist Title", "role_id": f"r{i}", "match_pct": 0.7 - 0.08 * i,
+             "ai_exposure": 0.1 + 0.12 * i, "role_growth": 0.04 + 0.01 * i} for i in range(n)]
 
 
-def test_risk_chart_puts_numbers_in_the_bubbles_and_no_role_names_on_the_chart():
+def test_risk_chart_labels_roles_with_short_names_and_keeps_the_full_title_on_hover():
     fig = ui.risk_return_fig(_matches(), {"ai_exposure": 0.2, "growth": 0.09})
     roles = fig.data[0]
-    assert list(roles.text) == ["1", "2", "3", "4", "5"] and roles.mode == "markers+text"
-    drawn = [t for trace in fig.data for t in (trace.text or [])]
-    assert not any("Role number" in str(t) for t in drawn)                  # names live in the key, so nothing overlaps or runs off the edge
-    assert fig.layout.showlegend is False
-    assert roles.customdata[0][0] == "Role number 0"                        # the full name is still on hover
+    assert roles.mode == "markers+text" and all(len(t.split()) <= 2 for t in roles.text)       # one or two words, never wrapped
+    assert not any("<br>" in t for t in roles.text)
+    assert roles.customdata[0][1] == "Role number 0 / Long Specialist Title"                   # the full name is still on hover
+    assert ui.short_role_title("environmental_specialist", "Environmental / Sustainability Specialist") == "Sustainability"
+    assert ui.short_role_title(None, "Systems / Business Analyst") == "Business analyst"
 
 
-def test_risk_chart_axes_use_plain_words_and_the_plot_has_room():
+def test_risk_chart_has_no_legend_few_ticks_and_no_axis_lines():
     fig = ui.risk_return_fig(_matches(), {"ai_exposure": 0.2, "growth": 0.09})
-    assert "AI impact" in fig.layout.xaxis.title.text and "Hiring growth" in fig.layout.yaxis.title.text
+    assert fig.layout.showlegend is False
+    assert fig.layout.xaxis.showline is False and fig.layout.yaxis.showline is False and fig.layout.xaxis.showgrid is False
+    assert fig.layout.xaxis.dtick == 20
+    lo, hi = fig.layout.yaxis.range
+    step = fig.layout.yaxis.dtick
+    assert len([k for k in range(-1000, 1000) if lo <= k * step <= hi]) <= 4
     xs = [x for tr in fig.data for x in tr.x]
     assert fig.layout.xaxis.range[0] <= min(xs) and fig.layout.xaxis.range[1] >= max(xs)      # nothing sits on or past the edge
-    assert fig.layout.yaxis.range[0] < min(y for tr in fig.data for y in tr.y)
+    assert "<b>You</b>" in fig.data[-1].text and not fig.frames and not fig.layout.updatemenus  # no toggle without a before point
 
 
-def test_risk_chart_with_a_before_point_labels_today_and_the_move():
-    fig = ui.risk_return_fig(_matches(), {"ai_exposure": 0.2, "growth": 0.09}, before={"ai_exposure": 0.3, "growth": 0.05}, user_label="After the plan")
-    texts = [t for tr in fig.data for t in (tr.text or [])]
-    assert "Today" in texts and "After the plan" in texts and len(fig.layout.annotations) == 1
+def test_risk_chart_with_a_before_point_has_the_before_now_both_toggle_and_readout():
+    before, after = {"ai_exposure": 0.3, "growth": 0.12}, {"ai_exposure": 0.2, "growth": 0.085}
+    fig = ui.risk_return_fig(_matches(), after, before=before)
+    assert [b.label for b in fig.layout.updatemenus[0].buttons] == ["Before", "Now", "Both"]
+    assert fig.layout.updatemenus[0].active == 2 and [f.name for f in fig.frames] == ["Before", "Now", "Both"]
+    assert all(b.method == "animate" for b in fig.layout.updatemenus[0].buttons)               # switches in the browser, no rerun
+    assert "Before" in fig.data[1].text and fig.layout.annotations[0].text == "<b>Growth down 3.5 points</b>"
+    frames = {f.name: f for f in fig.frames}
+    assert frames["Before"].data[1].x[0] == 30 and frames["Now"].data[1].x[0] == 20         # your dot moves between views
+    assert frames["Now"].data[0].text == ("",) and "Before" in frames["Both"].data[0].text   # the ring shows only in "Both"
+    assert ui.growth_readout(before, after, "Before") == "Before the plan: +12.0% a year"
 
 
-def test_risk_key_lists_the_numbers_names_and_fit_and_escapes():
-    html = ui.risk_return_key(_matches(3))
-    assert html.count("<li>") == 3 and "Role number 0" in html and "70% fit" in html and "\n" not in html
-    assert "<script>" not in ui.risk_return_key([{**_matches(1)[0], "title": HOSTILE}])
-    assert ui.risk_return_key([]) == ""
-
-
-def test_label_side_avoids_the_nearest_dot_and_the_edges():
-    assert ui._label_side(30, 5, [(33, 5)], (0, 100), (0, 10)) != "middle right"      # a label to the right would run across the neighbour
-    assert ui._label_side(30, 5, [(27, 5)], (0, 100), (0, 10)) != "middle left"
-    assert ui._label_side(1, 5, [], (0, 100), (0, 10)) != "middle left"              # a label to the left would run off the plot
-    assert ui._label_side(99, 5, [], (0, 100), (0, 10)) != "middle right"
+def test_place_labels_keeps_role_labels_off_your_dot_and_inside_the_chart():
+    pts, sizes = [(30, 5), (95, 5)], [24, 24]
+    sides = ui._place_labels(pts, sizes, ["Data analyst", "Digital marketing"], [(36, 5, 8, "You", "middle left", True)],
+                             (0, 100), (0, 10))
+    assert sides[0] != "middle right"                                  # the right side would cover your dot
+    assert sides[1] != "middle right"                                  # the right side would run off the chart
 
 
 # --- the source line -------------------------------------------------------------------------------------------

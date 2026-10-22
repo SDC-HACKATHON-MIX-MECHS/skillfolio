@@ -10,7 +10,7 @@ import streamlit as st
 from app.page_components import PLAIN, compare_cards, course_list, course_row, sdg_bars
 from app.ui import (
     SDG_NAMES, call_or_wait, course_catalog, fmt_pct, fmt_rm, fmt_score, fmt_signed, gauge_fig, hero, require_profile,
-    page_header, page_setup, risk_return_fig, risk_return_key, role_catalog, role_skill_rows, run_engine, section_header, show, show_fig, show_warnings,
+    page_header, page_setup, risk_return_fig, role_catalog, role_skill_rows, run_engine, section_header, show, show_fig, show_warnings,
     skill_label, source_caption, source_note, user_levels,
 )
 from engine import portfolio, sdg
@@ -122,8 +122,8 @@ with st.expander("Show details", expanded=applied):
     ]))
     show_fig(gauge_fig(now["ai_exposure"], before=before["ai_exposure"] if applied else None))
     if now["ai_exposure"] is not None and before["ai_exposure"] is not None:
-        show_fig(risk_return_fig(result["matches"], now, before=before if applied else None, user_label="After the plan" if applied else "You"))
-        show(risk_return_key(result["matches"]))
+        with st.container(key="sf-plan-chart"):   # theme.css styles its Before / Now / Both buttons and your dot's pulse
+            show_fig(risk_return_fig(result["matches"], now, before=before if applied else None))
     source_caption(snapshot, "hn_whoishiring", "aei_job_exposure")
 
     st.markdown("**Where your skills point " + ("after the plan" if applied else "today") + "**")

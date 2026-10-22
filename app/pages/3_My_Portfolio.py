@@ -8,7 +8,7 @@ import streamlit as st
 from app.dashboard import holdings, spark_values
 from app.page_components import PLAIN, sdg_bars, skill_list, skill_row
 from app.ui import (
-    LEVEL_LABELS, SDG_NAMES, fmt_pct, fmt_score, fmt_signed, page_header, page_setup, require_profile, risk_return_fig, risk_return_key, run_engine,
+    LEVEL_LABELS, SDG_NAMES, fmt_pct, fmt_score, fmt_signed, page_header, page_setup, require_profile, risk_return_fig, run_engine,
     show, show_fig, show_warnings, skill_name, skill_ticker, source_caption, source_note, stat_row,
 )
 
@@ -52,14 +52,13 @@ with st.expander(f"Your {len(held)} skills"):
     st.caption("How much hiring bounces around: " + fmt_pct(m["volatility"], 1) + " a year. " + PLAIN["bounce"])
 
 with st.expander("Show how you compare with future roles"):
-    st.write("Up is more hiring growth, left is less AI impact. Each numbered bubble is a role (names below); bigger means you already fit it more closely. The orange dot is you.")
+    st.write("Up is more hiring growth, left is less AI impact. Each grey dot is a role; bigger means you already fit it more closely. The orange dot is you.")
     if not result["matches"]:
         show_warnings(result)
     elif m["ai_exposure"] is None:
         st.info("None of your skills has AI-impact data yet, so we can't place you on this chart.")
     else:
         show_fig(risk_return_fig(result["matches"], m))
-        show(risk_return_key(result["matches"]))
         source_caption(snapshot, "hn_whoishiring", "aei_job_exposure")
 
 if result["sdg_allocation"]:
