@@ -144,3 +144,12 @@ def test_the_dark_card_restyles_its_own_widgets_and_text():
     css = re.sub(r"/\*.*?\*/", "", audit.THEME_CSS.read_text(encoding="utf-8"), flags=re.S)
     dark = " ".join(rule for rule in re.findall(r"[^{}]*st-key-sf-dark[^{}]*\{[^{}]*\}", css))
     assert "var(--sf-charcoal)" in dark and "var(--sf-on-charcoal)" in dark and "stButtonGroup" in dark and "var(--sf-mint)" in dark
+
+
+def test_every_class_the_profile_dashboard_emits_has_a_style():
+    css = ui.css_text()
+    for cls in ("sf-study-meta", "sf-study-main", "sf-goal", "sf-goal-big", "sf-goal-cap", "sf-goal-main", "sf-goal-line", "sf-goal-bar", "sf-goal-fill", "sf-goal-gain", "sf-goal-mark",
+                "sf-pstats", "sf-pstat", "sf-pstat-label", "sf-pstat-value", "sf-pstat-sub", "sf-ptitle", "sf-study", "sf-study-title", "sf-study-sub",
+                "sf-study-level", "sf-study-left", "sf-study-pct", "sf-ring", "sf-ring-bg", "sf-ring-fg", "sf-petals", "sf-petal", "sf-petal-hi",
+                "sf-petal-mid", "sf-petal-lo", "sf-petal-core", "sf-avatar", "sf-whoami", "sf-profilehead"):
+        assert f".{cls}" in css, cls
