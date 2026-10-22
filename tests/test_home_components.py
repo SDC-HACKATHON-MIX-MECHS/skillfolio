@@ -344,3 +344,39 @@ def test_the_lead_role_card_is_marked_and_the_others_are_not():
     other = hc.role_card(match(), name_of, rank=2)
     assert "sf-role sf-role-lead" in lead and "Role 1:" in lead
     assert "sf-role-lead" not in other and "Role 2:" in other
+
+
+# --- plan on Home --------------------------------------------------------------------------------------------------------
+
+def test_plan_summary_reads_the_planner_and_rejects_empty_plans():
+    result = {"steps": [{"course_id": "a", "cost_rm": 0}, {"course_id": "b", "cost_rm": 0}], "hours_used": 35.5,
+              "before": {"match_pct": 0.68}, "after": {"match_pct": 0.88}}
+    assert hc.plan_summary(result) == {"before": 68, "after": 88, "hours": 35.5, "courses": 2, "cost": 0.0}
+    assert hc.plan_summary({"steps": []}) is None and hc.plan_summary(None) is None and hc.plan_summary({"steps": [1]}) is None
+
+
+def test_levels_after_plan_raise_each_skill_to_the_course_level_never_down():
+    courses = {"c1": {"level_out": 2}, "c2": {"level_out": 1}}
+    after = hc.levels_after_plan({"sql": 1, "excel": 3}, [{"course_id": "c1", "skill_id": "sql"}, {"course_id": "c2", "skill_id": "excel"}], courses)
+    assert after == {"sql": 2, "excel": 3}
+
+
+def test_petal_values_are_level_over_need_capped_at_100():
+    rows = [{"skill_id": "sql", "required_level": 2}, {"skill_id": "tableau", "required_level": 1}, {"skill_id": "x", "required_level": 0}]
+    assert hc.petal_values(rows, {"sql": 1}, {"sql": 3, "tableau": 1}) == [("sql", 50, 100), ("tableau", 0, 100)]
+
+
+def test_goal_bar_is_one_accessible_progress_bar_with_no_gradient():
+    html = hc.goal_track(68, 88)
+    assert html.count('role="progressbar"') == 1 and 'aria-valuenow="68"' in html and "88 percent after your plan" in html
+    assert "gradient" not in html and 'left:68%;width:20%' in html
+
+
+def test_goal_line_says_free_only_when_it_costs_nothing():
+    assert "2 free courses, 35.5 h" in hc.goal_line({"after": 88, "courses": 2, "hours": 35.5, "cost": 0})
+    assert "free" not in hc.goal_line({"after": 88, "courses": 1, "hours": 3, "cost": 50})
+
+
+def test_plan_course_row_escapes_text_and_says_done_in_words():
+    html = hc.plan_course_row(1, HOSTILE, HOSTILE, "SQL (SQL)", 2, 3.5, True)
+    assert "<script>" not in html and "Done" in html and "to working level" in html and 'role="img"' in html

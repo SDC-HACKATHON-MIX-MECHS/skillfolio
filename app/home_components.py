@@ -219,17 +219,20 @@ def fit_track(pct: int) -> str:
 FIT_HELP = "How much of this role's skill list you already cover at the level it needs."
 
 
-def role_card(match: dict, name_of: Callable[[str], str] | None = None, rank: int | None = None, lead: bool = False) -> str:
+def role_card(match: dict, name_of: Callable[[str], str] | None = None, rank: int | None = None, lead: bool = False,
+              goal: dict | None = None) -> str:
     """The top of a role card (Home and Matches): title and status chip, Fit % with its progress track, one
     sentence on why, hiring pill. `lead=True` is the dominant first card (bigger Fit number and title); the others are quieter,
-    so three cards never read as three identical tiles. The 'Missing: X' strip and its button come after it (see `missing_strip`, rendered by the page)."""
+    so three cards never read as three identical tiles. The 'Missing: X' strip and its button come after it (see `missing_strip`, rendered by the page).
+    `goal` (from `plan_summary`) turns the track into the goal bar: today solid, what the plan adds pale, and one line on the plan."""
     title = match.get("title") or match.get("role_id") or "Role"
     pct = fit_percent(match)
     rank_text = f"Role {int(rank)}: " if rank else ""
+    track = goal_track(pct, goal["after"]) + goal_line(goal) if goal and goal["after"] > pct else fit_track(pct)
     return (f'<div class="sf-role{" sf-role-lead" if lead else ""}" role="group" aria-label="{rank_text}{esc(title)}, {pct} percent fit">'
             f'<div class="sf-role-head"><div class="sf-role-title">{esc(title)}</div>{fit_chip(pct)}</div>'
             f'<div class="sf-fitrow" title="{esc(FIT_HELP)}"><span class="sf-fit-num">{pct}%</span><span class="sf-fit-label">Fit</span></div>'
-            f'{fit_track(pct)}'
+            f'{track}'
             f'<div class="sf-why">{esc(why_sentence(match, name_of))}</div>'
             f'<div>{hiring_pill(match.get("role_growth"))}</div></div>')
 
@@ -365,4 +368,113 @@ def demand_chart(months: list[str], values: list[float], direction: str = "flat"
     fig.update_layout(font=dict(size=15, color=TEXT))
     fig.update_xaxes(tickfont=dict(size=14, color=MUTED), tickangle=0, nticks=4, tickformat="%b %y")
     fig.update_yaxes(tickfont=dict(size=14, color=MUTED))
+    return fig
+
+
+# =============================== Plan on Home: goal bar, fit petals, plan list =============================
+# All from engine.pathway.plan output for the lead role (before / after match %, the ordered steps) and the role's skill rows.
+
+def plan_summary(result_plan: dict | None) -> dict | None:
+    """Fit before and after the plan (whole percent), hours, course count and total cost. None when there is no plan to show."""
+    if not isinstance(result_plan, dict) or not result_plan.get("steps"):
+        return None
+    try:
+        before, after = result_plan["before"]["match_pct"], result_plan["after"]["match_pct"]
+        steps = result_plan["steps"]
+        return {"before": round(before * 100), "after": round(after * 100), "hours": float(result_plan.get("hours_used") or 0),
+                "courses": len(steps), "cost": sum(float(s.get("cost_rm") or 0) for s in steps)}
+    except (KeyError, TypeError, ValueError):
+        return None
+
+
+def levels_after_plan(levels: dict[str, int], steps: list[dict], courses: dict[str, dict]) -> dict[str, int]:
+    """The user's skill levels once every course in the plan is done: each course raises its skill to the course's level_out."""
+    after = dict(levels)
+    for step in steps or []:
+        course = courses.get(step.get("course_id")) or {}
+        skill, level = step.get("skill_id"), course.get("level_out")
+        if skill and isinstance(level, (int, float)):
+            after[skill] = max(int(after.get(skill, 0)), int(level))
+    return after
+
+
+def petal_values(role_rows: list[dict], levels: dict[str, int], after: dict[str, int]) -> list[tuple[str, int, int]]:
+    """One petal per skill the role needs: (skill_id, now, after plan), each 0-100 = your level / the level the role needs,
+    capped at 100. The same per-skill credit the Fit score adds up (engine/matching.py), so the petals and the Fit % agree."""
+    out = []
+    for row in role_rows:
+        need = row.get("required_level") or 0
+        if not need:
+            continue
+        credit = lambda lv: round(min(int(lv or 0) / need, 1) * 100)
+        out.append((row["skill_id"], credit(levels.get(row["skill_id"])), credit(after.get(row["skill_id"]))))
+    return out
+
+
+def goal_track(pct: int, after: int) -> str:
+    """The lead card's Fit bar: the solid part is today, the pale part is what the plan adds. Flat fills, no gradient."""
+    gain = max(0, after - pct)
+    return (f'<div class="sf-track sf-goal-track" role="progressbar" aria-label="Fit now and after your plan" aria-valuemin="0" '
+            f'aria-valuemax="100" aria-valuenow="{pct}" aria-valuetext="{pct} percent now, {after} percent after your plan">'
+            f'<i style="width:{pct}%"></i><b style="left:{pct}%;width:{gain}%"></b></div>')
+
+
+def goal_line(goal: dict) -> str:
+    """One sentence under the goal bar: where the plan takes you and what it costs in hours (and money only if any)."""
+    n = goal["courses"]
+    money = "free " if goal["cost"] == 0 else ""
+    return (f'<div class="sf-goal"><span class="sf-goal-num">{goal["after"]}%</span> after your plan: '
+            f'{n} {money}course{"s" if n != 1 else ""}, {goal["hours"]:g} h</div>')
+
+
+def progress_ring(done: float, total: float, label: str, size: int = 56) -> str:
+    """A flat ring: amber arc for the part done, a quiet track for the rest. An image with words, never a progress number alone."""
+    frac = 0.0 if not total else max(0.0, min(done / total, 1.0))
+    r = size / 2 - 5
+    circ = 2 * 3.14159265 * r
+    return (f'<svg class="sf-ring" width="{size}" height="{size}" viewBox="0 0 {size} {size}" role="img" aria-label="{esc(label)}">'
+            f'<circle cx="{size / 2}" cy="{size / 2}" r="{r:.1f}" class="sf-ring-track"/>'
+            f'<circle cx="{size / 2}" cy="{size / 2}" r="{r:.1f}" class="sf-ring-arc" stroke-dasharray="{circ * frac:.1f} {circ:.1f}" '
+            f'transform="rotate(-90 {size / 2} {size / 2})"/></svg>')
+
+
+def plan_progress(done_hours: float, total_hours: float, done_n: int, total_n: int) -> str:
+    """The header of the plan list: a ring and two plain lines (hours done, courses done)."""
+    label = f"{done_hours:g} of {total_hours:g} hours done"
+    return (f'<div class="sf-pprog">{progress_ring(done_hours, total_hours, label, size=72)}'
+            f'<div><div class="sf-pprog-big">{done_hours:g} of {total_hours:g} h</div>'
+            f'<div class="sf-pprog-sub">{done_n} of {total_n} course{"s" if total_n != 1 else ""} done</div></div></div>')
+
+
+def plan_course_row(order: int, title: str, provider: str | None, skill_text: str, level_out: int | None, hours: float,
+                    done: bool) -> str:
+    """One course in the Home plan list: step number, course, the skill and level it gets you to, hours, a small ring and a word."""
+    reach = f"{skill_text} to {LEVEL_WORDS.get(level_out, 'a higher')} level"
+    sub = reach + (f" · {provider}" if provider else "")
+    state = "Done" if done else "To do"
+    return (f'<div class="sf-prow{" sf-prow-done" if done else ""}" aria-label="Step {int(order)}: {esc(title)}, {state}">'
+            f'<div class="sf-ord-n">{int(order):02d}</div>'
+            f'<div class="sf-prow-main"><div class="sf-name">{esc(title)}</div><div class="sf-sub">{esc(sub)}</div></div>'
+            f'<div class="sf-prow-h">{hours:g} h</div>'
+            f'<div class="sf-prow-state">{progress_ring(1 if done else 0, 1, state, size=32)}<span>{state}</span></div></div>')
+
+
+def petal_chart(values: list[tuple[str, int, int]], name_of: Callable[[str], str], height: int = 360):
+    """'Your fit, skill by skill': a flat petal (polar bar) chart. Pale amber = after your plan, solid amber = now."""
+    import plotly.graph_objects as go
+    from app.ui import AMBER, GRID, style_fig
+
+    theta = [name_of(s) for s, _, _ in values]
+    fig = go.Figure()
+    fig.add_trace(go.Barpolar(r=[a for _, _, a in values], theta=theta, name="After your plan", marker_color=AMBER, opacity=0.35,
+                              marker_line_width=0, hovertemplate="%{theta}: %{r:.0f} of 100 after your plan<extra></extra>"))
+    fig.add_trace(go.Barpolar(r=[n for _, n, _ in values], theta=theta, name="Now", marker_color=AMBER, marker_line_width=0,
+                              hovertemplate="%{theta}: %{r:.0f} of 100 now<extra></extra>"))
+    style_fig(fig, height=height)
+    fig.update_layout(
+        margin=dict(l=48, r=48, t=24, b=24), legend=dict(orientation="h", y=-0.08, x=0.5, xanchor="center"),
+        polar=dict(bgcolor="rgba(0,0,0,0)", barmode="overlay", hole=0.08,
+                   radialaxis=dict(range=[0, 100], showticklabels=False, ticks="", gridcolor=GRID, linecolor=GRID),
+                   angularaxis=dict(tickfont=dict(size=14, color=MUTED), gridcolor=GRID, linecolor=GRID, direction="clockwise")),
+    )
     return fig

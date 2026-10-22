@@ -210,6 +210,22 @@ label[data-baseweb="radio"], [data-baseweb="tab"], [data-baseweb="select"], summ
 .sf-track { height: 8px; border-radius: 999px; background: color-mix(in srgb, var(--sf-text) 8%, var(--sf-card)); overflow: hidden; }
 .sf-track > i { display: block; height: 100%; border-radius: 999px; background: var(--sf-amber); }
 .sf-track-neutral > i { background: var(--sf-exposure); }       /* AI impact is not good or bad: a grey-brown fill, never amber, red or green */
+/* Home goal bar: today solid amber, what the plan adds a pale amber tint (flat fills, no gradient) */
+.sf-goal-track { position: relative; height: 12px; }
+.sf-goal-track > i { position: relative; z-index: 1; }
+.sf-goal-track > b { position: absolute; top: 0; height: 100%; border-radius: 0 999px 999px 0; background: color-mix(in srgb, var(--sf-amber) 35%, var(--sf-card)); }
+.sf-goal { margin-top: 8px; font-size: 0.9375rem; color: var(--sf-muted); }
+.sf-goal-num { font-weight: 700; color: var(--sf-text); }
+/* Home plan list: progress header, course rows with a small ring and a word */
+.sf-ring-track { fill: none; stroke: color-mix(in srgb, var(--sf-text) 8%, var(--sf-card)); stroke-width: 6px; }
+.sf-ring-arc { fill: none; stroke: var(--sf-amber); stroke-width: 6px; stroke-linecap: round; }
+.sf-pprog { display: flex; align-items: center; gap: 16px; padding-bottom: 16px; }
+.sf-pprog-big { font-size: 1.5rem; line-height: 1.2; font-weight: 700; color: var(--sf-text); }
+.sf-pprog-sub { font-size: 0.875rem; color: var(--sf-muted); }
+.sf-prow { display: grid; grid-template-columns: 40px minmax(0, 1fr) auto auto; gap: 16px; align-items: center; min-height: 64px; padding: 12px 0; border-top: 1px solid var(--sf-border); }
+.sf-prow-h { font-weight: 600; color: var(--sf-text); white-space: nowrap; }
+.sf-prow-state { display: flex; align-items: center; gap: 8px; font-size: 0.875rem; color: var(--sf-muted); min-width: 96px; }
+.sf-prow-done .sf-name { color: var(--sf-muted); }
 .sf-track-row { display: flex; align-items: center; gap: 16px; margin-top: 16px; }
 .sf-track-row .sf-track { flex: 1; }
 
@@ -380,6 +396,8 @@ a.sf-chip:hover { border-color: var(--sf-text); }
   .sf-c-exp { min-width: 120px; }
   .sf-c-pill { justify-self: end; }
   .sf-order { grid-template-columns: 32px minmax(0, 1fr); grid-template-areas: "n main" ". link"; row-gap: 8px; padding: 16px; }
+  .sf-prow { grid-template-columns: 32px minmax(0, 1fr) auto; row-gap: 8px; }
+  .sf-prow-state { grid-column: 2 / -1; min-width: 0; }
   .sf-role-exp { min-width: 0; width: 100%; }
   .sf-src { grid-template-columns: minmax(0, 1fr); padding: 16px; }
   .sf-scard-lead { padding: 16px; }

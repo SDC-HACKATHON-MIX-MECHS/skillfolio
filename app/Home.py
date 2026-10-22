@@ -18,14 +18,16 @@ import streamlit as st
 from app.dashboard import DEFAULT_RANGE, RANGES, basket_index, holdings, pct_change
 from app.home_components import (
     NO_FIT_MESSAGE, NO_ROLES_MESSAGE, TOP_N, demand_chart, detail_numbers, first_name, greeting, how_it_works,
-    kpi_items, kpi_strip, missing_strip, note, role_card, role_row, section_title, skill_rows, skills_table, top_roles, welcome,
+    kpi_items, kpi_strip, levels_after_plan, missing_strip, note, petal_chart, petal_values, plan_course_row, plan_progress,
+    plan_summary, role_card, role_row, section_title, skill_rows, skills_table, top_roles, welcome,
 )
 from app.ui import (
-    card_container, direction_of, fmt_signed, page_setup, pill, range_tabs, row_container, run_engine, scenario, show, show_fig, side_panel,
-    skill_name, source, source_caption, strip_container,
+    card_container, course_catalog, direction_of, fmt_signed, page_setup, pill, range_tabs, role_catalog, role_skill_rows, row_container,
+    run_engine, scenario, show, show_fig, side_panel, skill_name, source, source_caption, strip_container, user_levels,
 )
 from engine import config
 from engine.data import list_profiles, load_profile
+from engine.pathway import plan
 
 DEMO_PROFILE = "aina"          # the sample profile the "Try a demo profile" link loads
 PLAN_PAGE = "pages/5_Rebalance_Plan.py"
@@ -46,6 +48,16 @@ def plan_link(role_id: str, key: str) -> None:
         clicked = st.button("See your plan", **kwargs)
     if clicked:
         st.switch_page(PLAN_PAGE)
+
+
+def lead_plan(profile: dict, result: dict, role_id: str) -> dict | None:
+    """The course plan for the lead role, exactly as the Learning plan page builds it. None if the planner can't make one."""
+    try:
+        return plan(user_levels(profile["skills"]), role_catalog()[role_id], role_skill_rows(), list(course_catalog().values()),
+                    result["forecasts"], snapshot, profile.get("risk_tolerance", "medium"), profile.get("hours_budget") or 0,
+                    budget_rm=profile.get("budget_rm"))
+    except (KeyError, ValueError, TypeError):
+        return None
 
 
 def load_demo_profile() -> None:
@@ -82,6 +94,8 @@ if result is None:
 
 name = first_name(profile)
 roles = top_roles(result["matches"], TOP_N)
+lead_result = lead_plan(profile, result, roles[0]["role_id"]) if roles else None
+goal = plan_summary(lead_result)
 
 if roles:
     show(greeting(
@@ -100,7 +114,7 @@ with roles_col:
     if roles:
         lead_match, others = roles[0], roles[1:]
         with card_container():                                   # role 1: the full card
-            show(role_card(lead_match, skill_name, rank=1, lead=True))
+            show(role_card(lead_match, skill_name, rank=1, lead=True, goal=goal))
             with strip_container("home-0"):
                 show(missing_strip(lead_match, skill_name))
                 plan_link_btn = st.button("See your plan", key="sf_plan_0", on_click=go_plan, args=(lead_match["role_id"],))
@@ -155,3 +169,31 @@ with panel_col:
             source_caption(snapshot, "hn_whoishiring", "aei_job_exposure")
             st.caption(f"Scenario: {config.SCENARIOS[scenario()]['label']}. Data as of {snapshot['snapshot_date']}.")
             st.page_link("pages/6_Methodology.py", label="How these are worked out", icon=":material/menu_book:")
+
+# --- Below: the lead role's learning plan with progress ticks, and its Fit skill by skill (petals) ----------------------------
+if roles and goal:
+    lead_match = roles[0]
+    courses = course_catalog()
+    steps = lead_result["steps"]
+    plan_col, petal_col = st.columns([13, 8], gap="large")
+
+    with plan_col:
+        show(section_title("Your learning plan", f"For {lead_match['title']}, in the order to take them. Tick a course when you finish it."))
+        with card_container():
+            done = {s["course_id"]: bool(st.session_state.get(f"home_done_{s['course_id']}")) for s in steps}
+            show(plan_progress(sum(s["hours"] for s in steps if done[s["course_id"]]), goal["hours"], sum(done.values()), len(steps)))
+            for i, step in enumerate(steps, start=1):
+                course = courses.get(step["course_id"], {})
+                show(plan_course_row(i, course.get("title", step["course_id"]), course.get("provider"), skill_name(step["skill_id"]),
+                                     course.get("level_out"), step["hours"], done[step["course_id"]]))
+                st.checkbox("Done", key=f"home_done_{step['course_id']}")
+            st.caption("Your ticks are kept for this visit only.")
+
+    with petal_col:
+        with card_container():
+            show(section_title("Your fit, skill by skill", "Each petal is one skill this role needs. The pale part is what your plan adds.", tight=True))
+            levels = user_levels(profile["skills"])
+            role_rows = [r for r in role_skill_rows() if r["role_id"] == lead_match["role_id"]]
+            values = petal_values(role_rows, levels, levels_after_plan(levels, steps, courses))
+            show_fig(petal_chart(values, skill_name))
+            st.caption("Source: the role's skill list (O*NET 31.0 and our team) and our free course catalogue · estimates, not predictions.")

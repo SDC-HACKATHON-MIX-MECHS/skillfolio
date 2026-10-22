@@ -193,7 +193,7 @@ def test_details_expander_holds_the_numbers_help_and_source(ranked):
 
 
 def test_right_panel_has_one_small_chart_with_1y_6m_all_tabs(ranked):
-    assert len(ranked.get("plotly_chart")) == 1
+    assert len(ranked.get("plotly_chart")) == 2                        # the demand chart in the panel + the fit petals below the roles
     tabs = [b for b in ranked.get("button_group") if list(b.options) == ["1Y", "6M", "All"]]
     assert len(tabs) == 1 and tabs[0].value == "1Y"                                    # the range tabs, in this order, 1Y first
     assert "in the last 12 months" in plain(markdown_html(ranked))
@@ -260,3 +260,28 @@ def test_jargon_scan_home_surface(monkeypatch, state):
         assert not BANNED.findall(text), BANNED.findall(text)
     emoji = re.compile("[\U0001F300-\U0001FAFF☀-➿]")
     assert not emoji.search(page_text(at.main, True))
+
+
+# --- the plan on Home: goal bar, plan list with ticks, fit petals -------------------------------------------------------
+
+def test_lead_card_shows_the_goal_bar_from_the_real_plan(ranked):
+    html = markdown_html(ranked)
+    assert html.count('class="sf-track sf-goal-track"') == 1                  # only the lead card, and still one progress bar per card
+    assert "after your plan:" in plain(html)
+
+
+def test_plan_list_has_one_tick_per_course_and_ticking_moves_the_progress(ranked):
+    ticks = ranked.checkbox
+    assert len(ticks) >= 1 and all(t.label == "Done" for t in ticks)
+    before = re.search(r'sf-pprog-sub">(\d+) of', markdown_html(ranked)).group(1)
+    ticks[0].check().run()
+    after = re.search(r'sf-pprog-sub">(\d+) of', markdown_html(ranked)).group(1)
+    assert (before, after) == ("0", "1")
+    assert "kept for this visit only" in page_text(ranked.main, False)
+
+
+def test_fit_petals_chart_has_now_and_after_layers_and_a_source(ranked):
+    petals = ranked.get("plotly_chart")[1]
+    names = [t["name"] for t in json.loads(petals.proto.spec)["data"]]
+    assert names == ["After your plan", "Now"]
+    assert "Source: the role's skill list" in page_text(ranked.main, False)
