@@ -1,56 +1,53 @@
 course_id,title,provider,url,skill_id,level_out,hours,cost_rm,hrdc_claimable,prereq_skill_id,prereq_level,verified_on
 python_kaggle,Python,Kaggle,https://www.kaggle.com/learn/python,python,1,5,0,unknown,,,2026-10-20
-python_umich,Programming for Everybody (Getting Started with Python),University of Michigan (Coursera),https://www.coursera.org/learn/python,python,1,20,0,unknown,,,2026-10-20
 python_cisco_pe1,Python Essentials 1,Cisco Networking Academy,https://www.netacad.com/courses/python-essentials-1,python,2,30,0,unknown,,,2026-10-20
-python_ibm_ds,"Python for Data Science, AI & Development",IBM (Coursera),https://www.coursera.org/learn/python-for-applied-data-science-ai,python,2,20,0,unknown,,,2026-10-20
 python_fcc_scicomp,Scientific Computing with Python,freeCodeCamp,https://www.freecodecamp.org/learn/scientific-computing-with-python/,python,3,300,0,unknown,python,1,2026-10-20
 sql_kaggle_intro,Intro to SQL,Kaggle,https://www.kaggle.com/learn/intro-to-sql,sql,1,3,0,unknown,,,2026-10-20
-sql_ucdavis,SQL for Data Science,"University of California, Davis (Coursera)",https://www.coursera.org/learn/sql-for-data-science,sql,2,20,0,unknown,,,2026-10-20
 sql_kaggle_advanced,Advanced SQL,Kaggle,https://www.kaggle.com/learn/advanced-sql,sql,3,4,0,unknown,sql,2,2026-10-20
 sql_fcc_relational,Relational Databases,freeCodeCamp,https://www.freecodecamp.org/learn/relational-database/,sql,3,300,0,unknown,,,2026-10-20
-excel_ibm_basics,Excel Basics for Data Analysis,IBM (Coursera),https://www.coursera.org/learn/excel-basics-data-analysis-ibm,excel,1,10,0,unknown,,,2026-10-20
-excel_mq_essentials,Excel Skills for Business: Essentials,Macquarie University (Coursera),https://www.coursera.org/learn/excel-essentials,excel,2,30,0,unknown,,,2026-10-20
-excel_mq_intermediate,Excel Skills for Business: Intermediate I,Macquarie University (Coursera),https://www.coursera.org/learn/excel-intermediate-1,excel,3,30,0,unknown,excel,2,2026-10-20
-stats_stanford,Introduction to Statistics,Stanford Online (Coursera),https://www.coursera.org/learn/stanford-statistics,statistics,2,10,0,unknown,,,2026-10-20
-stats_amsterdam,Basic Statistics,University of Amsterdam (Coursera),https://www.coursera.org/learn/basic-statistics,statistics,2,20,0,unknown,,,2026-10-20
-r_jhu,R Programming,Johns Hopkins University (Coursera),https://www.coursera.org/learn/r-programming,r_lang,2,60,0,unknown,,,2026-10-20
-tableau_ucdavis,Fundamentals of Visualization with Tableau,"University of California, Davis (Coursera)",https://www.coursera.org/learn/data-visualization-tableau,tableau,1,7,0,unknown,,,2026-10-20
 powerbi_ms_visualize,Prepare and visualize data with Microsoft Power BI,Microsoft Learn,https://learn.microsoft.com/en-us/training/paths/prepare-visualize-data-power-bi/,powerbi,2,8.2,0,unknown,,,2026-10-20
 powerbi_ms_model,Model data with Power BI,Microsoft Learn,https://learn.microsoft.com/en-us/training/paths/model-data-power-bi/,powerbi,3,5.8,0,unknown,powerbi,2,2026-10-20
-da_google_foundations,"Foundations: Data, Data, Everywhere",Google (Coursera),https://www.coursera.org/learn/foundations-data,data_analysis,1,10,0,unknown,,,2026-10-20
-da_google_process,Process Data from Dirty to Clean,Google (Coursera),https://www.coursera.org/learn/process-data,data_analysis,2,20,0,unknown,data_analysis,1,2026-10-20
-da_google_analyze,Analyze Data to Answer Questions,Google (Coursera),https://www.coursera.org/learn/analyze-data,data_analysis,2,30,0,unknown,data_analysis,1,2026-10-20
 da_kaggle_pandas,Pandas,Kaggle,https://www.kaggle.com/learn/pandas,data_analysis,2,4,0,unknown,python,1,2026-10-20
 da_fcc_python,Data Analysis with Python,freeCodeCamp,https://www.freecodecamp.org/learn/data-analysis-with-python/,data_analysis,3,300,0,unknown,python,2,2026-10-20
 ml_kaggle_intro,Intro to Machine Learning,Kaggle,https://www.kaggle.com/learn/intro-to-machine-learning,ml,1,3,0,unknown,python,1,2026-10-20
 ml_kaggle_intermediate,Intermediate Machine Learning,Kaggle,https://www.kaggle.com/learn/intermediate-machine-learning,ml,2,4,0,unknown,ml,1,2026-10-20
-ml_dlai_supervised,Supervised Machine Learning: Regression and Classification,DeepLearning.AI (Coursera),https://www.coursera.org/learn/machine-learning,ml,2,30,0,unknown,python,1,2026-10-20
-ml_dlai_advanced,Advanced Learning Algorithms,DeepLearning.AI (Coursera),https://www.coursera.org/learn/advanced-learning-algorithms,ml,3,30,0,unknown,ml,2,2026-10-20
 ml_fcc_python,Machine Learning with Python,freeCodeCamp,https://www.freecodecamp.org/learn/machine-learning-with-python/,ml,3,300,0,unknown,python,2,2026-10-20
 dl_kaggle_intro,Intro to Deep Learning,Kaggle,https://www.kaggle.com/learn/intro-to-deep-learning,deep_learning,1,4,0,unknown,ml,1,2026-10-20
 dl_fastai,Practical Deep Learning for Coders,fast.ai,https://course.fast.ai/,deep_learning,2,30,0,unknown,python,2,2026-10-20
-llm_dlai_genai_everyone,Generative AI for Everyone,DeepLearning.AI (Coursera),https://www.coursera.org/learn/generative-ai-for-everyone,llm,1,6,0,unknown,,,2026-10-20
 llm_dlai_prompting,ChatGPT Prompt Engineering for Developers,DeepLearning.AI,https://www.deeplearning.ai/short-courses/chatgpt-prompt-engineering-for-developers/,llm,1,1.7,0,unknown,python,1,2026-10-20
 llm_hf_course,LLM Course,Hugging Face,https://huggingface.co/learn/llm-course/chapter1/1,llm,3,84,0,unknown,python,2,2026-10-20
-aws_cloud_practitioner,AWS Cloud Practitioner Essentials,Amazon Web Services (Coursera),https://www.coursera.org/learn/aws-cloud-practitioner-essentials,aws,1,40,0,unknown,,,2026-10-20
 azure_ms_cloud_concepts,Introduction to Cloud Infrastructure: Describe cloud concepts,Microsoft Learn,https://learn.microsoft.com/en-us/training/paths/microsoft-azure-fundamentals-describe-cloud-concepts/,azure,1,0.9,0,unknown,,,2026-10-20
 azure_ms_architecture,Introduction to Cloud Infrastructure: Describe Azure architecture and services,Microsoft Learn,https://learn.microsoft.com/en-us/training/paths/azure-fundamentals-describe-azure-architecture-services/,azure,2,2.8,0,unknown,azure,1,2026-10-20
-linux_learnquest,Linux Fundamentals,LearnQuest (Coursera),https://www.coursera.org/learn/linux-fundamentals,linux,1,20,0,unknown,,,2026-10-20
 linux_cisco_essentials,Linux Essentials,Cisco Networking Academy,https://www.netacad.com/courses/linux-essentials,linux,2,70,0,unknown,,,2026-10-20
 sec_cisco_intro,Introduction to Cybersecurity,Cisco Networking Academy,https://www.netacad.com/courses/introduction-to-cybersecurity,security,1,6,0,unknown,,,2026-10-20
-sec_google_foundations,Foundations of Cybersecurity,Google (Coursera),https://www.coursera.org/learn/foundations-of-cybersecurity,security,1,10,0,unknown,,,2026-10-20
 sec_fcc_infosec,Information Security,freeCodeCamp,https://www.freecodecamp.org/learn/information-security/,security,2,300,0,unknown,javascript,1,2026-10-20
-web_duke_foundations,"Programming Foundations with JavaScript, HTML and CSS",Duke University (Coursera),https://www.coursera.org/learn/duke-programming-web,html_css,1,30,0,unknown,,,2026-10-20
 web_fcc_rwd,Responsive Web Design,freeCodeCamp,https://www.freecodecamp.org/learn/2022/responsive-web-design/,html_css,3,300,0,unknown,,,2026-10-20
 js_fcc_algorithms,JavaScript Algorithms and Data Structures,freeCodeCamp,https://www.freecodecamp.org/learn/javascript-algorithms-and-data-structures-v8/,javascript,3,300,0,unknown,html_css,1,2026-10-20
-react_meta_basics,React Basics,Meta (Coursera),https://www.coursera.org/learn/react-basics,react,2,30,0,unknown,javascript,2,2026-10-20
 react_fcc_libraries,Front End Development Libraries,freeCodeCamp,https://www.freecodecamp.org/learn/front-end-development-libraries/,react,3,300,0,unknown,javascript,2,2026-10-20
-ux_google_foundations,Foundations of User Experience (UX) Design,Google (Coursera),https://www.coursera.org/learn/foundations-user-experience-design,ux_research,1,10,0,unknown,,,2026-10-20
-figma_google_wireframes,Build Wireframes and Low-Fidelity Prototypes,Google (Coursera),https://www.coursera.org/learn/wireframes-low-fidelity-prototypes,figma_ui,1,10,0,unknown,,,2026-10-20
-pm_google_foundations,Foundations of Project Management,Google (Coursera),https://www.coursera.org/learn/project-management-foundations,project_mgmt,1,10,0,unknown,,,2026-10-20
-pm_google_agile,Agile Project Management,Google (Coursera),https://www.coursera.org/learn/agile-project-management,project_mgmt,2,20,0,unknown,project_mgmt,1,2026-10-20
 crm_trailhead,Salesforce CRM,Salesforce Trailhead,https://trailhead.salesforce.com/content/learn/modules/lex_implementation_basics,crm,1,0.8,0,unknown,,,2026-10-20
 cicd_ms_devops,DevOps foundations: The core principles and practices,Microsoft Learn,https://learn.microsoft.com/en-us/training/paths/devops-foundations-core-principles-practices/,cicd,1,4.5,0,unknown,,,2026-10-20
 cicd_ms_github_actions,Automate your workflow with GitHub Actions Part 1 of 2,Microsoft Learn,https://learn.microsoft.com/en-us/training/paths/github-actions/,cicd,2,5.7,0,unknown,cicd,1,2026-10-20
-esg_uiuc_intro,Introduction to Sustainability,University of Illinois Urbana-Champaign (Coursera),https://www.coursera.org/learn/sustainability,sustainability,1,30,0,unknown,,,2026-10-20
 esg_ms_get_started,Get started with Microsoft for Sustainability,Microsoft Learn,https://learn.microsoft.com/en-us/training/paths/get-started-sustainability/,sustainability,1,1.1,0,unknown,,,2026-10-20
+excel_fcc_full,Learn Microsoft Excel - Full Video Course,freeCodeCamp,https://www.freecodecamp.org/news/learn-microsoft-excel/,excel,1,2.5,0,unknown,,,2026-10-22
+excel_fcc_formulas,Learn Excel Formulas and Functions,freeCodeCamp,https://www.freecodecamp.org/news/learn-excel-formulas-and-functions/,excel,2,2,0,unknown,excel,1,2026-10-22
+stats_fcc_college,Learn College-level Statistics in this free 8-hour course,freeCodeCamp,https://www.freecodecamp.org/news/free-statistics-course/,statistics,2,8,0,unknown,,,2026-10-22
+r_fcc_basics,Learn R programming language basics in just 2 hours with this free course on statistical programming,freeCodeCamp,https://www.freecodecamp.org/news/r-programming-course,r_lang,1,2,0,unknown,,,2026-10-22
+r_fcc_cs50,Learn R Programming from Harvard University,freeCodeCamp,https://www.freecodecamp.org/news/learn-r-programming-from-harvard-university/,r_lang,2,9,0,unknown,,,2026-10-22
+tableau_fcc_crash,Tableau for Data Science and Data Visualization - Crash Course,freeCodeCamp,https://www.freecodecamp.org/news/tableau-for-data-science-and-data-visualization-crash-course/,tableau,1,0.5,0,unknown,,,2026-10-22
+da_fcc_bootcamp,Learn Data Analysis with Python in this Comprehensive 19-Hour Bootcamp,freeCodeCamp,https://www.freecodecamp.org/news/learn-data-analysis-with-comprehensive-19-hour-bootcamp/,data_analysis,2,19,0,unknown,,,2026-10-22
+figma_fcc_uiux,Learn Figma for UI/UX Design,freeCodeCamp,https://www.freecodecamp.org/news/learn-figma-for-ui-ux-design/,figma_ui,2,6,0,unknown,,,2026-10-22
+ux_ms_foundations,Foundations of user experience and design thinking,Microsoft Learn,https://learn.microsoft.com/en-us/training/modules/ux-design/,ux_research,1,0.3,0,unknown,,,2026-10-22
+ux_ms_accessibility,Accessibility fundamentals,Microsoft Learn,https://learn.microsoft.com/en-us/training/paths/accessibility-fundamental/,ux_research,1,2.8,0,unknown,,,2026-10-22
+aws_skillbuilder_cpe,AWS Cloud Practitioner Essentials,AWS Skill Builder,https://skillbuilder.aws/learn/94T2BEN85A/aws-cloud-practitioner-essentials/,aws,1,12.75,0,unknown,,,2026-10-22
+web_ms_html_css,Build web pages with HTML and CSS for beginners,Microsoft Learn,https://learn.microsoft.com/en-us/training/paths/build-web-pages-html-css-for-beginners/,html_css,1,1.4,0,unknown,,,2026-10-22
+react_fcc_10h,Learn the React JavaScript Library With This Free 10-Hour YouTube Course,freeCodeCamp,https://www.freecodecamp.org/news/react-10-hour-course/,react,2,10,0,unknown,javascript,1,2026-10-22
+sql_ms_tsql,Query and modify data with Transact-SQL,Microsoft Learn,https://learn.microsoft.com/en-us/training/paths/get-started-querying-with-transact-sql/,sql,2,5.8,0,unknown,,,2026-10-22
+sec_ms_sci,"Introduction to security, compliance, and identity concepts",Microsoft Learn,https://learn.microsoft.com/en-us/training/paths/describe-concepts-of-security-compliance-identity/,security,1,1.6,0,unknown,,,2026-10-22
+terraform_ms_fundamentals,Fundamentals of Terraform on Azure,Microsoft Learn,https://learn.microsoft.com/en-us/training/paths/terraform-fundamentals/,terraform,1,0.5,0,unknown,,,2026-10-22
+mlops_ms_intro,Introduction to machine learning operations (MLOps),Microsoft Learn,https://learn.microsoft.com/en-us/training/paths/introduction-machine-learn-operations/,mlops,1,2.0,0,unknown,ml,1,2026-10-22
+llm_ms_business_value,Explore the business value of generative AI solutions,Microsoft Learn,https://learn.microsoft.com/en-us/training/paths/explore-business-value-generative-ai-solutions/,llm,1,1.0,0,unknown,,,2026-10-22
+cicd_ms_github_actions_2,Automate your workflow with GitHub Actions Part 2 of 2,Microsoft Learn,https://learn.microsoft.com/en-us/training/paths/github-actions-2/,cicd,3,2.1,0,unknown,cicd,2,2026-10-22
+python_fcc_ultimate,Ultimate Beginner's Python Course,freeCodeCamp,https://www.freecodecamp.org/news/ultimate-beginners-python-course/,python,1,9,0,unknown,,,2026-10-22
+python_fcc_ds,Learn Python for Data Science – Full Course for Beginners,freeCodeCamp,https://www.freecodecamp.org/news/learn-python-for-data-science-full-course/,python,2,17,0,unknown,,,2026-10-22
+da_fcc_pandas,"How to Analyze Data with Python, Pandas & Numpy - 10 Hour Course",freeCodeCamp,https://www.freecodecamp.org/news/how-to-analyze-data-with-python-pandas/,data_analysis,2,10,0,unknown,python,1,2026-10-22
+pm_openlearn_journey,Project management: the start of the project journey,The Open University (OpenLearn),https://www.open.edu/openlearn/money-business/leadership-management/project-management-the-start-the-project-journey/content-section-0,project_mgmt,2,35,0,unknown,,,2026-10-22

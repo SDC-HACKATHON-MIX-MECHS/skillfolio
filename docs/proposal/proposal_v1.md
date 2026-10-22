@@ -39,7 +39,7 @@ The cost is personal and national: wasted learning hours, graduates stuck below 
 
 ### 2.2 The Proposed AI Solution *(max 300 words)*
 
-SkillFolio treats a person's skills as an investment portfolio and AI as the market. For Aina, it estimates that demand for her current skills grows about 9.7% a year, rates their AI impact at 19 out of 100, and ranks Systems Analyst as her closest role at 68% Fit. A plan of three free courses, 37 hours in total, raises that Fit to 88%.
+SkillFolio treats a person's skills as an investment portfolio and AI as the market. For Aina, it estimates that demand for her current skills grows about 9.7% a year, rates their AI impact at 19 out of 100, and ranks Systems Analyst as her closest role at 68% Fit. A plan of two free courses, 35.5 hours in total, raises that Fit to 88%.
 
 1. **Profile.** The user picks skills and levels, or pastes CV text that fixed matching rules map to our 73-skill catalogue, then sets hours, risk comfort and SDGs.
 2. **Skill Market.** Each skill's demand trend comes from 7,961 dated Hacker News "Who is hiring" posts over 25 months. Its AI exposure is derived from the Anthropic Economic Index's occupation-level scores. A statistical model estimates momentum with a nominal 80% band, damps noisy trends, and re-runs under moderate and fast AI-disruption scenarios.
@@ -63,7 +63,7 @@ From the SDC workshops we use cloud hosting (Replit) and data design (dated, ver
 | Front end | Streamlit 1.66 (Python) multipage web app, Plotly 7 charts, mobile-friendly layout |
 | Engine | Python 3.12, pandas, NumPy: skill forecasts (log-linear trend, shrinkage toward the average, scenario shift), portfolio metrics, role matching, greedy course planner, SDG allocation |
 | Data pipeline | Python + Requests: HN Algolia API → skill extraction (fixed alias rules) → dated JSON snapshots |
-| Data store | Versioned CSV and JSON files in Git: 73 skills, 20 roles, curated role-skill lists, 55 courses, 5 synthetic profiles, dated snapshots. Every file follows a written data contract and is checked by automated tests |
+| Data store | Versioned CSV and JSON files in Git: 73 skills, 20 roles, curated role-skill lists, 52 courses, 5 synthetic profiles, dated snapshots. Every file follows a written data contract and is checked by automated tests |
 | Data sources | Hacker News "Who is hiring" (HN Algolia API); Anthropic Economic Index occupation exposure (CC-BY), from which we derive skill exposure; O*NET 31.0 Technology Skills (CC BY 4.0); UN SDG targets, mapped to roles by hand |
 | Hosting | Replit (development and public deployment) |
 | Quality | pytest suite (810 tests passing on 22 Oct 2026: data integrity, engine specification, extractor accuracy), GitHub pull requests with review |
@@ -82,7 +82,7 @@ From the SDC workshops we use cloud hosting (Replit) and data design (dated, ver
                                 └── charts, sources, ◄───┘
                                     dates, estimates      ▲
                        verified catalogues (data/*.csv) ──┘
-                       skills · roles + SDG targets · 55 courses
+                       skills · roles + SDG targets · 52 courses
 ```
 
 **Sponsor-provided GenAI API or cloud platform?** Replit, through the hackathon's Replit Core access, for development and hosting the live prototype. No sponsor GenAI API is used.
@@ -110,9 +110,9 @@ From the SDC workshops we use cloud hosting (Replit) and data design (dated, ver
 | **Target SDG Sub-Target(s)** | **Target 4.4:** "By 2030, substantially increase the number of youth and adults who have relevant skills, including technical and vocational skills, for employment, decent jobs and entrepreneurship." Supporting: **Target 8.5:** "By 2030, achieve full and productive employment and decent work for all women and men, including for young people…" (UN SDG indicator framework) |
 | **Current Problem Baseline** | 32.2% of employed Malaysian graduates (1.60 million people) worked below their qualifications in 2024; for those aged 24 and under the rate was 66.0% (DOSM, Graduates Statistics 2024). More than 600,000 workers must undergo reskilling training within three to five years (Minister Chang Lih Kang, Malay Mail, 7 Jan 2025). |
 | **Core Measurable KPI** | (1) **Fit gain:** a learner's Fit for their target role before vs after the plan, within their own hour budget. (2) **AI impact (0–100) and outlook score** before vs after, reported beside the Fit gain so trade-offs stay visible. (3) **Share of recommended roles, courses and numbers that carry a source and date.** (4) **Time from profile to plan.** |
-| **Phase 2 Impact Target** | **Measured today** on the merged data (5 sample profiles × their top 3 roles, moderate scenario): Apply plan raises Fit by **41 points on average**, within each learner's own hours. AI impact stays about flat (**−0.4 points**), and the outlook score falls in **11 of 15** cases. **By Phase 2:** keep the average Fit gain at **≥ 40 points** while showing AI impact and outlook beside it on every plan; **100%** of recommended roles, courses and numbers sourced and dated; profile to plan in **under 3 minutes**, with **≥ 80%** of 10 outsider testers able to name a reachable role and their next course. |
+| **Phase 2 Impact Target** | **Measured today** on the merged data (5 sample profiles × their top 3 roles, moderate scenario): Apply plan raises Fit by **41 points on average**, within each learner's own hours. AI impact stays about flat (**−0.3 points**), and the outlook score falls in **11 of 15** cases. **By Phase 2:** keep the average Fit gain at **≥ 40 points** while showing AI impact and outlook beside it on every plan; **100%** of recommended roles, courses and numbers sourced and dated; profile to plan in **under 3 minutes**, with **≥ 80%** of 10 outsider testers able to name a reachable role and their next course. |
 
-**About the courses:** all 55 courses in the catalogue cost RM 0 (free or free to audit). HRD Corp status is recorded for every course, but we have not yet found a source for any, so all are marked "unknown".
+**About the courses:** all 52 courses in the catalogue cost RM 0 and need no trial or payment. HRD Corp status is recorded for every course, but we have not yet found a source for any, so all are marked "unknown".
 
 **Sources**
 - DOSM, *Graduates Statistics 2024* (released 31 Oct 2025): https://www.dosm.gov.my/uploads/release-content/file_20260401145140.pdf
@@ -152,7 +152,7 @@ From the SDC workshops we use cloud hosting (Replit) and data design (dated, ver
 | Anthropic Economic Index, `job_exposure.csv` (occupation exposure; our skill exposure is derived from it) | dataset | CC-BY |
 | O*NET 31.0 Technology Skills | dataset | CC BY 4.0 |
 | UN SDG target wording (targets mapped to roles by the team) | reference text | UN public data |
-| Course catalogue (55 free courses from Coursera, Kaggle, Microsoft Learn, Cisco NetAcad, freeCodeCamp and others) | links and metadata only | Each provider's public listing |
+| Course catalogue (52 free courses from freeCodeCamp, Microsoft Learn, Kaggle, Cisco NetAcad, AWS Skill Builder, The Open University and others) | links and metadata only | Each provider's public listing |
 | Claude Code (Anthropic) | AI development tool: helped write code, data files and documents | Anthropic terms of service |
 | Replit Agent | AI development tool: helped write code | Replit terms of service |
 | Pre-trained AI models in the product | model | None |
