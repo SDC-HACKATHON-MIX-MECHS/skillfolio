@@ -379,4 +379,6 @@ def test_goal_line_says_free_only_when_it_costs_nothing():
 
 def test_plan_course_row_escapes_text_and_says_done_in_words():
     html = hc.plan_course_row(1, HOSTILE, HOSTILE, "SQL (SQL)", 2, 3.5, True)
-    assert "<script>" not in html and "Done" in html and "to working level" in html and 'role="img"' in html
+    assert "<script>" not in html and "Done" in html and "Working</span>" in html and 'role="img"' in html
+    assert "sf-ord-n" not in html and "sf-name" not in html                  # own classes: the plan page's grid styles must not apply
+    assert "sf-ring-arc" not in hc.progress_ring(0, 1, "To do")                # nothing done draws no arc (no stray dot)

@@ -428,14 +428,24 @@ def goal_line(goal: dict) -> str:
 
 
 def progress_ring(done: float, total: float, label: str, size: int = 56) -> str:
-    """A flat ring: amber arc for the part done, a quiet track for the rest. An image with words, never a progress number alone."""
+    """A flat ring: amber arc for the part done, a quiet track for the rest. An image with words, never a progress number alone.
+    Nothing done draws no arc at all (a zero-length round-capped arc would show as a stray dot)."""
     frac = 0.0 if not total else max(0.0, min(done / total, 1.0))
     r = size / 2 - 5
     circ = 2 * 3.14159265 * r
+    c = size / 2
+    arc = (f'<circle cx="{c}" cy="{c}" r="{r:.1f}" class="sf-ring-arc" stroke-dasharray="{circ * frac:.1f} {circ:.1f}" '
+           f'transform="rotate(-90 {c} {c})"/>') if frac > 0 else ""
     return (f'<svg class="sf-ring" width="{size}" height="{size}" viewBox="0 0 {size} {size}" role="img" aria-label="{esc(label)}">'
-            f'<circle cx="{size / 2}" cy="{size / 2}" r="{r:.1f}" class="sf-ring-track"/>'
-            f'<circle cx="{size / 2}" cy="{size / 2}" r="{r:.1f}" class="sf-ring-arc" stroke-dasharray="{circ * frac:.1f} {circ:.1f}" '
-            f'transform="rotate(-90 {size / 2} {size / 2})"/></svg>')
+            f'<circle cx="{c}" cy="{c}" r="{r:.1f}" class="sf-ring-track"/>{arc}</svg>')
+
+
+def level_bars(level: int | None) -> str:
+    """Three small bars, `level` of them filled (the reference's level chip icon). Decorative: the word beside it says the level."""
+    level = int(level or 0)
+    bars = "".join(f'<rect x="{1 + i * 5}" y="{9 - 3 * i}" width="3" height="{4 + 3 * i}" rx="1" class="sf-lvl-{"on" if i < level else "off"}"/>'
+                   for i in range(3))
+    return f'<svg width="16" height="14" viewBox="0 0 16 14" aria-hidden="true">{bars}</svg>'
 
 
 def plan_progress(done_hours: float, total_hours: float, done_n: int, total_n: int) -> str:
@@ -448,15 +458,17 @@ def plan_progress(done_hours: float, total_hours: float, done_n: int, total_n: i
 
 def plan_course_row(order: int, title: str, provider: str | None, skill_text: str, level_out: int | None, hours: float,
                     done: bool) -> str:
-    """One course in the Home plan list: step number, course, the skill and level it gets you to, hours, a small ring and a word."""
-    reach = f"{skill_text} to {LEVEL_WORDS.get(level_out, 'a higher')} level"
-    sub = reach + (f" · {provider}" if provider else "")
+    """One course in the Home plan list, laid out like a learner row: a numbered tile, the course and what it teaches, a level chip
+    with bars, the hours, and a small ring with the word Done / To do. Wraps to two lines on a phone."""
+    level_word = LEVEL_WORDS.get(level_out, "")
+    sub = f"{skill_text}" + (f" · {provider}" if provider else "")
     state = "Done" if done else "To do"
+    chip = (f'<span class="sf-pchip">{level_bars(level_out)}{esc(level_word.capitalize())}</span>' if level_word else "")
     return (f'<div class="sf-prow{" sf-prow-done" if done else ""}" aria-label="Step {int(order)}: {esc(title)}, {state}">'
-            f'<div class="sf-ord-n">{int(order):02d}</div>'
-            f'<div class="sf-prow-main"><div class="sf-name">{esc(title)}</div><div class="sf-sub">{esc(sub)}</div></div>'
-            f'<div class="sf-prow-h">{hours:g} h</div>'
-            f'<div class="sf-prow-state">{progress_ring(1 if done else 0, 1, state, size=32)}<span>{state}</span></div></div>')
+            f'<div class="sf-prow-tile">{int(order):02d}</div>'
+            f'<div class="sf-prow-main"><div class="sf-prow-title">{esc(title)}</div><div class="sf-prow-sub">{esc(sub)}</div></div>'
+            f'<div class="sf-prow-meta">{chip}<span class="sf-prow-h">{hours:g} h</span>'
+            f'<span class="sf-prow-state">{progress_ring(1 if done else 0, 1, state, size=28)}<span>{state}</span></span></div></div>')
 
 
 def petal_chart(values: list[tuple[str, int, int]], name_of: Callable[[str], str], height: int = 360):
