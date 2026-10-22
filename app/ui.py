@@ -223,10 +223,30 @@ def source(snapshot: dict, source_id: str) -> dict:
     return next((s for s in snapshot["sources"] if s["id"] == source_id), {"name": source_id, "retrieved_at": "????-??-??"})
 
 
+SOURCE_LABELS = {"hn_whoishiring": "Hacker News job posts", "aei_job_exposure": "Anthropic Economic Index (AI impact)"}
+
+
+def source_html(items: list[str], note: str | None = "estimates, not predictions") -> str:
+    """The quiet source line under a chart or table: a small icon, then 'Source:' and each source as one unbreakable chunk (so a date
+    never splits across two lines), then the estimate note. One line of HTML; every piece of text is escaped."""
+    chunks = " · ".join(f'<span class="sf-src-i">{esc(item)}</span>' for item in items)
+    tail = f" · {esc(note)}" if note else ""
+    return f'<div class="sf-source">{icon("file-text", 16)}<span>Source: {chunks}{tail}</span></div>'
+
+
 def source_caption(snapshot: dict, *source_ids: str) -> None:
-    """The caption under every chart and table (DESIGN.md §5)."""
-    parts = [f"{source(snapshot, sid)['name']} · retrieved {source(snapshot, sid)['retrieved_at'][:10]}" for sid in source_ids]
-    st.caption("Source: " + " · ".join(parts) + " · estimates, not predictions")
+    """The source line under every chart and table, with the plain name of each source and the date it was retrieved."""
+    items = []
+    for sid in source_ids:
+        src = source(snapshot, sid)
+        name = SOURCE_LABELS.get(sid) or str(src["name"]).split(" — ")[0]
+        items.append(f"{name}, retrieved {src['retrieved_at'][:10]}")
+    show(source_html(items))
+
+
+def source_note(text: str, note: str | None = None) -> None:
+    """The same source line for a source that is not in the snapshot (our own files), e.g. the SDG links or the course list."""
+    show(source_html([text], note))
 
 
 # --- Number formats (DESIGN.md §2) --------------------------------------------------------------
@@ -324,18 +344,17 @@ def demand_fig(months: list[str], values: list[float], direction: str = "flat", 
 
 
 def gauge_fig(exposure: float | None, before: float | None = None) -> go.Figure:
-    """AI-exposure gauge, 0-100, one neutral grey-brown scale with an amber bar (never red/green). Empty with "n/a" when unknown."""
+    """AI-exposure gauge, 0-100, one neutral grey-brown scale with an amber bar (never red/green). Empty with "n/a" when unknown.
+    `before` is accepted for the callers but not drawn: the before and after numbers are written out in the cards next to the chart,
+    and a delta glyph inside the gauge only added clutter."""
     if exposure is None:
         fig = go.Figure(go.Indicator(mode="gauge", value=0, gauge={"axis": {"range": [0, 100]}, "bar": {"color": GRID}},
-                                     title={"text": "AI impact: n/a"}))
-        return style_fig(fig, height=240)
-    if before is not None and round(before * 100) == round(exposure * 100):
-        before = None   # no change at this precision: Plotly would draw a bare "-" under the number
+                                     title={"text": "AI impact: n/a", "font": {"size": 16}}))
+        return style_fig(fig, height=260).update_layout(margin=dict(l=40, r=40, t=64, b=8))
     fig = go.Figure(go.Indicator(
-        mode="gauge+number+delta" if before is not None else "gauge+number",
+        mode="gauge+number",
         value=round(exposure * 100),
-        number={"suffix": "/100"},
-        delta={"reference": round(before * 100), "increasing": {"color": FLAT}, "decreasing": {"color": FLAT}} if before is not None else None,
+        number={"suffix": "/100", "font": {"size": 40}},
         gauge={
             "axis": {"range": [0, 100], "tickcolor": MUTED},
             "bar": {"color": AMBER},
@@ -344,11 +363,9 @@ def gauge_fig(exposure: float | None, before: float | None = None) -> go.Figure:
             "steps": [{"range": [0, 33], "color": EXPOSURE_STEPS[0]}, {"range": [33, 66], "color": EXPOSURE_STEPS[1]},
                       {"range": [66, 100], "color": EXPOSURE_STEPS[2]}],
         },
-        title={"text": "AI impact"},
+        title={"text": "AI impact", "font": {"size": 16}},
     ))
-    fig = style_fig(fig, height=260)
-    fig.update_layout(margin=dict(t=56))   # room for the title above the arc
-    return fig
+    return style_fig(fig, height=260).update_layout(margin=dict(l=40, r=40, t=64, b=8))
 
 
 # One- or two-word names for the risk/return chart, so no label wraps or crowds a dot (the hover keeps the full title).
@@ -591,7 +608,7 @@ def _css_vars() -> str:
         f"--sf-text:{TEXT};--sf-muted:{MUTED};--sf-on-ink:{ON_INK};--sf-amber:{AMBER};"
         f"--sf-up:{UP};--sf-up-text:{UP_TEXT};--sf-down:{DOWN};--sf-down-text:{DOWN_TEXT};"
         f"--sf-up-bg:color-mix(in srgb,{UP} 12%,{CARD});--sf-down-bg:color-mix(in srgb,{DOWN} 10%,{CARD});"
-        f"--sf-flat-bg:{RAISED};--sf-exposure:{EXPOSURE_HIGH};"
+        f"--sf-flat-bg:{RAISED};--sf-exposure:{EXPOSURE_HIGH};--sf-exposure-soft:{EXPOSURE_STEPS[1]};"
         f"--sf-font:{FONT_TEXT};--sf-radius:{RADIUS}px;--sf-shadow:{SHADOW};"
         "}"
     )

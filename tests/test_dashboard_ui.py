@@ -196,3 +196,87 @@ def test_css_has_the_non_negotiables():
         assert needle in css, needle
     assert "system-ui" in css                                      # graceful fallback when Inter does not load
     assert "Instrument" not in css and "JetBrains" not in css and "monospace" not in css     # Inter only: no serif, no mono
+
+
+# --- the risk chart: short names beside the dots, Before / Now / Both inside the chart ---------------------------
+
+def _matches(n=5):
+    return [{"title": f"Role number {i} / Long Specialist Title", "role_id": f"r{i}", "match_pct": 0.7 - 0.08 * i,
+             "ai_exposure": 0.1 + 0.12 * i, "role_growth": 0.04 + 0.01 * i} for i in range(n)]
+
+
+def test_risk_chart_labels_roles_with_short_names_and_keeps_the_full_title_on_hover():
+    fig = ui.risk_return_fig(_matches(), {"ai_exposure": 0.2, "growth": 0.09})
+    roles = fig.data[0]
+    assert roles.mode == "markers+text" and all(len(t.split()) <= 2 for t in roles.text)       # one or two words, never wrapped
+    assert not any("<br>" in t for t in roles.text)
+    assert roles.customdata[0][1] == "Role number 0 / Long Specialist Title"                   # the full name is still on hover
+    assert ui.short_role_title("environmental_specialist", "Environmental / Sustainability Specialist") == "Sustainability"
+    assert ui.short_role_title(None, "Systems / Business Analyst") == "Business analyst"
+
+
+def test_risk_chart_has_no_legend_few_ticks_and_no_axis_lines():
+    fig = ui.risk_return_fig(_matches(), {"ai_exposure": 0.2, "growth": 0.09})
+    assert fig.layout.showlegend is False
+    assert fig.layout.xaxis.showline is False and fig.layout.yaxis.showline is False and fig.layout.xaxis.showgrid is False
+    assert fig.layout.xaxis.dtick == 20
+    lo, hi = fig.layout.yaxis.range
+    step = fig.layout.yaxis.dtick
+    assert len([k for k in range(-1000, 1000) if lo <= k * step <= hi]) <= 4
+    xs = [x for tr in fig.data for x in tr.x]
+    assert fig.layout.xaxis.range[0] <= min(xs) and fig.layout.xaxis.range[1] >= max(xs)      # nothing sits on or past the edge
+    assert "<b>You</b>" in fig.data[-1].text and not fig.frames and not fig.layout.updatemenus  # no toggle without a before point
+
+
+def test_risk_chart_with_a_before_point_has_the_before_now_both_toggle_and_readout():
+    before, after = {"ai_exposure": 0.3, "growth": 0.12}, {"ai_exposure": 0.2, "growth": 0.085}
+    fig = ui.risk_return_fig(_matches(), after, before=before)
+    assert [b.label for b in fig.layout.updatemenus[0].buttons] == ["Before", "Now", "Both"]
+    assert fig.layout.updatemenus[0].active == 2 and [f.name for f in fig.frames] == ["Before", "Now", "Both"]
+    assert all(b.method == "animate" for b in fig.layout.updatemenus[0].buttons)               # switches in the browser, no rerun
+    assert "Before" in fig.data[1].text and fig.layout.annotations[0].text == "<b>Growth down 3.5 points</b>"
+    frames = {f.name: f for f in fig.frames}
+    assert frames["Before"].data[1].x[0] == 30 and frames["Now"].data[1].x[0] == 20         # your dot moves between views
+    assert frames["Now"].data[0].text == ("",) and "Before" in frames["Both"].data[0].text   # the ring shows only in "Both"
+    assert ui.growth_readout(before, after, "Before") == "Before the plan: +12.0% a year"
+
+
+def test_place_labels_keeps_role_labels_off_your_dot_and_inside_the_chart():
+    pts, sizes = [(30, 5), (95, 5)], [24, 24]
+    sides = ui._place_labels(pts, sizes, ["Data analyst", "Digital marketing"], [(36, 5, 8, "You", "middle left", True)],
+                             (0, 100), (0, 10))
+    assert sides[0] != "middle right"                                  # the right side would cover your dot
+    assert sides[1] != "middle right"                                  # the right side would run off the chart
+
+
+# --- the source line -------------------------------------------------------------------------------------------
+
+def test_source_line_keeps_each_source_and_its_date_in_one_unbreakable_chunk():
+    html = ui.source_html(["Hacker News job posts, retrieved 2026-10-20", "Anthropic Economic Index (AI impact), retrieved 2026-10-20"])
+    assert html.count('class="sf-src-i"') == 2 and "Source: " in html and "estimates, not predictions" in html and "\n" not in html
+    assert "<script>" not in ui.source_html([HOSTILE], HOSTILE)
+
+
+def test_source_caption_uses_plain_names_not_file_names(monkeypatch):
+    seen = []
+    monkeypatch.setattr(ui, "show", lambda *parts: seen.append("".join(parts)))
+    snap = {"sources": [{"id": "hn_whoishiring", "name": "Hacker News — Ask HN: Who is hiring?", "retrieved_at": "2026-10-20T09:36:00Z"},
+                        {"id": "aei_job_exposure", "name": "Anthropic Economic Index — job_exposure.csv", "retrieved_at": "2026-10-20T09:36:00Z"}]}
+    ui.source_caption(snap, "hn_whoishiring", "aei_job_exposure")
+    assert "Hacker News job posts, retrieved 2026-10-20" in seen[0] and "Anthropic Economic Index (AI impact)" in seen[0] and ".csv" not in seen[0]
+
+
+# --- the SDG list --------------------------------------------------------------------------------------------
+
+def test_sdg_bars_rank_the_biggest_goals_and_fold_the_rest_into_one_line():
+    from app.page_components import sdg_bars
+    alloc = {4: 0.2, 8: 0.2, 9: 0.15, 12: 0.15, 13: 0.1, 15: 0.1, 17: 0.05, 7: 0.05}
+    html = sdg_bars(alloc, {g: f"Goal {g}" for g in alloc})
+    assert html.count('class="sf-sdg-row"') == 5 and "baseline" in html and "3 smaller goals make up 20.0% together." in html
+    assert html.index("SDG 4 ") < html.index("SDG 8 ") < html.index("SDG 9 ") and "\n" not in html
+    assert "1 smaller goal make" not in html and sdg_bars({}, {}) == ""
+
+
+def test_sdg_bars_escape_names():
+    from app.page_components import sdg_bars
+    assert "<script>" not in sdg_bars({4: 1.0}, {4: HOSTILE})
