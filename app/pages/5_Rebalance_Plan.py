@@ -122,7 +122,8 @@ with st.expander("Show details", expanded=applied):
     ]))
     show_fig(gauge_fig(now["ai_exposure"], before=before["ai_exposure"] if applied else None))
     if now["ai_exposure"] is not None and before["ai_exposure"] is not None:
-        show_fig(risk_return_fig(result["matches"], now, before=before if applied else None))
+        with st.container(key="sf-plan-chart"):   # theme.css styles its Before / Now / Both buttons and your dot's pulse
+            show_fig(risk_return_fig(result["matches"], now, before=before if applied else None))
     source_caption(snapshot, "hn_whoishiring", "aei_job_exposure")
 
     st.markdown("**Where your skills point " + ("after the plan" if applied else "today") + "**")

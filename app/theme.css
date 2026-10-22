@@ -67,6 +67,18 @@ a[data-testid="stSidebarNavLink"][href$="/Rebalance_Plan"] p::after { content: "
 }
 .stApp [data-testid="stButtonGroup"] button[data-testid$="Active"] p, .stApp [data-testid="stButtonGroup"] button[aria-checked="true"] p, .stApp [data-testid="stButtonGroup"] button[aria-pressed="true"] p { font-weight: 700; }
 
+/* Rebalance Plan chart: its Before / Now / Both buttons (Plotly's own, so switching runs in the browser and your dot slides)
+   as a compact pill group: no fill or border except on the active one, which Plotly marks with fill #F4FAFF. On a phone the
+   readout beside them would overlap, so it is hidden there (the cards above give the same numbers). Your dot (the chart's
+   last trace) has a soft pulse; the reduced-motion rule at the end of this file stops it. */
+.st-key-sf-plan-chart .updatemenu-item-rect { rx: 18px; ry: 18px; fill: transparent !important; stroke: transparent !important; }
+.st-key-sf-plan-chart .updatemenu-item-rect[style*="244, 250, 255"] { fill: var(--sf-card) !important; stroke: var(--sf-border) !important; }
+.st-key-sf-plan-chart .updatemenu-item-rect[style*="244, 250, 255"] + .updatemenu-item-text { font-weight: 600 !important; }
+.st-key-sf-plan-chart .updatemenu-button { cursor: pointer; }
+@media (max-width: 640px) { .st-key-sf-plan-chart .infolayer .annotation { display: none; } }
+@keyframes sf-you-pulse { 0% { stroke-width: 0; stroke-opacity: 0.5; } 70%, 100% { stroke-width: 20px; stroke-opacity: 0; } }
+.st-key-sf-plan-chart .scatterlayer .trace:last-child .point { animation: sf-you-pulse 2.4s ease-out infinite; }
+
 /* ===== page head: the title and one subtitle line. No eyebrow, no numbering. ===== */
 .sf-pagehead { margin: 0 0 32px; }
 .stApp h1, .stApp h1.sf-title { font-family: var(--sf-font); font-size: 2rem; line-height: 1.2; font-weight: 600; letter-spacing: -0.02em;
