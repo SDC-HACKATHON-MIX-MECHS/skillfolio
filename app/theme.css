@@ -294,6 +294,31 @@ label[data-baseweb="radio"], [data-baseweb="tab"], [data-baseweb="select"], summ
 .sf-t-trend { text-align: right; font-variant-numeric: tabular-nums; }
 .sf-t-meta { grid-column: 1 / -1; font-size: 0.875rem !important; color: var(--sf-muted) !important; }
 
+/* the source line under a chart or table: a quiet footer; each source is one unbreakable chunk, so a date never splits */
+.sf-source { display: flex; align-items: flex-start; gap: 8px; margin: 8px 0 24px; padding-top: 12px; border-top: 1px solid var(--sf-border);
+             font-size: 0.875rem; line-height: 1.5; color: var(--sf-muted); }
+.sf-source .sf-icon { margin-top: 4px; color: var(--sf-muted); }
+.sf-src-i { white-space: nowrap; }
+@media (max-width: 480px) { .sf-src-i { white-space: normal; } }
+
+/* the SDG list: number badge, name and share, thin bar */
+.sf-sdg { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.sf-sdg-row { display: flex; align-items: center; gap: 16px; padding: 12px 0; }
+.sf-sdg-main { flex: 1 1 auto; min-width: 0; }
+.sf-sdg-head { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; margin-bottom: 8px; }
+.sf-sdg-pct { flex: none; font-variant-numeric: tabular-nums; font-weight: 600; color: var(--sf-text); }
+.sf-track-thin { height: 6px; }
+.sf-sdg .sf-track-neutral > i { background: var(--sf-exposure-soft); }       /* a soft grey-brown: shares are a mix, not a score */
+.sf-sdg-more { margin: 4px 0 8px; font-size: 0.9375rem; color: var(--sf-muted); }
+
+/* the key under the risk chart: numbered bubbles match the numbers in the chart */
+.sf-key { list-style: none; margin: 0 0 16px; padding: 0; display: flex; flex-direction: column; }
+.sf-key li { display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 8px 0; border-top: 1px solid var(--sf-border); font-size: 1rem; }
+.sf-key li:first-child { border-top: 0; }
+.sf-keynum { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border-radius: 50%;
+             background: var(--sf-exposure-soft); color: var(--sf-text); font-weight: 600; font-size: 0.875rem; font-variant-numeric: tabular-nums; }
+.sf-keyname { flex: 1 1 auto; min-width: 0; color: var(--sf-text); overflow-wrap: anywhere; }
+
 /* skill cards (Skill Market), course cards (learning plan), concept and source blocks (Methodology) */
 .sf-cards { display: flex; flex-direction: column; gap: 16px; margin-bottom: 16px; }
 .sf-scard-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; flex-wrap: wrap; }

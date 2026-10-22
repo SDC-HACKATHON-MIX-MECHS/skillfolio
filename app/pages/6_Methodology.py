@@ -7,7 +7,7 @@ import pandas as pd
 import streamlit as st
 
 from app.page_components import concept_card, source_list
-from app.ui import page_header, page_setup, section_header, show
+from app.ui import page_header, page_setup, section_header, show, source_note
 from engine import config
 
 snapshot = page_setup("Methodology")
@@ -100,7 +100,7 @@ with st.expander("Show every setting"):
         {"Setting": "Pull of the skill-swing table toward its diagonal", "Value": f"{config.COVARIANCE_SHRINKAGE:.0%}"},
         {"Setting": "SDG tilt α", "Value": config.SDG_TILT_ALPHA},
     ]).astype({"Value": str}), hide_index=True, use_container_width=True)
-    st.caption("Source: engine/config.py")
+    source_note("the settings file engine/config.py")
 
 # --- Limits -----------------------------------------------------------------------------------------
 show(section_header("What this cannot tell you", icon_name="info"))

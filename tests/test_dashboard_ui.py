@@ -196,3 +196,81 @@ def test_css_has_the_non_negotiables():
         assert needle in css, needle
     assert "system-ui" in css                                      # graceful fallback when Inter does not load
     assert "Instrument" not in css and "JetBrains" not in css and "monospace" not in css     # Inter only: no serif, no mono
+
+
+# --- the risk chart: numbered bubbles, names in the key, no overlapping labels ---------------------------------
+
+def _matches(n=5):
+    return [{"title": f"Role number {i}", "role_id": f"r{i}", "match_pct": 0.7 - 0.08 * i, "ai_exposure": 0.1 + 0.12 * i,
+             "role_growth": 0.04 + 0.01 * i} for i in range(n)]
+
+
+def test_risk_chart_puts_numbers_in_the_bubbles_and_no_role_names_on_the_chart():
+    fig = ui.risk_return_fig(_matches(), {"ai_exposure": 0.2, "growth": 0.09})
+    roles = fig.data[0]
+    assert list(roles.text) == ["1", "2", "3", "4", "5"] and roles.mode == "markers+text"
+    drawn = [t for trace in fig.data for t in (trace.text or [])]
+    assert not any("Role number" in str(t) for t in drawn)                  # names live in the key, so nothing overlaps or runs off the edge
+    assert fig.layout.showlegend is False
+    assert roles.customdata[0][0] == "Role number 0"                        # the full name is still on hover
+
+
+def test_risk_chart_axes_use_plain_words_and_the_plot_has_room():
+    fig = ui.risk_return_fig(_matches(), {"ai_exposure": 0.2, "growth": 0.09})
+    assert "AI impact" in fig.layout.xaxis.title.text and "Hiring growth" in fig.layout.yaxis.title.text
+    xs = [x for tr in fig.data for x in tr.x]
+    assert fig.layout.xaxis.range[0] <= min(xs) and fig.layout.xaxis.range[1] >= max(xs)      # nothing sits on or past the edge
+    assert fig.layout.yaxis.range[0] < min(y for tr in fig.data for y in tr.y)
+
+
+def test_risk_chart_with_a_before_point_labels_today_and_the_move():
+    fig = ui.risk_return_fig(_matches(), {"ai_exposure": 0.2, "growth": 0.09}, before={"ai_exposure": 0.3, "growth": 0.05}, user_label="After the plan")
+    texts = [t for tr in fig.data for t in (tr.text or [])]
+    assert "Today" in texts and "After the plan" in texts and len(fig.layout.annotations) == 1
+
+
+def test_risk_key_lists_the_numbers_names_and_fit_and_escapes():
+    html = ui.risk_return_key(_matches(3))
+    assert html.count("<li>") == 3 and "Role number 0" in html and "70% fit" in html and "\n" not in html
+    assert "<script>" not in ui.risk_return_key([{**_matches(1)[0], "title": HOSTILE}])
+    assert ui.risk_return_key([]) == ""
+
+
+def test_label_side_avoids_the_nearest_dot_and_the_edges():
+    assert ui._label_side(30, 5, [(33, 5)], (0, 100), (0, 10)) != "middle right"      # a label to the right would run across the neighbour
+    assert ui._label_side(30, 5, [(27, 5)], (0, 100), (0, 10)) != "middle left"
+    assert ui._label_side(1, 5, [], (0, 100), (0, 10)) != "middle left"              # a label to the left would run off the plot
+    assert ui._label_side(99, 5, [], (0, 100), (0, 10)) != "middle right"
+
+
+# --- the source line -------------------------------------------------------------------------------------------
+
+def test_source_line_keeps_each_source_and_its_date_in_one_unbreakable_chunk():
+    html = ui.source_html(["Hacker News job posts, retrieved 2026-10-20", "Anthropic Economic Index (AI impact), retrieved 2026-10-20"])
+    assert html.count('class="sf-src-i"') == 2 and "Source: " in html and "estimates, not predictions" in html and "\n" not in html
+    assert "<script>" not in ui.source_html([HOSTILE], HOSTILE)
+
+
+def test_source_caption_uses_plain_names_not_file_names(monkeypatch):
+    seen = []
+    monkeypatch.setattr(ui, "show", lambda *parts: seen.append("".join(parts)))
+    snap = {"sources": [{"id": "hn_whoishiring", "name": "Hacker News — Ask HN: Who is hiring?", "retrieved_at": "2026-10-20T09:36:00Z"},
+                        {"id": "aei_job_exposure", "name": "Anthropic Economic Index — job_exposure.csv", "retrieved_at": "2026-10-20T09:36:00Z"}]}
+    ui.source_caption(snap, "hn_whoishiring", "aei_job_exposure")
+    assert "Hacker News job posts, retrieved 2026-10-20" in seen[0] and "Anthropic Economic Index (AI impact)" in seen[0] and ".csv" not in seen[0]
+
+
+# --- the SDG list --------------------------------------------------------------------------------------------
+
+def test_sdg_bars_rank_the_biggest_goals_and_fold_the_rest_into_one_line():
+    from app.page_components import sdg_bars
+    alloc = {4: 0.2, 8: 0.2, 9: 0.15, 12: 0.15, 13: 0.1, 15: 0.1, 17: 0.05, 7: 0.05}
+    html = sdg_bars(alloc, {g: f"Goal {g}" for g in alloc})
+    assert html.count('class="sf-sdg-row"') == 5 and "baseline" in html and "3 smaller goals make up 20.0% together." in html
+    assert html.index("SDG 4 ") < html.index("SDG 8 ") < html.index("SDG 9 ") and "\n" not in html
+    assert "1 smaller goal make" not in html and sdg_bars({}, {}) == ""
+
+
+def test_sdg_bars_escape_names():
+    from app.page_components import sdg_bars
+    assert "<script>" not in sdg_bars({4: 1.0}, {4: HOSTILE})
