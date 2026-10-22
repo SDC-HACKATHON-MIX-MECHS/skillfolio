@@ -1,6 +1,6 @@
 # SkillFolio — Phase 1 Preliminary Project Proposal (draft v1)
 
-> Draft for the team, 21 Oct 2026. Follows the official template "SDC Hackathon Phase 1: Preliminary Project Proposal".
+> Draft for the team, 22 Oct 2026. Follows the official template "SDC Hackathon Phase 1: Preliminary Project Proposal".
 > Final file: one PDF named `SDC2026_TeamName_Preliminary.pdf`. Items marked **[TO FILL]** need a teammate's answer.
 > Word counts are given after each limited answer.
 
@@ -18,6 +18,8 @@
 | Email & Phone (Leader) | **[TO FILL]** |
 | University Affiliation(s) | **[TO FILL]** |
 | Number of Team Members | 4 |
+| Public GitHub repository | https://github.com/SDC-HACKATHON-MIX-MECHS/skillfolio |
+| Live prototype (Replit) | **[TO FILL once Jaiydaan publishes it and it opens on a phone]** |
 
 ---
 
@@ -25,28 +27,28 @@
 
 ### 2.1 The Problem Context *(max 250 words)*
 
-Malaysia's young graduates are entering a job market that AI is reshaping faster than career advice can keep up. In 2024, 32.2% of Malaysian graduates worked in jobs below their qualifications, and for graduates aged 24 and under the rate was 66.0% (DOSM, Graduates Statistics 2024). At the same time, the Minister of Science, Technology and Innovation has said more than 600,000 workers must reskill within three to five years as AI changes their work (MOSTI, January 2025).
+AI is reshaping Malaysia's job market faster than career advice can keep up. In 2024, 32.2% of employed Malaysian graduates worked in jobs below their qualifications, and among those aged 24 and under the rate was 66.0% (DOSM, Graduates Statistics 2024). Science, Technology and Innovation Minister Chang Lih Kang has said that "more than 600,000 workers must undergo reskilling training within three to five years to remain relevant in the increasingly competitive job market" (Malay Mail, 7 January 2025).
 
-Our user is a fresh graduate or early-career switcher, such as Aina, a 23-year-old business-analytics graduate in Kuala Lumpur. She has about 200 hours to spend on learning this year and a small budget. Everyone tells her to "learn AI", but nobody can tell her which skills are actually growing, which roles she could realistically reach, or which courses are worth her limited hours.
+Our user is a fresh graduate or early-career switcher, such as Aina, a business-analytics graduate in Kuala Lumpur. She has about 200 hours to spend on learning this year and a small budget. Everyone tells her to "learn AI", but nobody can tell her which skills are actually growing, which roles she could realistically reach, or which courses are worth her limited hours.
 
 Today's tools fail her in three ways. Skills lists and career guides are static and out of date by the time they are published. One-time assessments ignore that AI's impact is uncertain and still moving. Chatbots answer confidently but can invent jobs, courses and statistics, with no sources.
 
-The cost is personal and national: wasted learning hours, graduates stuck in underemployment, and a workforce that reskills in the wrong direction. Choosing what to learn is an investment decision under uncertainty, but young people make it without data, without a sense of risk, and without seeing how their career could contribute to the Sustainable Development Goals.
+The cost is personal and national: wasted learning hours, graduates stuck below their qualifications, and a workforce that reskills in the wrong direction. Choosing what to learn is an investment decision under uncertainty, but young people make it without data, without a sense of risk, and without seeing how their career could contribute to the Sustainable Development Goals.
 
-*(247 / 250 words)*
+*(248 / 250 words)*
 
 ### 2.2 The Proposed AI Solution *(max 300 words)*
 
-SkillFolio treats a person's skills like an investment portfolio and AI as the market. It is a web app that takes the user from "who I am today" to a ranked set of reachable future roles and an ordered, costed learning plan in a few minutes.
+SkillFolio treats a person's skills as an investment portfolio and AI as the market. For Aina, it estimates that demand for her current skills grows about 9.7% a year, rates their AI impact at 19 out of 100, and ranks Systems Analyst as her closest role at 68% Fit. A plan of three free courses, 37 hours in total, raises that Fit to 88%.
 
-1. **Profile.** The user picks skills and levels, or pastes CV text that is matched against our skills catalogue, then sets their learning hours, risk comfort and the SDGs they care about.
-2. **Skill Market.** Every skill is shown like a stock. Its demand trend comes from real, dated job postings (about 8,000 Hacker News "Who is hiring" posts over 25 months) and its AI exposure from the Anthropic Economic Index. A statistical forecasting model estimates each skill's momentum with an 80% range, damps noisy trends, and re-runs everything under two scenarios: moderate and fast AI disruption.
-3. **Portfolio and matches.** The app scores the user's growth, AI exposure, volatility and diversification, then ranks future roles with an explainable match score, a skills-gap list, and the SDG each role serves.
-4. **Rebalancing plan.** An optimiser picks free and low-cost courses, in order, that improve the user's position most per learning hour within their budget. Pressing "Apply plan" shows the user's AI exposure fall and their match rise.
+1. **Profile.** The user picks skills and levels, or pastes CV text that fixed matching rules map to our 73-skill catalogue, then sets hours, risk comfort and SDGs.
+2. **Skill Market.** Each skill's demand trend comes from 7,961 dated Hacker News "Who is hiring" posts over 25 months. Its AI exposure is derived from the Anthropic Economic Index's occupation-level scores. A statistical model estimates momentum with a nominal 80% band, damps noisy trends, and re-runs under moderate and fast AI-disruption scenarios.
+3. **Matches.** Roles are ranked by an explainable Fit score with a skills-gap list and the UN SDG target each role serves. The SDGs the user picks tilt the ranking.
+4. **Plan.** A greedy optimiser orders free courses by their gain in Fit and outlook per learning hour, within the user's hours.
 
-Every number shows its source and date, forecasts are labelled as estimates, and the app can only recommend roles and courses from our verified catalogue, so it cannot invent them. SkillFolio supports decisions; it never decides for the user.
+What sets SkillFolio apart is honesty. We tested our uncertainty band by simulation: the nominal 80% band covered only 48%, so we widened it to about 76%. Scenarios are labelled as what-ifs, skills with too little data are flagged rather than headlined, every number shows its source and date, and an ID allow-list means only catalogued roles and courses can appear. 810 automated tests check the data and the engine. SkillFolio informs; the user decides.
 
-From the SDC workshops we use **cloud hosting** (deployed on Replit), **data and database design** (dated, versioned data snapshots with fixed data contracts) and **GenAI responsibly**: an optional language-model layer may only map CV text to known skills and phrase explanations of engine output.
+From the SDC workshops we use cloud hosting (Replit) and data design (dated, versioned snapshots under written contracts). The product uses no language model.
 
 *(296 / 300 words)*
 
@@ -60,12 +62,13 @@ From the SDC workshops we use **cloud hosting** (deployed on Replit), **data and
 |---|---|
 | Front end | Streamlit 1.66 (Python) multipage web app, Plotly 7 charts, mobile-friendly layout |
 | Engine | Python 3.12, pandas, NumPy: skill forecasts (log-linear trend, shrinkage toward the average, scenario shift), portfolio metrics, role matching, greedy course planner, SDG allocation |
-| Data pipeline | Python + Requests: HN Algolia API → skill extraction (alias matching) → dated JSON snapshots |
-| Data store | Versioned CSV and JSON files in Git: skills, roles, role-skill weights, courses, profiles, snapshots. Every file follows a written data contract and is checked by automated tests |
-| Data sources | Hacker News "Who is hiring" (HN Algolia API), Anthropic Economic Index job exposure (CC-BY), O*NET 31.0 Technology Skills (CC BY 4.0), Malaysia Labour Force Survey (data.gov.my), UN SDG targets |
+| Data pipeline | Python + Requests: HN Algolia API → skill extraction (fixed alias rules) → dated JSON snapshots |
+| Data store | Versioned CSV and JSON files in Git: 73 skills, 20 roles, curated role-skill lists, 55 courses, 5 synthetic profiles, dated snapshots. Every file follows a written data contract and is checked by automated tests |
+| Data sources | Hacker News "Who is hiring" (HN Algolia API); Anthropic Economic Index occupation exposure (CC-BY), from which we derive skill exposure; O*NET 31.0 Technology Skills (CC BY 4.0); UN SDG targets, mapped to roles by hand |
 | Hosting | Replit (development and public deployment) |
-| Quality | pytest test suite (data integrity, engine specification, extractor accuracy), GitHub pull requests |
-| AI tools | Statistical forecasting in the engine; optional LLM only for CV-to-skill mapping and explanations **[TO CONFIRM: which model, if any]** |
+| Quality | pytest suite (810 tests passing on 22 Oct 2026: data integrity, engine specification, extractor accuracy), GitHub pull requests with review |
+| AI in the product | Statistical forecasting and optimisation only. No language model: CV text is matched to skills by fixed rules |
+| AI in development | Built with the help of Claude Code (Anthropic) and Replit Agent. The team reviewed all logic, and every change goes through tests and a pull request |
 
 **System block diagram**
 
@@ -82,19 +85,19 @@ From the SDC workshops we use **cloud hosting** (deployed on Replit), **data and
                        skills · roles + SDG targets · 55 courses
 ```
 
-**Sponsor-provided GenAI API or cloud platform?** **[TO CONFIRM]** Yes: Replit (hackathon-provided Replit Core) for development and hosting the live prototype. No sponsor GenAI API is used yet.
+**Sponsor-provided GenAI API or cloud platform?** Replit, through the hackathon's Replit Core access, for development and hosting the live prototype. No sponsor GenAI API is used.
 
 ### 3.2 Design-Thinking & Deployment Strategy *(max 200 words)*
 
-**Empathise and define.** We started from one user and one moment: a graduate deciding where to spend about 200 learning hours. Malaysian data (DOSM, MOSTI) confirmed the problem, and we wrote five synthetic personas, from an AI-exposed accounts clerk to an engineering graduate aiming at renewable energy.
+**Empathise and define.** We started from one user and one moment: a graduate deciding where to spend about 200 learning hours. We wrote five synthetic personas, from an AI-exposed accounts clerk to an engineering graduate aiming at renewable energy.
 
-**Ideate.** We compared six concepts against the judging rubric and chose the portfolio metaphor because it makes risk, uncertainty and trade-offs intuitive.
+**Ideate and prototype.** We compared six concepts against the rubric and chose the portfolio metaphor because it makes risk and trade-offs intuitive. We fixed data contracts and acceptance tests first, so four people could build in parallel. Key rules are guarded by data tests and an ID allow-list.
 
-**Prototype.** Before writing features, we fixed data contracts and acceptance tests so four people could build in parallel. Every rule (no invented courses, every number sourced and dated, no protected attributes in profiles) is enforced by automated tests.
+**Test.** We run every persona through the engine, and outsiders will explain the result back to us.
 
-**Test.** We run every persona through the engine to check rankings make sense, and we will do an outsider test: someone outside the team must explain the result back.
+**Hardest risk.** Our trend signal is narrow: Hacker News postings are global and tech-heavy, and role skill lists need human curation before rankings make sense. **Fallback:** committed, dated snapshots, so the demo never depends on a live API; a curated, closed catalogue of roles, skills and courses; the limit stated openly in the app; and Malaysian occupation data as a Phase 2 upgrade.
 
-**Deploy.** The app runs on Replit from our public GitHub repository. Data refreshes write new dated snapshots, so the system keeps learning as AI moves, and the demo has a committed fallback snapshot. By Phase 2 we plan Malaysian job data, Bahasa Malaysia and Chinese interfaces, and an HR team view.
+**Deploy.** The app runs on Replit from our public GitHub repository, and every data refresh writes a new dated snapshot.
 
 *(187 / 200 words)*
 
@@ -105,15 +108,18 @@ From the SDC workshops we use **cloud hosting** (deployed on Replit), **data and
 | Metric Category | Our Response |
 |---|---|
 | **Target SDG Sub-Target(s)** | **Target 4.4:** "By 2030, substantially increase the number of youth and adults who have relevant skills, including technical and vocational skills, for employment, decent jobs and entrepreneurship." Supporting: **Target 8.5:** "By 2030, achieve full and productive employment and decent work for all women and men, including for young people…" (UN SDG indicator framework) |
-| **Current Problem Baseline** | 66.0% of Malaysian graduates aged 24 and under worked below their qualifications in 2024 (overall graduate rate: 32.2%, 1.60 million people) (DOSM, Graduates Statistics 2024). More than 600,000 workers must reskill within 3–5 years (MOSTI, Jan 2025). Today, a graduate has no tool that ties their learning hours to dated demand data: the planning baseline is 0% of recommendations backed by a cited, dated source. |
-| **Core Measurable KPI** | (1) **Target-role match %** before vs after the recommended plan, within the user's own hour budget. (2) **Portfolio AI-exposure score** before vs after the plan. (3) **Share of recommendations with a cited, dated source** (roles, courses and numbers). (4) **Time from profile to plan**, and whether a test user can name a reachable role and their next course afterwards. |
-| **Phase 2 Impact Target** | Across our 5 synthetic personas: **≥ 20% average increase** in target-role match % and **≥ 10% average reduction** in portfolio AI exposure within each persona's hour budget; **100%** of recommended roles, courses and numbers cited and dated; profile to plan in **under 3 minutes**, with **≥ 80%** of 10 outsider test users able to name a reachable role and their next course. |
+| **Current Problem Baseline** | 32.2% of employed Malaysian graduates (1.60 million people) worked below their qualifications in 2024; for those aged 24 and under the rate was 66.0% (DOSM, Graduates Statistics 2024). More than 600,000 workers must undergo reskilling training within three to five years (Minister Chang Lih Kang, Malay Mail, 7 Jan 2025). |
+| **Core Measurable KPI** | (1) **Fit gain:** a learner's Fit for their target role before vs after the plan, within their own hour budget. (2) **AI impact (0–100) and outlook score** before vs after, reported beside the Fit gain so trade-offs stay visible. (3) **Share of recommended roles, courses and numbers that carry a source and date.** (4) **Time from profile to plan.** |
+| **Phase 2 Impact Target** | **Measured today** on the merged data (5 sample profiles × their top 3 roles, moderate scenario): Apply plan raises Fit by **41 points on average**, within each learner's own hours. AI impact stays about flat (**−0.4 points**), and the outlook score falls in **11 of 15** cases. **By Phase 2:** keep the average Fit gain at **≥ 40 points** while showing AI impact and outlook beside it on every plan; **100%** of recommended roles, courses and numbers sourced and dated; profile to plan in **under 3 minutes**, with **≥ 80%** of 10 outsider testers able to name a reachable role and their next course. |
+
+**About the courses:** all 55 courses in the catalogue cost RM 0 (free or free to audit). HRD Corp status is recorded for every course, but we have not yet found a source for any, so all are marked "unknown".
 
 **Sources**
 - DOSM, *Graduates Statistics 2024* (released 31 Oct 2025): https://www.dosm.gov.my/uploads/release-content/file_20260401145140.pdf
 - Malay Mail, "Mosti: AI disruption looms in Malaysia, 600,000 workers must reskill in three to five years", 7 Jan 2025: https://www.malaymail.com/news/malaysia/2025/01/07/mosti-ai-disruption-looms-in-malaysia-600000-workers-must-reskill-in-three-to-five-years/162368
 - UN Statistics Division, SDG targets 4.4 and 8.5: https://unstats.un.org/sdgs/metadata/?Text=&Goal=4&Target=4.4 · https://unstats.un.org/sdgs/metadata/?Text=&Goal=8&Target=8.5
-- Massenkoff & McCrory, *Labor market impacts of AI: A new measure and early evidence*, Anthropic, 5 Mar 2026: https://www.anthropic.com/research/labor-market-impacts
+- Anthropic Economic Index, `job_exposure.csv`: https://huggingface.co/datasets/Anthropic/EconomicIndex · method: Massenkoff & McCrory, *Labor market impacts of AI: A new measure and early evidence*, Anthropic, 5 Mar 2026: https://www.anthropic.com/research/labor-market-impacts
+- Measured figures (Aina's line, Fit gain, AI impact, outlook, test count): SkillFolio repository, snapshot of 20 Oct 2026, `main` on 22 Oct 2026
 
 ---
 
@@ -121,7 +127,7 @@ From the SDC workshops we use **cloud hosting** (deployed on Replit), **data and
 
 - [ ] All team members have completed the mandatory GenAI, Database and Cloud Deployment upskilling workshops. **[CONFIRM WITH EVERY MEMBER]**
 - [x] The project concept addresses a verified real-world problem mapped directly to one or more UN SDGs.
-- [x] The proposed solution targets a functional, deployed application rather than a theoretical business case study.
+- [ ] The proposed solution targets a functional, deployed application rather than a theoretical business case study. *(tick once the live Replit link opens on a phone)*
 - [ ] All fields in this template have been completed within the word limits stated. *(tick once the [TO FILL] items are done)*
 
 ---
@@ -143,12 +149,15 @@ From the SDC workshops we use **cloud hosting** (deployed on Replit), **data and
 | Requests 2.34 | code | Apache-2.0 |
 | pytest 9.1 | code (testing) | MIT |
 | Hacker News "Who is hiring" posts via HN Algolia API | dataset | Public API |
-| Anthropic Economic Index, `job_exposure.csv` | dataset | CC-BY |
+| Anthropic Economic Index, `job_exposure.csv` (occupation exposure; our skill exposure is derived from it) | dataset | CC-BY |
 | O*NET 31.0 Technology Skills | dataset | CC BY 4.0 |
-| Malaysia Labour Force Survey (data.gov.my) | dataset | Malaysian open data |
-| UN SDG targets (UN Statistics SDG API) | dataset | UN public data |
+| UN SDG target wording (targets mapped to roles by the team) | reference text | UN public data |
 | Course catalogue (55 free courses from Coursera, Kaggle, Microsoft Learn, Cisco NetAcad, freeCodeCamp and others) | links and metadata only | Each provider's public listing |
-| Pre-trained AI models | model | None in the prototype **[UPDATE if an LLM is added]** |
+| Claude Code (Anthropic) | AI development tool: helped write code, data files and documents | Anthropic terms of service |
+| Replit Agent | AI development tool: helped write code | Replit terms of service |
+| Pre-trained AI models in the product | model | None |
+
+All AI-assisted output was reviewed by the team, checked by the automated tests and merged through pull requests.
 
 ### 6.3 Employment-Related IP Conflicts
 **No** **[CONFIRM WITH EVERY MEMBER]**.
