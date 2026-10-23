@@ -12,6 +12,7 @@ closest to some sentence of the resume. It can only rank skill ids it was sent, 
 1. **Serverless → New Endpoint → GitHub repo** → this repository, branch `main`.
 2. **Dockerfile path** `runpod/Dockerfile`, **build context** `.` (repo root).
 3. **GPU:** 16 GB. **Active workers 0**, **max workers 1**, **idle timeout 5 s**, **execution timeout 60 s**.
+   **Container disk 20 GB** (the default 5 GB is too small for GPU PyTorch: the worker never starts). Turn on **FlashBoot** (free).
 4. After the build, copy the **Endpoint ID**; create an **API key** (Settings → API Keys).
 5. Put both in `.env` locally and in **Replit Secrets** as `RUNPOD_API_KEY` and `RUNPOD_ENDPOINT_ID`.
 
@@ -36,3 +37,9 @@ Five made-up resumes, scored on CPU with the same model. At a cosine cut-off of 
 
 Known limits: it suggests all three clouds for "a cloud server", and our catalogue has no marketing skills, so a marketing resume gets
 nothing. Suggestions are shown as suggestions; the user removes wrong ones.
+
+## Live endpoint (24 Oct 2026)
+
+Endpoint `skillfolio`, 16 GB GPUs (RTX A4000 class), 0 active / 1 max worker. Measured through `app/runpod_client.py`:
+analyst resume -> Power BI, Excel, SQL in 1-2 s warm; about 17-26 s on a cold start (the app waits up to 40 s, then falls back to
+keywords). A hobbies-only resume -> nothing.
