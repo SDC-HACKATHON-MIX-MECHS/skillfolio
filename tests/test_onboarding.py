@@ -250,3 +250,10 @@ def test_stepper_is_step_x_of_4_text_and_a_thin_bar_with_one_current_step():
     assert "[01]" not in html                                   # v4: plain text, no numbered mono steps
     assert html.count("<li ") == 4 and ob.STEPS == ("Resume", "Skills", "Goals", "Your roles")
     assert 'aria-current="step"' not in ob.stepper_html(1)      # the welcome comes before step 01
+
+
+def test_ai_extra_keeps_new_catalogue_skills_within_the_limit():
+    assert ob.ai_extra(["sql"], None) is None
+    assert ob.ai_extra(["sql"], ["sql", "powerbi", "nope", "powerbi", "excel"]) == ["powerbi", "excel"]
+    assert ob.ai_extra(["sql", "python"], ["powerbi", "excel"], limit=3) == ["powerbi"]
+    assert ob.ai_extra(["sql"], ["powerbi"], limit=1) == []

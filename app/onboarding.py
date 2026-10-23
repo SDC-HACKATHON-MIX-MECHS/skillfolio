@@ -6,10 +6,12 @@ Two halves:
   * WIZARD UI: `render()` draws the five steps (1 Welcome, 2 Resume, 3 Your skills, 4 Goals, 5 Done).
 
 Privacy contract (the page tells the user this, so it must stay true):
-  * Resume text is processed in memory only. It is never written to disk, never logged, never sent to another service,
-    and never kept in st.session_state after the "Find my skills" click: the callback reads it, keeps only the detected
-    skill ids, then blanks the text box and discards the uploaded file.
-  * Parsing is the repo's rule-based matcher (pipeline.extract_skills). No language model is involved anywhere.
+  * Resume text is processed in memory only. It is never written to disk, never logged, and never kept in st.session_state
+    after the "Find my skills" click: the callback reads it, keeps only the detected skill ids, then blanks the text box and
+    discards the uploaded file.
+  * Parsing is the repo's rule-based matcher (pipeline.extract_skills). When the RunPod endpoint is configured AND the user leaves
+    "Also use our AI model" ticked, the text is also sent once to our own RunPod endpoint (app/runpod_client.py), which ranks
+    skills from our catalogue only and keeps nothing. Unticked, or with no keys, the text goes nowhere else.
 
 Session-state contract: the finished profile is stored in st.session_state["profile"] as
   {profile_id, display_name, synthetic, headline, hours_budget, budget_rm, risk_tolerance, sdg_interests, skills:[{skill_id, level}]}
@@ -50,6 +52,7 @@ WELCOME_LEAD = ("See which of your skills employers want more or less, how much 
 
 NOTICE = ("Please do not use a real resume or personal details in this competition demo: use a made-up or sample one. "
           "What you add is sent to this app's server, read in memory and discarded. We do not save it or pass it on.")
+AI_MODEL = "BAAI/bge-small-en-v1.5 on RunPod"
 PDF_MISSING = "PDF upload is not available on this server, so paste the text or upload a .txt file instead."
 
 
@@ -295,6 +298,21 @@ def _skip_resume() -> None:
     _go(3)
 
 
+def ai_extra(found: list[str], suggested: list[str] | None, limit: int = MAX_SKILLS) -> list[str] | None:
+    """Catalogue skills the AI model suggested that keyword matching did not find, best first, within the skill limit.
+    None stays None (the model was not reachable)."""
+    if suggested is None:
+        return None
+    known, have = set(catalog_ids()), set(found)
+    extra = [sid for sid in dict.fromkeys(suggested) if sid in known and sid not in have]
+    return extra[:max(0, limit - len(found))]
+
+
+def _ai_wanted() -> bool:
+    from app import runpod_client
+    return runpod_client.configured() and bool(_ss().get("ob_use_ai", True))
+
+
 def _analyse_resume() -> None:
     """Callback for 'Find my skills'. The resume text lives only in local variables here: on success the text box is
     blanked and the upload widget is replaced, so nothing but the detected skill ids survives this function."""
@@ -311,6 +329,12 @@ def _analyse_resume() -> None:
         ss["ob_error"] = str(exc)
         return
     found, total = detect_skills(text)
+    ss["ob_ai"] = None
+    if _ai_wanted():
+        from app import runpod_client
+        extra = ai_extra(found, runpod_client.suggest_skills(text, list(_catalog_rows())))
+        ss["ob_ai"] = ("failed", []) if extra is None else ("ok", extra)
+        found = found + (extra or [])
     del text
     old = dict(ss.get("ob_skills") or [])
     ss["ob_skills"] = [[sid, old.get(sid, 1)] for sid in found]
@@ -451,7 +475,13 @@ def _step_welcome() -> None:
 def _step_resume() -> None:
     import streamlit as st
 
-    _head("Add your resume", "We look for skill names in it. No AI model reads it, and the text is cleared once we have your skills.")
+    from app import runpod_client
+
+    if runpod_client.configured():
+        _head("Add your resume", "We look for skill names in it, and our AI model can suggest skills you describe without naming them. "
+                                 "The text is cleared once we have your skills.")
+    else:
+        _head("Add your resume", "We look for skill names in it. No AI model reads it, and the text is cleared once we have your skills.")
     st.info(NOTICE, icon=":material/shield:")
     error = _ss().get("ob_error")
     if error:
@@ -469,6 +499,9 @@ def _step_resume() -> None:
         )
         if not pdf_ok:
             st.caption(PDF_MISSING)
+    if runpod_client.configured():
+        st.checkbox("Also use our AI model", value=True, key="ob_use_ai",
+                    help=f"Sends the text once to our RunPod endpoint ({AI_MODEL}), which picks matching skills from our list only and keeps nothing.")
     st.button("Find my skills", type="primary", icon=":material/search:", use_container_width=True,
               key="ob_find", on_click=_analyse_resume)
     left, right = st.columns(2)
@@ -493,6 +526,12 @@ def _step_skills() -> None:
             st.success(f"We found {kept} skill{'s' if kept != 1 else ''}. Each starts at Basic, so set your real level.")
             if total > kept:
                 st.warning(f"We found {total} skills and kept the first {MAX_SKILLS}. Remove any you do not use.")
+        ai = ss.get("ob_ai")
+        if ai and ai[0] == "ok" and ai[1]:
+            st.info(f"Our AI model also suggested: {', '.join(skill_label(s) for s in ai[1])}. Remove any that are wrong.",
+                    icon=":material/auto_awesome:")
+        elif ai and ai[0] == "failed":
+            st.caption("Our AI model did not answer in time, so we used keyword matching only.")
     elif note and note[0] in ("manual", "blank") and not skills:
         st.info("No skills yet. Search the list below to add the ones you have.")
     if len(skills) >= WARN_SKILLS:
