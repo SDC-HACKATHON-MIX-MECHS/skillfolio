@@ -17,7 +17,7 @@ from app.ui import page_setup
 
 snapshot = page_setup("Profile")
 profile = st.session_state.get("profile")
-if profile and profile.get("skills") and st.session_state.get("ob_step") is None and profile_dashboard.render(profile, snapshot):
+if profile and profile.get("skills") and st.session_state.get("ob_step") in (None, 5) and profile_dashboard.render(profile, snapshot):
     onboarding._actions()
 else:
     onboarding.render()

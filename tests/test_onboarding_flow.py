@@ -217,3 +217,16 @@ def test_page_shows_no_wizard_text_with_scripts_unescaped():
     at.text_area(key="ob_resume_text").set_value("<script>alert(1)</script> python")
     at.button(key="ob_find").click().run()
     assert "<script>" not in visible_text(at)
+
+
+GOAL = 'class="sf-goal-bar"'
+
+
+def test_profile_dashboard_shows_for_a_returning_user_and_right_after_the_wizard():
+    profile = ob.sample_profile(ob.sample_ids()[0])
+    at = open_profile_page(profile)
+    assert GOAL in visible_text(at) and "Courses you are studying" in visible_text(at)
+    at.session_state["ob_step"] = 5                              # the screen straight after the wizard
+    at.run()
+    assert not at.exception and GOAL in visible_text(at)
+    assert primary_buttons(at) == ["Open my portfolio"]
