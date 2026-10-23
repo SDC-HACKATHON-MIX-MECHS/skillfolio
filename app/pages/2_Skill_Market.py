@@ -18,11 +18,7 @@ from engine.forecast import forecast_all
 from pipeline.build_snapshot import build
 
 snapshot = page_setup("Skill Market")
-page_header(
-    "Skill Market",
-    "Which skills employers ask for more or less often in job posts. "
-    f"Scenario: {config.SCENARIOS[scenario()]['label']} (change it in the sidebar).",
-)
+page_header("Skill Market")
 
 forecasts = call_or_wait("A", "skill forecasts", forecast_all, snapshot, scenario())
 series = snapshot["skills"]
@@ -62,7 +58,7 @@ list_col, detail_col = st.columns([11, 9], gap="large")
 # --- Left: the list ---------------------------------------------------------------------------------
 with list_col:
     if forecasts:
-        show(section_header("Rising fastest", "Hiring trend is a 12-month estimate, not a prediction.", icon_name="line-chart", tight=True))
+        show(section_header("Rising fastest", icon_name="line-chart", tight=True))
         show(card_list(
             [skill_card(e["name"], e["ticker"], e["category"], e["change"], e["trajectory"], False, e["exposure"], lead=i == 0)
              for i, e in enumerate(solid[:3])],
@@ -95,7 +91,7 @@ with list_col:
 
 # --- Right: the detail panel ------------------------------------------------------------------------
 with detail_col:
-    show(section_header("One skill, closer", "Pick a skill to see its job-post demand over time.", icon_name="eye", tight=True))
+    show(section_header("One skill, closer", icon_name="eye", tight=True))
     with side_panel():
         by_id = {e["id"]: e for e in entries}
         ordered_ids = [e["id"] for e in sorted(entries, key=lambda e: (e["thin"], -(e["change"] if e["change"] is not None else -9), e["id"]))]

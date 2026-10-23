@@ -109,3 +109,18 @@ def test_coverage_is_how_much_of_each_required_level_you_hold():
     got = pd_.coverage(match, lambda s: s.upper())
     assert got[0] == ("B", 50)                              # heaviest first
     assert dict(got) == {"A": 100, "B": 50, "C": 0}
+
+
+def test_course_rows_carry_no_provider_ticker_or_helper_text():
+    row = {"course_id": "x", "title": "Tableau for Data Science", "provider": "freeCodeCamp", "skill_id": "tableau", "level_word": "Beginner", "hours": 10, "pct": 0, "url": None}
+    html = pd_.study_row(row, "Tableau (TAB)")
+    assert "freeCodeCamp" not in html and "(TAB)" not in html and "Tableau for Data Science" in html
+
+
+def test_stat_columns_show_label_and_number_only():
+    assert "sf-pstat-sub" not in pd_.stat_columns([("Skills you have", "6", "in your profile")])
+
+
+def test_skill_names_have_no_ticker_in_brackets():
+    from app.ui import skill_label
+    assert "(" not in skill_label("python")

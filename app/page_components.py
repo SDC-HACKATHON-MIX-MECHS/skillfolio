@@ -60,8 +60,8 @@ def skill_row(name: str, ticker: str, change: float | None, trajectory: str | No
     direction = "flat" if thin else {"rising": "up", "declining": "down"}.get(trajectory or "", "flat")
     sub_html = f'<div class="sf-sub">{esc(sub)}</div>' if sub else ""
     ai = f'<div class="sf-c-exp">{exposure_bar(exposure)}</div>' if with_ai else ""
-    return (f'<div class="sf-row{" sf-row-thin" if thin else ""}{"" if with_ai else " sf-row-3"}" role="listitem" aria-label="{esc(name)} ({esc(ticker)})">'
-            f'<div class="sf-c-name"><div class="sf-name">{esc(name)}<span class="sf-tick">({esc(ticker)})</span></div>{sub_html}</div>'
+    return (f'<div class="sf-row{" sf-row-thin" if thin else ""}{"" if with_ai else " sf-row-3"}" role="listitem" aria-label="{esc(name)}">'
+            f'<div class="sf-c-name"><div class="sf-name">{esc(name)}</div>{sub_html}</div>'
             f'<div class="sf-c-spark">{sparkline(trend, direction)}</div><div class="sf-c-pill">{_trend_pill(change, trajectory, thin)}</div>{ai}</div>')
 
 
@@ -103,7 +103,7 @@ def skill_card(name: str, ticker: str, category: str | None, change: float | Non
     tip = f"AI impact {round(exposure * 100)} out of 100" if exposure is not None else "No AI-impact data for this skill yet."
     eye = small_label(category) if category else ""
     return (f'<div class="sf-scard{" sf-scard-lead" if lead else ""}{" sf-row-thin" if thin else ""}" role="listitem"><div class="sf-scard-top"><div>{eye}'
-            f'<div class="sf-name">{esc(name)}<span class="sf-tick">({esc(ticker)})</span></div></div>{skill_pill(change, trajectory, thin)}</div>'
+            f'<div class="sf-name">{esc(name)}</div></div>{skill_pill(change, trajectory, thin)}</div>'
             f'<div class="sf-track-row" title="{esc(tip)}"><span class="sf-sub">AI impact: {esc(word)}</span>'
             f'{track(exposure, "AI impact " + word, neutral=True)}</div></div>')
 
@@ -151,7 +151,7 @@ def course_row(order: int, title: str, provider: str | None, skill_label_text: s
     chips = chip_row([f"{hours:g} h", cost_text, f"HRD Corp: {hrdc or 'unknown'}"])
     return (
         f'<div class="sf-order{" sf-order-lead" if lead else ""}" role="listitem"><div class="sf-ord-n">{int(order):02d}</div>'
-        f'<div class="sf-ord-main"><div class="sf-name">{esc(title)}</div><div class="sf-sub">{esc(sub)}</div>{chips}</div>'
+        f'<div class="sf-ord-main"><div class="sf-name">{esc(title)}</div>{chips}</div>'
         f'<div class="sf-ord-link">{link_button("Open course", url)}</div></div>'
     )
 

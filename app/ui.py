@@ -224,7 +224,7 @@ def skill_ticker(skill_id: str) -> str:
 
 def skill_label(skill_id: str) -> str:
     skill = skill_catalog().get(skill_id)
-    return f"{skill['name']} ({skill['ticker']})" if skill else skill_id
+    return skill["name"] if skill else skill_id
 
 
 def source(snapshot: dict, source_id: str) -> dict:
@@ -892,8 +892,8 @@ def holding_row(name: str, ticker: str, change: float | None = None, trajectory:
     else:
         direction = _direction(change)
     sub_html = f'<div class="sf-sub">{esc(sub)}</div>' if sub else ""
-    return (f'<div class="sf-row{" sf-row-thin" if thin else ""}" role="listitem" aria-label="{esc(name)} ({esc(ticker)})">'
-            f'<div class="sf-c-name"><div class="sf-name">{esc(name)}<span class="sf-tick">({esc(ticker)})</span></div>{sub_html}</div>'
+    return (f'<div class="sf-row{" sf-row-thin" if thin else ""}" role="listitem" aria-label="{esc(name)}">'
+            f'<div class="sf-c-name"><div class="sf-name">{esc(name)}</div>{sub_html}</div>'
             f'<div class="sf-c-spark">{sparkline(trend, direction if not thin else "flat")}</div>'
             f'<div class="sf-c-pill">{change_pill(change, trajectory, thin)}</div>'
             f'<div class="sf-c-exp">{exposure_bar(exposure)}</div></div>')

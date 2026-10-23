@@ -15,8 +15,7 @@ from app.ui import (
 from engine import config
 
 snapshot = page_setup("Matches")
-page_header("Which roles fit me?",
-            "Your three closest roles, and why. Fit is how much of each role's skill list you already cover.", narrow=True)
+page_header("Which roles fit me?")
 profile = require_profile()
 
 result = run_engine(profile, snapshot)

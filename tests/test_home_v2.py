@@ -129,7 +129,7 @@ def test_ranked_home_has_greeting_three_role_cards_and_one_primary_button(ranked
     assert "Set up my portfolio" not in [b.label for b in ranked.button]
 
 
-def test_role_cards_show_the_engines_fit_titles_and_why(ranked, monkeypatch):
+def test_role_cards_show_the_engines_fit_and_titles_without_a_why_sentence(ranked, monkeypatch):
     monkeypatch.setattr(data, "load_role_skills", lambda: copy.deepcopy(ROLE_SKILLS))
     from app.ui import skill_name
     result = api.analyse(aina(), data.load_snapshot("latest"), "moderate", top_n=None)
@@ -137,7 +137,7 @@ def test_role_cards_show_the_engines_fit_titles_and_why(ranked, monkeypatch):
     for i, match in enumerate(hc.top_roles(result["matches"])[:3]):
         assert f'{round(match["match_pct"] * 100)}%' in html
         assert html_lib.escape(match["title"], quote=True) in html
-        assert html_lib.escape(hc.why_sentence(match, skill_name), quote=True) in html
+        assert html_lib.escape(hc.why_sentence(match, skill_name), quote=True) not in html     # no explaining sentence under a role
         if i == 0:                                                      # only the lead card carries the hiring chip; rows stay quiet
             assert hc.hiring_text(match["role_growth"]) in plain(html)
 

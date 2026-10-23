@@ -86,7 +86,7 @@ def goal_block(fit: int, fit_after: int, done_pct: int, role_title: str) -> str:
 def stat_columns(items: list[tuple]) -> str:
     """items = [(label, value, small line), ...]: three columns separated by hairlines."""
     cells = [f'<div class="sf-pstat"><div class="sf-pstat-label">{esc(label)}</div><div class="sf-pstat-value">{esc(value)}</div>'
-             f'<div class="sf-pstat-sub">{esc(sub)}</div></div>' for label, value, sub in items]
+             f'</div>' for label, value, *_ in items]
     return f'<div class="sf-pstats">{"".join(cells)}</div>'
 
 
@@ -98,8 +98,7 @@ def ring(pct: int) -> str:
 
 def study_main(row: dict, skill_label_text: str) -> str:
     """The title and the skill (and provider) of one course you are studying."""
-    sub = esc(skill_label_text) + (f" · {esc(row['provider'])}" if row.get("provider") else "")
-    return f'<div class="sf-study-main"><div class="sf-study-title">{esc(row["title"])}</div><div class="sf-study-sub">{sub}</div></div>'
+    return f'<div class="sf-study-main"><div class="sf-study-title">{esc(row["title"])}</div></div>'
 
 
 def study_meta(row: dict) -> str:
@@ -192,12 +191,10 @@ def render(profile: dict, snapshot: dict) -> bool:
             ("Courses still to do", str(len(rows) - finished), f"{finished} done of {len(rows)}"),
             ("Hours left", f"{hours_left(rows):g} h", "an estimate, from your plan"),
         ]))
-        if delta > 0.5:
-            st.caption(f"Finished courses have moved your fit by {fmt_signed(delta / 100, 0)} so far.")
     left, right = st.columns(2, gap="large")
     with left:
         with card_container():
-            show('<div class="sf-ptitle"><b>Courses you are studying</b><span>Pick a course\'s progress with the button on its row.</span></div>')
+            show('<div class="sf-ptitle"><b>Courses you are studying</b></div>')
             for i, row in enumerate(rows):
                 with st.container(key=f"sf-study-{i}"):
                     body, control = st.columns([3, 2], gap="small", vertical_alignment="center")
@@ -207,9 +204,8 @@ def render(profile: dict, snapshot: dict) -> bool:
                                  format_func=lambda p: f"{p}%", key=f"study_pick_{row['course_id']}", horizontal=True,
                                  on_change=_set_progress, args=(row["course_id"],))
                     show(study_meta(row))
-            st.caption("Progress is set by you and kept for this session. Only a finished course changes your fit.")
     with right:
         with card_container():
-            show('<div class="sf-ptitle"><b>Skills this role needs</b><span>How much of each you already hold.</span></div>')
+            show('<div class="sf-ptitle"><b>Skills this role needs</b></div>')
             show(petal_chart(coverage(target_match, skill_name), round(fit_now)))
     return True

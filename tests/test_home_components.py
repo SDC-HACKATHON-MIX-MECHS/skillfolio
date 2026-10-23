@@ -99,9 +99,9 @@ def test_why_with_hostile_and_non_ascii_names_is_text_not_markup_once_rendered()
     m = match(contributions=[contribution("excel")], gaps=[gap("erp")])
     text = hc.why_sentence(m, lambda s: names[s])
     assert HOSTILE in text and "日本語" in text           # the logic does not alter the name
-    html = hc.role_card(m, lambda s: names[s])
+    html = hc.role_card({**m, "title": HOSTILE}, lambda s: names[s])
     assert "<script>" not in html and "&lt;script&gt;" in html        # rendering escapes it
-    assert "&#36;x&#36;" in html and "日本語" in html
+    assert "&#36;x&#36;" in html
 
 
 def test_why_collapses_whitespace_and_newlines_in_names():
@@ -213,9 +213,9 @@ def test_fit_track_is_an_accessible_progress_bar():
 
 def test_role_card_shows_title_chip_fit_track_why_and_hiring_pill():
     html = hc.role_card(match(contributions=[contribution("excel")], gaps=[gap("erp")], match_pct=0.48, role_growth=0.07), name_of)
-    for needle in ("Systems Analyst", "Good fit", "48%", 'role="progressbar"', "ERP is the biggest skill you are missing", "Hiring rising +7.0%", "sf-pill-up"):
+    for needle in ("Systems Analyst", "Good fit", "48%", 'role="progressbar"', "Hiring rising +7.0%", "sf-pill-up"):
         assert needle in html, needle
-    assert "\n" not in html
+    assert "\n" not in html and "biggest skill you are missing" not in html and "sf-why" not in html     # no explaining sentence
 
 
 @pytest.mark.parametrize("gaps,expected", [
@@ -338,7 +338,7 @@ def test_skills_table_escapes_text():
 def test_role_row_is_a_compact_row_not_a_card():
     html = hc.role_row(match(contributions=[contribution("excel")], gaps=[gap("erp")], match_pct=0.62), name_of, rank=2)
     assert 'class="sf-rrow"' in html and "sf-role-lead" not in html and "Role 2:" in html and "62%" in html
-    assert "ERP is the biggest skill you are missing" in html and "\n" not in html and "<script>" not in hc.role_row(match(title=HOSTILE))
+    assert "biggest skill you are missing" not in html and "sf-rrow-sub" not in html and "\n" not in html and "<script>" not in hc.role_row(match(title=HOSTILE))
 
 
 def test_the_lead_role_card_is_marked_and_the_others_are_not():
@@ -404,11 +404,11 @@ def test_the_lead_card_shows_the_fit_as_an_arc_and_other_cards_keep_the_bar():
     assert "sf-arc" not in other and "sf-track" in other and other.count('role="progressbar"') == 1
 
 
-def test_trend_head_is_a_label_a_big_number_a_word_and_one_line_of_help():
+def test_trend_head_is_a_label_a_big_number_and_a_word():
     item = hc.kpi_items({"portfolio": {"growth": 0.097}, "matches": [], "skills": [], "forecasts": {}})[0]
     html = hc.trend_head(item)
     assert html.count('class="sf-trend-head"') == 1 and "Hiring trend for your skills" in html and "+9.7%" in html
-    assert "Rising" in html and "Estimate for the next 12 months" in html and "\n" not in html
+    assert "Rising" in html and "sf-trend-sub" not in html and "\n" not in html
     assert "<script>" not in hc.trend_head({"label": HOSTILE, "value": HOSTILE, "pill": ("up", HOSTILE), "sub": HOSTILE})
 
 

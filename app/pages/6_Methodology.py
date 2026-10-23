@@ -35,7 +35,7 @@ st.caption(
 
 # --- How the numbers are made -----------------------------------------------------------------------
 SCEN = config.SCENARIOS
-show(section_header("How the numbers are made", "Plain version first, with the technical name in brackets.", icon_name="line-chart"))
+show(section_header("How the numbers are made", icon_name="line-chart"))
 show(
     concept_card("Job-post demand (demand index)", [
         f"For each of the last {len(snapshot['months'])} months we count the share of Hacker News hiring posts that mention a skill. "
@@ -83,7 +83,7 @@ show(
 )
 
 # --- Assumptions ------------------------------------------------------------------------------------
-show(section_header("What we assume", "Our starting choices, shown openly so you can judge them.", icon_name="info"))
+show(section_header("What we assume", icon_name="info"))
 with st.expander("Show every setting"):
     rows = [{"Setting": f"{v['label']}: AI weight λ", "Value": v["lambda"]} for v in config.SCENARIOS.values()]
     st.dataframe(pd.DataFrame(rows + [

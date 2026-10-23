@@ -302,7 +302,6 @@ def role_card(match: dict, name_of: Callable[[str], str] | None = None, rank: in
     return (f'<div class="sf-role{" sf-role-lead" if lead else ""}" role="group" aria-label="{rank_text}{esc(title)}, {pct} percent fit">'
             f'<div class="sf-role-head"><div class="sf-role-title">{esc(title)}</div>{fit_chip(pct)}</div>'
             f'{fit_block}'
-            f'<div class="sf-why">{esc(why_sentence(match, name_of))}</div>'
             f'<div>{hiring_pill(match.get("role_growth"))}</div></div>')
 
 
@@ -314,8 +313,7 @@ def role_row(match: dict, name_of: Callable[[str], str] | None = None, rank: int
     rank_text = f"Role {int(rank)}: " if rank else ""
     return (f'<div class="sf-rrow" role="group" aria-label="{rank_text}{esc(title)}, {pct} percent fit">'
             f'<div class="sf-rrow-head"><div class="sf-rrow-title">{esc(title)}</div>{fit_chip(pct)}</div>'
-            f'<div class="sf-rrow-fit" title="{esc(FIT_HELP)}"><span class="sf-rrow-num">{pct}%</span><span class="sf-fit-label">Fit</span>{fit_track(pct)}</div>'
-            f'<div class="sf-rrow-sub">{esc(why_sentence(match, name_of))}</div></div>')
+            f'<div class="sf-rrow-fit" title="{esc(FIT_HELP)}"><span class="sf-rrow-num">{pct}%</span><span class="sf-fit-label">Fit</span>{fit_track(pct)}</div></div>')
 
 
 def missing_strip(match: dict, name_of: Callable[[str], str] | None = None) -> str:
@@ -360,7 +358,7 @@ def trend_head(item: dict) -> str:
     direction, text = item["pill"]
     chip = f'<div class="sf-trend-chip">{pill(text, direction)}</div>' if direction else ""
     return (f'<div class="sf-trend-head"><div class="sf-trend-label">{esc(item["label"])}</div>'
-            f'<div class="sf-trend-num">{esc(item["value"])}</div>{chip}<div class="sf-trend-sub">{esc(item["sub"])}</div></div>')
+            f'<div class="sf-trend-num">{esc(item["value"])}</div>{chip}</div>')
 
 
 def kpi_strip(items: list[dict]) -> str:

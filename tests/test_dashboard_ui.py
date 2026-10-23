@@ -137,7 +137,7 @@ def test_change_pill_has_arrow_sign_and_word():
 def test_thin_data_says_low_data_and_greys_the_row():
     row = ui.holding_row("Rust", "RS", 0.9, "stable", True, [1, 2], 0.3)
     assert "low data" in row and "sf-row-thin" in row and "+90.0%" not in row
-    assert "Rust" in row and "(RS)" in row                       # Name (TICKER)
+    assert "Rust" in row and "(RS)" not in row                   # the name only: no ticker in brackets
 
 
 def test_exposure_bar_is_amber_never_red_or_green():

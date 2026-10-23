@@ -85,10 +85,7 @@ name = first_name(profile)
 roles = top_roles(result["matches"], TOP_N)
 
 if roles:
-    show(greeting(
-        name, "these roles fit you best",
-        lead="Fit is how much of a role's skill list you already cover. Hiring trends are estimates for the next 12 months.",
-    ))
+    show(greeting(name, "these roles fit you best"))
     if st.button("See my learning plan", type="primary", key="sf_cta", on_click=go_plan, args=(roles[0]["role_id"],)):
         st.switch_page(PLAN_PAGE)
 else:
@@ -137,7 +134,7 @@ with left_col:
 
 with right_col:
     with card_container():                                       # your skills, as words, and everything else behind one expander
-        show(section_title("How your skills are doing", "The hiring trend for the skills you use most, as an estimate.", tight=True))
+        show(section_title("How your skills are doing", tight=True))
         show(skill_rows(held, skill_name, numbers=False))
         with st.expander("Show details"):
             if left_out:
@@ -154,11 +151,11 @@ with right_col:
     if roles:
         with card_container():                                   # the next roles as a timeline, then the two tiles
             if len(roles) > 1:
-                show(section_title("Your next roles", "These come after your best fit.", tight=True))
+                show(section_title("Your next roles", tight=True))
                 for i, match in enumerate(roles[1:], start=2):
                     with row_container(f"home-{i}", separated=i > 2):
                         show(role_row(match, skill_name, rank=i))
                         plan_link(match["role_id"], f"sf_plan_{i - 1}")
             show(f'<div class="sf-tiles">'
-                 f'{tile(items[1]["label"], items[1]["value"], items[1]["sub"], "mint", items[1].get("fraction"))}'
-                 f'{tile(items[2]["label"], items[2]["value"], items[2]["pill"][1] + ". " + items[2]["sub"], "charcoal")}</div>')
+                 f'{tile(items[1]["label"], items[1]["value"], "", "mint", items[1].get("fraction"))}'
+                 f'{tile(items[2]["label"], items[2]["value"], items[2]["pill"][1], "charcoal")}</div>')
