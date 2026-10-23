@@ -16,12 +16,10 @@ AI supports the decision. The person makes it.
 
 | GitHub | Lane |
 |---|---|
-| [@Curryraj](https://github.com/Curryraj) (Jaiydaan) | A — Lead + Engine |
-| [@AhmedAtheek](https://github.com/AhmedAtheek) | _TBC_ |
-| [@Kuhan06](https://github.com/Kuhan06) | _TBC_ |
-| [@oscarongggggg](https://github.com/oscarongggggg) | _TBC_ |
-
-Lanes: **A** Engine · **B** Data & Trends · **C** App & Replit · **D** Research, SDG & Pitch — see [docs/TEAM_PLAN.md](docs/TEAM_PLAN.md).
+| [@Curryraj](https://github.com/Curryraj) (Jaiydaan) | A — Team Lead, Engine + RunPod |
+| [@AhmedAtheek](https://github.com/AhmedAtheek) (Atheek) | B — Data & Trends |
+| [@Kuhan06](https://github.com/Kuhan06) (Kuhan) | C — App & Replit |
+| [@oscarongggggg](https://github.com/oscarongggggg) (Oscar) | D — Research, SDG & Pitch |
 
 ## Docs
 
