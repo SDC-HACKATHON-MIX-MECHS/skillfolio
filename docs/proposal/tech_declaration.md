@@ -24,11 +24,11 @@
 
 ### 2.1 System Architecture Overview *(max 200 words)*
 
-SkillFolio is a Python web app. The user interface is a Streamlit multipage app hosted on Replit, which the user opens in a phone or laptop browser. The interface calls our own engine (Python, pandas, NumPy), which computes skill forecasts, the user's skill portfolio, role matches, a course plan and the SDG link.
+SkillFolio is a Python web app. The user interface is a Streamlit multipage app hosted on Replit, which the user opens in a phone or laptop browser. The interface calls our own engine (plain Python), which computes skill forecasts, the user's skill portfolio, role matches, a course plan and the SDG link.
 
 The engine reads no database server. Its data is versioned CSV and JSON files in the Git repository: our skill, role and course catalogues and dated market snapshots. A separate pipeline builds each snapshot from the Hacker News Algolia API, the Anthropic Economic Index and O*NET, then saves it as a dated file. The app only calls the Hacker News API when the user presses "Refresh data".
 
-One AI model is used. If the user pastes a resume and ticks "Also use our AI model", the app sends the text and our skill catalogue to a RunPod Serverless GPU endpoint running the open embedding model BAAI/bge-small-en-v1.5. It returns skill IDs from our catalogue only. If RunPod fails or times out, keyword rules are used instead. The user's profile lives only in the browser session. See the block diagram in the proposal, section 3.1.
+One AI model is used. If the user pastes a resume and leaves "Also use our AI model" ticked, the app sends the text and our skill catalogue to a RunPod Serverless GPU endpoint running the open embedding model BAAI/bge-small-en-v1.5. It returns skill IDs from our catalogue only. If RunPod fails or times out, keyword rules are used instead. The user's profile lives only in the browser session. See the block diagram in the proposal, section 3.1.
 
 *(196 / 200 words)*
 
@@ -36,12 +36,12 @@ One AI model is used. If the user pastes a resume and ticks "Also use our AI mod
 
 | Name & Version | License | Purpose in Project |
 |---|---|---|
-| Python 3.12 | PSF License | Language for the app, engine, pipeline and tests |
+| Python 3.12 (app); Python 3.11 in the `python:3.11-slim` Docker image (RunPod worker) | PSF License | Language for the app, engine, pipeline and tests; the official Docker Hub image is the worker's base |
 | Streamlit 1.66.0 | Apache-2.0 | Web user interface (multipage app) |
-| pandas 3.0.6 | BSD-3-Clause | Tables for the catalogues, snapshots and engine |
-| NumPy 2.5.4 | BSD-3-Clause (with 0BSD, MIT, Zlib, CC0 parts) | Forecast and scoring maths |
+| pandas 3.0.6 | BSD-3-Clause | Tables on the Matches, Rebalance Plan and Methodology pages |
+| NumPy 2.5.4 | BSD-3-Clause (with 0BSD, MIT, Zlib, CC0 parts) | Similarity maths in the RunPod worker |
 | Plotly 7.1.0 | MIT | Charts |
-| Requests 2.34.2 | Apache-2.0 | Calls to the Hacker News Algolia API and the RunPod API |
+| Requests 2.34.2 | Apache-2.0 | Calls to the RunPod API from the app (the pipeline uses Python's built-in `urllib`) |
 | pypdf 6.21.1 | BSD-3-Clause | Reads text from an uploaded PDF resume |
 | pytest 9.1.1 | MIT | Automated tests (855) |
 | sentence-transformers ≥ 3.0 (RunPod worker) | Apache-2.0 | Runs the embedding model on the GPU |
@@ -58,7 +58,7 @@ One AI model is used. If the user pastes a resume and ticks "Also use our AI mod
 | API and Provider | Access Tier (free / paid / sponsor-provided) | Purpose in Project |
 |---|---|---|
 | Hacker News Search API, Algolia (`hn.algolia.com/api/v1`) | Free | Monthly "Who is hiring" job posts that give each skill's demand trend. Called by the data pipeline and by the "Refresh data" button |
-| RunPod Serverless API (`api.runpod.ai/v2/…/runsync`) | **[TO FILL: paid / credits]** | Optional resume-to-skills matching with the embedding model |
+| RunPod Serverless API (`api.runpod.ai/v2/…/runsync` and `…/status`) | **[TO FILL: paid / credits]** | Optional resume-to-skills matching with the embedding model |
 | Google Fonts API (`fonts.googleapis.com`) | Free | Loads the Inter typeface in the user's browser |
 | Hugging Face Hub (model and dataset downloads) | Free | Downloads the Anthropic Economic Index file for the pipeline and the bge-small model when the RunPod image is built; not called while the app runs |
 | O*NET database download (`onetcenter.org`) | Free | Technology Skills file used by the pipeline to link skills to occupations |
@@ -139,11 +139,11 @@ Replit hosts the live prototype that judges open, so it is essential to the depl
 
 SkillFolio asks for no name, age, gender, email or account. A profile (skills, levels, hours, goals) lives only in server memory for the user's browser session and is gone when the session ends; nothing is written to disk or a database.
 
-Users may paste or upload a resume. The text is read in memory to find skills and then discarded; the app keeps no copy. The app asks users to use a made-up or sample resume in this demo. If the user ticks "Also use our AI model", the text is sent once over HTTPS to our RunPod endpoint, which returns skill IDs and does not log the text. RunPod may hold job data briefly under its own terms. Unticked, nothing leaves the app.
+Users may paste or upload a resume. The text is read in memory to find skills and then discarded; the app keeps no copy. The app asks users to use a made-up or sample resume in this demo. The box "Also use our AI model" is ticked by default; then the text is sent once over HTTPS to our RunPod endpoint, which returns skill IDs and does not log the text. RunPod may hold job data briefly under its own terms. If the user unticks it, nothing leaves the app.
 
 The RunPod key is kept in Replit Secrets, not in the code.
 
-*(137 / 150 words)*
+*(143 / 150 words)*
 
 ### 6.2 Known Limitations & Risks *(max 150 words)*
 
