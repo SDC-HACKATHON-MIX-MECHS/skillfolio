@@ -20,5 +20,4 @@ def handler(job: dict) -> dict:
     return run(job, embed)
 
 
-if __name__ == "__main__":
-    runpod.serverless.start({"handler": handler})
+runpod.serverless.start({"handler": handler})
