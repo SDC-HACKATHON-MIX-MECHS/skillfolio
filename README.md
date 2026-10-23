@@ -186,10 +186,10 @@ curl -X POST https://api.runpod.ai/v2/$RUNPOD_ENDPOINT_ID/runsync \
 
 | Name        | Role                | GitHub                                   |
 | ----------- | ------------------- | ---------------------------------------- |
-| Jaiydaan Raj | Team Lead / Engine and RunPod | [@Curryraj](https://github.com/Curryraj) |
-| Ahmed Atheek Amir | Data pipeline | [@AhmedAtheek](https://github.com/AhmedAtheek) |
-| Kuhan       | Frontend / Replit   | [@Kuhan06](https://github.com/Kuhan06)   |
-| Oscar Ong   | Research, SDG mapping and pitch | [@oscarongggggg](https://github.com/oscarongggggg) |
+| Jaiydaan | Team Lead, Engine + RunPod | [@Curryraj](https://github.com/Curryraj) |
+| Atheek | Data & Trends | [@AhmedAtheek](https://github.com/AhmedAtheek) |
+| Kuhan | App & Replit | [@Kuhan06](https://github.com/Kuhan06)   |
+| Oscar | Research, SDG & Pitch | [@oscarongggggg](https://github.com/oscarongggggg) |
 
 ---
 
