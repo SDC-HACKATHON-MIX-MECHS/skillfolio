@@ -36,7 +36,7 @@ AI is changing which skills employers ask for faster than career advice can keep
 
 ### Solution
 
-SkillFolio turns a resume into a skill portfolio. The user pastes a resume and we build their portfolio from a list of 73 skills, each rated Basic, Working or Strong. We read 25 months of dated job posts (Hacker News "Who is hiring") and AI-exposure data (Anthropic Economic Index, O*NET) to estimate demand for each skill under two AI scenarios. The app ranks 20 roles by fit, builds an ordered plan of free courses, and updates the user's skill levels and fit as they mark courses finished. An open AI model on RunPod suggests skills that a resume describes without naming. Every number shows its source and date, forecasts are labelled as estimates, and the app can only recommend roles, skills and courses from our checked lists, so it can't make them up. The user makes the decision.
+SkillFolio turns a resume into a skill portfolio. The user pastes a resume and we build their portfolio from a list of 73 skills, each rated Basic, Working or Strong. We read 25 months of dated job posts (Hacker News "Who is hiring") and AI-exposure data (Anthropic Economic Index, O*NET) to estimate demand for each skill under two AI scenarios. The app ranks 20 roles by fit, builds an ordered plan of free courses, and updates the user's skill levels and fit as they mark courses finished. When it is switched on, an open AI model on RunPod also suggests skills that a resume describes without naming. Every number shows its source and date, forecasts are labelled as estimates, and the app can only recommend roles, skills and courses from our checked lists, so it can't make them up. The user makes the decision.
 
 ### Key Features
 
