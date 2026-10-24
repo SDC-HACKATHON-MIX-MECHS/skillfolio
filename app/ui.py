@@ -168,7 +168,7 @@ def require_profile() -> dict:
     """Return the saved profile, or point the user to the Profile page and stop."""
     profile = st.session_state.get("profile")
     if not profile or not profile.get("skills"):
-        st.info("Set up your profile first — pick your skills or load a sample.")
+        st.info("Set up your profile first. Pick your skills or load a sample.")
         st.page_link("pages/1_Profile.py", label="Go to 1 · Profile", icon=":material/person:")
         st.stop()
     return profile

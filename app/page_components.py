@@ -105,7 +105,7 @@ def skill_card(name: str, ticker: str, category: str | None, change: float | Non
     eye = small_label(category) if category else ""
     return (f'<div class="sf-scard{" sf-scard-lead" if lead else ""}{" sf-row-thin" if thin else ""}" role="listitem"><div class="sf-scard-top"><div>{eye}'
             f'<div class="sf-name">{esc(name)}</div></div>{skill_pill(change, trajectory, thin)}</div>'
-            f'<div class="sf-track-row" title="{esc(tip)}"><span class="sf-sub">AI impact: {esc(word)}</span>'
+            f'<div class="sf-track-row" title="{esc(tip)}"><span class="sf-sub">AI impact: <b>{esc(word)}</b></span>'
             f'{track(exposure, "AI impact " + word, neutral=True)}</div></div>')
 
 

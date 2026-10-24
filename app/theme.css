@@ -114,7 +114,9 @@ a[data-testid="stSidebarNavLink"][href$="/Rebalance_Plan"] p::after { content: "
 [data-testid="stBaseButton-tertiary"] { min-height: 44px; padding: 0 8px; color: var(--sf-text); text-decoration: none; }
 [data-testid="stBaseButton-tertiary"] p { font-size: 1rem; color: var(--sf-text); text-decoration: underline; text-underline-offset: 4px; }
 [data-testid="stPageLink-NavLink"]:hover { background-color: var(--sf-raised); }
-[data-testid="stPageLink-NavLink"] p { font-size: 1rem; }
+/* page links: only the words are underlined (the global `a` underline also ran under the icon, as on tertiary buttons) */
+.stApp [data-testid="stPageLink-NavLink"] { text-decoration: none; }
+[data-testid="stPageLink-NavLink"] p { font-size: 1rem; text-decoration: underline; text-underline-offset: 3px; }
 .stApp a:focus-visible, .stApp button:focus-visible, .stApp input:focus-visible, .stApp textarea:focus-visible,
 .stApp select:focus-visible, .stApp summary:focus-visible, .stApp [role="tab"]:focus-visible,
 .stApp [role="button"]:focus-visible, .stApp [tabindex]:not([tabindex="-1"]):focus-visible {
