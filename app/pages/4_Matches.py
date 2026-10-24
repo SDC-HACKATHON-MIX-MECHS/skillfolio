@@ -37,7 +37,7 @@ def card(rank: int, match: dict, nested: bool = False) -> None:
     """One role: the card (status chip, fit track, one sentence, what is missing, one button), then the details."""
     role = roles.get(match["role_id"], {})
     with card_container():
-        show(role_card(match, skill_name, rank, lead=rank == 1))
+        show(role_card(match, skill_name, rank, lead=rank == 1, why=True))
         with strip_container(f"{match['role_id']}-{'x' if nested else 's'}"):
             show(missing_strip(match, skill_name))
             if st.button("See your plan", key=f"plan_{match['role_id']}_{'x' if nested else 's'}"):

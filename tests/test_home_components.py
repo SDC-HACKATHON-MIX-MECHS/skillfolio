@@ -32,6 +32,84 @@ def match(**kw):
     return base
 
 
+# --- why_sentence ------------------------------------------------------------------------------------
+
+def test_why_names_skills_you_have_and_the_biggest_missing_skill():
+    m = match(contributions=[contribution("excel"), contribution("sql")], gaps=[gap("erp"), gap("aws")])
+    text = hc.why_sentence(m, name_of)
+    assert text == "You already use Excel and SQL, which this role needs, but ERP is the biggest skill you are missing."
+
+
+def test_why_is_one_sentence():
+    m = match(contributions=[contribution("excel")], gaps=[gap("erp")])
+    assert hc.why_sentence(m, name_of).count(".") == 1
+
+
+def test_why_caps_the_list_of_skills_you_have():
+    m = match(contributions=[contribution(s) for s in ("excel", "sql", "python", "aws")], gaps=[gap("erp")])
+    assert "Excel, SQL and 2 others" in hc.why_sentence(m, name_of)
+
+
+def test_why_uses_a_step_up_when_you_have_every_skill_at_least_partly():
+    m = match(contributions=[contribution("excel"), contribution("python", credit=0.5)], gaps=[gap("python", user_level=1)])
+    text = hc.why_sentence(m, name_of)
+    assert "biggest step up is reaching working level in Python" in text
+    assert "missing" not in text
+
+
+def test_why_prefers_a_skill_you_lack_over_a_step_up():
+    m = match(contributions=[contribution("excel")], gaps=[gap("python", user_level=1), gap("erp", user_level=0)])
+    assert "ERP is the biggest skill you are missing" in hc.why_sentence(m, name_of)
+
+
+def test_why_with_no_gaps():
+    m = match(contributions=[contribution("excel")], gaps=[])
+    assert hc.why_sentence(m, name_of) == "You already cover the skills this role needs, including Excel."
+
+
+def test_why_with_nothing_in_common():
+    m = match(contributions=[], gaps=[gap("erp")])
+    text = hc.why_sentence(m, name_of)
+    assert "ERP is the biggest one to learn" in text
+    assert "already use" not in text
+
+
+def test_why_ignores_zero_credit_contributions():
+    m = match(contributions=[contribution("excel", credit=0)], gaps=[gap("erp")])
+    assert "already use" not in hc.why_sentence(m, name_of)
+
+
+@pytest.mark.parametrize("bad", [None, {}, [], "x", 3, {"contributions": None, "gaps": None},
+                                 {"contributions": [None, 5, {}], "gaps": ["a", None, {"skill_id": ""}]}])
+def test_why_with_missing_or_malformed_data_is_a_calm_fallback(bad):
+    assert hc.why_sentence(bad, name_of) == "We do not have a skill list for this role yet."
+
+
+def test_why_without_a_name_lookup_uses_the_skill_id():
+    assert "erp" in hc.why_sentence(match(gaps=[gap("erp")]))
+
+
+def test_role_card_with_why_shows_one_escaped_line_between_the_fit_and_the_pill():
+    m = match(contributions=[contribution("excel")], gaps=[gap("erp")], match_pct=0.48, role_growth=0.07)
+    for lead in (False, True):
+        html = hc.role_card(m, name_of, rank=1, lead=lead, why=True)
+        assert "\n" not in html
+        sentence = "You already use Excel, which this role needs, but ERP is the biggest skill you are missing."
+        assert f'<div class="sf-why">{sentence}</div>' in html
+        assert html.index("sf-fit-num") < html.index("sf-why") < html.index("sf-pill")
+
+
+def test_role_card_why_escapes_hostile_skill_names():
+    m = match(contributions=[contribution("excel")], gaps=[gap("erp")])
+    html = hc.role_card(m, lambda s: HOSTILE, why=True)
+    assert "<script>" not in html and "&lt;script&gt;" in html and "\n" not in html
+
+
+def test_role_card_has_no_why_sentence_by_default():
+    m = match(contributions=[contribution("excel")], gaps=[gap("erp")])
+    assert "sf-why" not in hc.role_card(m, name_of) and "sf-why" not in hc.role_card(m, name_of, rank=1, lead=True)
+
+
 # --- top_roles / fit ---------------------------------------------------------------------------------
 
 def test_top_roles_takes_three_in_engine_order():
