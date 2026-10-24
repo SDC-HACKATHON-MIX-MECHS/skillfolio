@@ -40,7 +40,7 @@ SkillFolio turns a resume into a skill portfolio. The user pastes a resume and w
 
 ### Key Features
 
-- **Resume to skills** — paste a resume; keyword matching and an AI model on RunPod suggest skills from our 73, and the user confirms each one and sets a level.
+- **Resume to skills** — paste a resume; keyword matching, plus an AI model on RunPod when it is switched on, suggest skills from our 73, and the user confirms each one and sets a level.
 - **Track your learning** — mark progress on each course; finishing one raises that skill's level and your fit. The Profile page shows plan progress, hours left and skill coverage.
 - **Skill Market** — each skill's job-post demand trend, a 12-month estimate with a range, and its AI exposure, from a dated snapshot that can be refreshed.
 - **Role matching** — 20 ranked roles with a fit score, the biggest missing skill, and the SDGs each role serves.
@@ -144,7 +144,7 @@ python -m pytest
 
 - **Development:** the team imported this GitHub repository into one Replit workspace and worked in it together; GitHub stays the source of truth through branches and pull requests.
 - **Hosting:** the app is published with Replit Deployments at the Live Demo link above.
-- **Secrets:** the RunPod API key and endpoint ID are stored in Replit Secrets, never in the code.
+- **Secrets:** the optional RunPod keys go in Replit Secrets, never in the code.
 
 📄 Proof of use: [`submission/SDC2026_MIXMECHS_Replit_POU.pdf`](submission/SDC2026_MIXMECHS_Replit_POU.pdf)
 
@@ -152,7 +152,7 @@ python -m pytest
 
 - **Workload:** resume-to-skills matching. The open embedding model `BAAI/bge-small-en-v1.5` compares each resume sentence with a plain description of each of our 73 skills and returns the closest ones, so "built dashboards for senior management" suggests Power BI even though the resume never names it.
 - **Setup:** `runpod/handler.py` is deployed as a **RunPod Serverless Endpoint** on a 16 GB GPU, built from `runpod/Dockerfile` with the model baked into the image (0 always-on workers, so it costs nothing when idle).
-- **Integration:** the Replit app sends requests to the endpoint using `RUNPOD_API_KEY` and `RUNPOD_ENDPOINT_ID` (`app/runpod_client.py`). The model can only rank skill ids we send it, and if the endpoint is slow or down the app falls back to keyword matching.
+- **Integration:** when `RUNPOD_API_KEY` and `RUNPOD_ENDPOINT_ID` are set, the app sends requests to the endpoint (`app/runpod_client.py`). The model can only rank skill ids we send it, and if the endpoint is slow or down the app falls back to keyword matching. The public Replit demo runs without those two secrets, so its resume step uses keyword matching and nobody waits for a cold GPU start. The endpoint is deployed and tested; the proof of use shows live calls to it.
 
 Example request:
 
