@@ -209,7 +209,7 @@ curl -X POST https://api.runpod.ai/v2/$RUNPOD_ENDPOINT_ID/runsync \
 - [ ] Slide deck link added
 - [ ] Demo video link added
 - [ ] Replit used, with proof of use in `submission/`
-- [ ] RunPod used, with proof of use in `submission/`
+- [x] RunPod used, with proof of use in `submission/`
 - [ ] Preliminary submission completed (`SDC2026_MIXMECHS_Preliminary.pdf`)
 - [ ] Technology declaration completed (`SDC2026_MIXMECHS_TechDeclaration.pdf`)
 - [ ] Submission files renamed with your team name (replace `TeamName` with `MIXMECHS`)
