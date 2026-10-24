@@ -58,7 +58,6 @@ Files in [`examples/`](examples/) are **illustrative fixtures for development an
 | `level_out` | 1–3 | `2` | level reached after finishing |
 | `hours` | number | `12` | provider's estimate |
 | `cost_rm` | number | `0` | 0 = free (audit/free tier) |
-| `hrdc_claimable` | `yes` \| `no` \| `unknown` | `unknown` | `yes` only with a source |
 | `prereq_skill_id` | slug or empty | | |
 | `prereq_level` | 1–3 or empty | | |
 | `verified_on` | date | `2026-10-21` | when the team last opened the URL |
@@ -156,7 +155,7 @@ File: `data/snapshots/YYYY-MM-DD.json`, copied to `latest.json`.
 ```json
 {"order": 1, "course_id": "sql_basics_x", "title": "SQL basics", "provider": "Example Provider", "skill_id": "sql",
  "level_before": 1, "level_out": 2, "hours": 12, "cost_rm": 0,
- "url": "https://example.org/course", "hrdc_claimable": "unknown",
+ "url": "https://example.org/course",
  "gain_per_hour": 0.0041, "cumulative_hours": 12, "cumulative_cost_rm": 0}
 ```
 
@@ -205,7 +204,7 @@ This is the real output today for Aina on the 2026-10-20 snapshot: `data/role_sk
 {
   "steps": [{"order": 1, "course_id": "sql_basics_x", "title": "SQL Basics", "provider": "Example Academy", "skill_id": "sql",
              "level_before": 0, "level_out": 2, "hours": 12, "cost_rm": 0,
-             "url": "https://example.org/course", "hrdc_claimable": "unknown",
+             "url": "https://example.org/course",
              "gain_per_hour": 0.0041, "cumulative_hours": 12, "cumulative_cost_rm": 0}],
   "before": {"growth": 0.07, "ai_exposure": 0.38, "volatility": 0.14, "diversification": 0.71, "readiness": 0.04, "match_pct": 0.5},
   "after":  {"growth": 0.09, "ai_exposure": 0.33, "volatility": 0.12, "diversification": 0.75, "readiness": 0.07, "match_pct": 0.67},

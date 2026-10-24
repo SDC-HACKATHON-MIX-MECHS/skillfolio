@@ -27,7 +27,7 @@ def _is_number(value) -> bool:
 def _check_courses(courses: list[dict]) -> None:
     seen = set()
     for course in courses:
-        missing = [key for key in ("course_id", "skill_id", "hours", "level_out", "cost_rm", "title", "provider", "url", "hrdc_claimable") if key not in course]
+        missing = [key for key in ("course_id", "skill_id", "hours", "level_out", "cost_rm", "title", "provider", "url") if key not in course]
         if missing:
             raise ValueError(f"course {course.get('course_id')!r} is missing {missing}")
         cid = course["course_id"]
@@ -138,7 +138,6 @@ def plan(user_levels: dict[str, int], target_role: dict, role_skills: list[dict]
             "hours": course["hours"],
             "cost_rm": course["cost_rm"],
             "url": course["url"],
-            "hrdc_claimable": course["hrdc_claimable"],
             "gain_per_hour": gain,
             "cumulative_hours": hours_used,
             "cumulative_cost_rm": cost_used,

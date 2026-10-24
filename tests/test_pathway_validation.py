@@ -49,7 +49,7 @@ def test_a_missing_cost_rm_is_a_value_error():
         _plan(courses=_with("c_other", cost_rm=DROP))
 
 
-@pytest.mark.parametrize("key", ["course_id", "skill_id", "hours", "level_out", "title", "provider", "url", "hrdc_claimable"])
+@pytest.mark.parametrize("key", ["course_id", "skill_id", "hours", "level_out", "title", "provider", "url"])
 def test_missing_course_keys_are_value_errors(key):
     with pytest.raises(ValueError):
         _plan(courses=_with("c_other", **{key: DROP}))
