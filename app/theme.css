@@ -431,7 +431,9 @@ a.sf-chip:hover { border-color: var(--sf-text); }
    Without @property the inline --sf-fit end value simply stands. The reduced-motion rule at the end of this file stops all of it. */
 @property --sf-fit { syntax: "<integer>"; inherits: true; initial-value: 0; }
 @keyframes sf-fit-count { from { --sf-fit: var(--sf-from); } to { --sf-fit: var(--sf-to); } }
+@keyframes sf-fit-count-down { from { --sf-fit: var(--sf-from); } to { --sf-fit: var(--sf-to); } }   /* same, new name: Undo replays */
 @keyframes sf-rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@keyframes sf-rise-down { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 .sf-planfit-label { font-size: 1.125rem; font-weight: 600; line-height: 1.3; color: var(--sf-text); }
 .sf-planfit { padding-bottom: 16px; }
 .sf-planfit .sf-arcnum .sf-fit-num { font-size: 3rem; line-height: 1; }
@@ -442,6 +444,8 @@ a.sf-chip:hover { border-color: var(--sf-text); }
 .sf-planfit-anim .sf-count-real { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .sf-planfit-anim .sf-count::after { counter-reset: sf-fit var(--sf-fit); content: counter(sf-fit) "%"; }
 .sf-planfit-anim .sf-planfit-delta { animation: sf-rise 400ms ease-out 500ms both; }
+.sf-planfit-down { animation-name: sf-fit-count-down; }
+.sf-planfit-down .sf-planfit-delta { animation-name: sf-rise-down; }
 .st-key-sf-plan-motion { position: absolute !important; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }        /* holds only the script that presses "Both" on the plan chart */
 
 /* ===== profile dashboard: goal bar, stats, courses you are studying, petals ===== */

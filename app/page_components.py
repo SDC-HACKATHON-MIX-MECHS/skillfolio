@@ -184,7 +184,8 @@ def plan_fit(role_title: str, before_pct, after_pct, applied: bool, animate: boo
     now = after if applied else before
     start = before if applied else after
     style = f' style="--sf-from:{start};--sf-to:{now};--sf-fit:{now}"' if animate else ""
-    klass = "sf-planfit sf-planfit-anim" if animate else "sf-planfit"
+    # Apply counts up, Undo counts down: two animation names, so each press restarts it (Streamlit reuses the element).
+    klass = f"sf-planfit sf-planfit-anim sf-planfit-{'up' if applied else 'down'}" if animate else "sf-planfit"
     real = f'<span class="sf-count-real">{now}%</span>' if animate else f"{now}%"
     number = (f'<span class="sf-fit-num">{real}'
               + ('<span class="sf-count" aria-hidden="true"></span>' if animate else "") + "</span>")

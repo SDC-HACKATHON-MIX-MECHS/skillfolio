@@ -35,12 +35,22 @@ def test_plan_fit_applied_shows_the_after_value_and_the_change():
 
 def test_plan_fit_animates_from_before_to_after_on_apply_and_back_on_undo():
     up = pc.plan_fit("Data Analyst", 68, 88, applied=True, animate=True, delta_text="+20 points", delta_dir="up")
-    assert 'class="sf-planfit sf-planfit-anim"' in up
+    assert 'class="sf-planfit sf-planfit-anim sf-planfit-up"' in up
     assert "--sf-from:68;" in up and "--sf-to:88;" in up and "--sf-fit:88" in up   # the end value also stands without @property
     assert ">88%<" in up and 'aria-valuenow="88"' in up                          # screen readers and no-CSS get the real value
     assert 'class="sf-count"' in up and 'aria-hidden="true"' in up               # the counting copy is decoration only
     down = pc.plan_fit("Data Analyst", 68, 88, applied=False, animate=True)
     assert "--sf-from:88;" in down and "--sf-to:68;" in down and ">68%<" in down
+    assert 'class="sf-planfit sf-planfit-anim sf-planfit-down"' in down
+    # Apply and Undo always alternate, so the two directions use different animation names: Streamlit updates the
+    # same element in place, and a browser only restarts a finished CSS animation when its name changes.
+
+
+def test_count_up_and_count_down_are_separate_animations_so_every_press_replays():
+    css = (Path(__file__).resolve().parents[1] / "app" / "theme.css").read_text(encoding="utf-8")
+    assert "@keyframes sf-fit-count-down" in css and ".sf-planfit-down" in css
+    assert re.search(r"\.sf-planfit-down\s*\{[^}]*animation-name:\s*sf-fit-count-down", css)
+    assert re.search(r"\.sf-planfit-down \.sf-planfit-delta\s*\{[^}]*animation-name:\s*sf-rise-down", css)
 
 
 def test_plan_fit_clamps_and_escapes():

@@ -532,7 +532,7 @@ def risk_return_fig(matches: list[dict], user: dict, before: dict | None = None,
     fig.add_trace(you_trace(you_at[start]))
     style_fig(fig, height=420 if before_xy else 400)
     axis = dict(showline=False, zeroline=False, ticks="", tickfont=dict(color=MUTED, size=14), title_font=dict(color=MUTED, size=14))
-    fig.update_xaxes(**axis, title="AI exposure (lower is harder to automate)", range=list(x_range), showgrid=False,
+    fig.update_xaxes(**axis, title="AI impact (0–100)", range=list(x_range), showgrid=False,
                      tick0=0, dtick=20)
     fig.update_yaxes(**axis, title="Demand growth (%/yr)", range=list(y_range), showgrid=True, gridcolor=GRID, gridwidth=1,
                      tick0=0, dtick=_nice_step(*y_range))
