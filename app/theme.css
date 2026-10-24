@@ -75,6 +75,10 @@ a[data-testid="stSidebarNavLink"][href$="/Rebalance_Plan"] p::after { content: "
 .st-key-sf-plan-chart .updatemenu-item-rect[style*="244, 250, 255"] { fill: var(--sf-card) !important; stroke: var(--sf-border) !important; }
 .st-key-sf-plan-chart .updatemenu-item-rect[style*="244, 250, 255"] + .updatemenu-item-text { font-weight: 600 !important; }
 .st-key-sf-plan-chart .updatemenu-button { cursor: pointer; }
+.st-key-sf-dark .st-key-sf-plan-chart .updatemenu-item-rect[style*="29, 30, 29"] { fill: transparent !important; stroke: transparent !important; }
+.st-key-sf-dark .st-key-sf-plan-chart .updatemenu-item-rect[style*="244, 250, 255"] {
+  fill: color-mix(in srgb, var(--sf-on-charcoal) 8%, var(--sf-charcoal)) !important; stroke: color-mix(in srgb, var(--sf-on-charcoal) 24%, var(--sf-charcoal)) !important; }
+.st-key-sf-dark .st-key-sf-plan-chart .updatemenu-item-rect[style*="244, 250, 255"] + .updatemenu-item-text { fill: var(--sf-on-charcoal) !important; }
 @media (max-width: 640px) { .st-key-sf-plan-chart .infolayer .annotation { display: none; } }
 @keyframes sf-you-pulse { 0% { stroke-width: 0; stroke-opacity: 0.5; } 70%, 100% { stroke-width: 20px; stroke-opacity: 0; } }
 .st-key-sf-plan-chart .scatterlayer .trace:last-child .point { animation: sf-you-pulse 2.4s ease-out infinite; }

@@ -209,7 +209,19 @@ def test_risk_chart_with_a_before_point_has_the_before_now_both_toggle_and_reado
     frames = {f.name: f for f in fig.frames}
     assert frames["Before"].data[1].x[0] == 30 and frames["Now"].data[1].x[0] == 20         # your dot moves between views
     assert frames["Now"].data[0].text == ("",) and "Before" in frames["Both"].data[0].text   # the ring shows only in "Both"
-    assert ui.growth_readout(before, after, "Before") == "Before the plan: +12.0% a year"
+    assert ui.growth_readout(before, after, "Before") == "Growth 12.0%/yr"
+    assert ui.growth_readout(before, after, "Now") == "Growth 8.5%/yr"
+    assert fig.layout.xaxis.title.text == "AI exposure (lower is harder to automate)"
+
+
+def test_risk_chart_dark_mode_uses_the_charcoal_text_and_quiet_dots():
+    before, after = {"ai_exposure": 0.3, "growth": 0.12}, {"ai_exposure": 0.2, "growth": 0.085}
+    fig = ui.risk_return_fig(_matches(), after, before=before, dark=True)
+    assert fig.data[0].marker.color == ui.ROLE_DOT_DARK and fig.data[0].textfont.color == ui.ON_CHARCOAL
+    assert fig.data[-1].marker.color == ui.MINT and fig.layout.annotations[0].font.color == ui.ON_CHARCOAL
+    assert fig.layout.yaxis.gridcolor == ui.GRID_DARK and fig.layout.updatemenus[0].font.color == ui.ON_CHARCOAL
+    light = ui.risk_return_fig(_matches(), after, before=before)
+    assert light.data[0].marker.color == ui.ROLE_DOT and light.data[0].textfont.color == ui.TEXT
 
 
 def test_place_labels_keeps_role_labels_off_your_dot_and_inside_the_chart():

@@ -9,7 +9,7 @@ import streamlit as st
 
 from app.page_components import PLAIN, compare_cards, course_list, course_row, fit_pct, plan_fit, plan_motion_script, sdg_bars
 from app.ui import (
-    SDG_NAMES, card_container, course_catalog, fmt_pct, fmt_rm, fmt_score, fmt_signed, gauge_fig, require_profile,
+    SDG_NAMES, card_container, course_catalog, dark_container, fmt_pct, fmt_rm, fmt_score, fmt_signed, gauge_fig, require_profile,
     page_header, page_setup, risk_return_fig, role_catalog, role_skill_rows, run_engine, section_header, show, show_fig, show_warnings,
     skill_label, source_caption, source_note, user_levels,
 )
@@ -103,12 +103,12 @@ with course_col:
 
 # --- Where you stand among the roles: after Apply your dot slides from where you were to where the plan takes you ----------
 if now["ai_exposure"] is not None and before["ai_exposure"] is not None:
-    with card_container():
+    with dark_container():   # this page's one charcoal card
         show(section_header("Where you stand among the roles", "Up is more hiring growth, left is less AI impact. Bigger dots fit you more.",
                             tight=True))
         with st.container(key="sf-plan-chart"):   # theme.css styles its Before / Now / Both buttons and your dot's pulse
             show_fig(risk_return_fig(result["matches"], now, before=before if applied else None,
-                                     start="Before" if animate and applied else "Both"))
+                                     start="Before" if animate and applied else "Both", dark=True))
         source_caption(snapshot, "hn_whoishiring", "aei_job_exposure")
     if animate and applied:
         with st.container(key="sf-plan-motion"):   # hidden by theme.css: only runs the one script that presses "Both"
