@@ -6,10 +6,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import streamlit as st
 
 from app.dashboard import holdings, spark_values
-from app.page_components import PLAIN, sdg_bars, skill_list, skill_row
+from app.home_components import kpi_items, section_title, tile, trend_head
+from app.page_components import PLAIN, sdg_bars, skill_list, skill_mix, skill_row, tiles
 from app.ui import (
-    SDG_NAMES, fmt_pct, fmt_score, fmt_signed, page_header, page_setup, require_profile, risk_return_fig, run_engine,
-    show, show_fig, show_warnings, skill_name, skill_ticker, source_caption, source_note, stat_row,
+    SDG_NAMES, card_container, dark_container, fmt_pct, fmt_score, page_header, page_setup, require_profile, risk_return_fig,
+    run_engine, show, show_fig, show_warnings, skill_name, skill_ticker, source_caption, source_note,
 )
 
 snapshot = page_setup("My Portfolio")
@@ -22,21 +23,32 @@ if result is None:
     st.stop()
 m = result["portfolio"]
 
-# --- A strip of three numbers -----------------------------------------------------------------------
-show(stat_row([
-    ("Outlook score", f"{m['readiness'] * 100:.1f}"),
-    ("Hiring trend, 12 months", fmt_signed(m["growth"])),
-    ("AI impact (0 to 100)", fmt_score(m["ai_exposure"]).replace("/100", "")),
-]))
-st.caption("All three are estimates, not predictions.")
-source_caption(snapshot, "hn_whoishiring", "aei_job_exposure")
+held = holdings(result)
+items = kpi_items(result)
 
-# --- The one primary action -------------------------------------------------------------------------
-if st.button("See which roles fit me", type="primary", use_container_width=True, icon=":material/arrow_forward:"):
-    st.switch_page("pages/4_Matches.py")
+# --- The portfolio picture: your hiring-trend number, then your skills as one mix (share by level + each one's trend word) ----
+mix_col, side_col = st.columns([7, 5], gap="large")
+with mix_col:
+    with dark_container():
+        show(trend_head(items[0]))
+        show(section_title("Your skill mix", "Each skill's share of your skills, by your level, and where its hiring is heading.",
+                           tight=True))
+        show(skill_mix(held, skill_name))
+        source_caption(snapshot, "hn_whoishiring")
+
+with side_col:
+    with card_container():
+        show(tiles([
+            tile("Outlook score", f"{m['readiness'] * 100:.1f}", "An estimate. Higher is better.", "mint"),
+            tile("AI impact (0 to 100)", fmt_score(m["ai_exposure"]).replace("/100", ""), "How much AI already does this work.",
+                 "charcoal"),
+        ], stacked=True))
+        source_caption(snapshot, "hn_whoishiring", "aei_job_exposure")
+    # --- The one primary action -------------------------------------------------------------------------
+    if st.button("See which roles fit me", type="primary", use_container_width=True, icon=":material/arrow_forward:"):
+        st.switch_page("pages/4_Matches.py")
 
 # --- Details, tucked away ---------------------------------------------------------------------------
-held = holdings(result)
 with st.expander(f"Your {len(held)} skills"):
     show(skill_list([
         skill_row(

@@ -287,3 +287,67 @@ def sdg_bars(allocation: dict[int, float], names: dict[int, str], shown: int = S
         total = sum(allocation[g] for g in rest) * 100
         more = f'<div class="sf-sdg-more">{len(rest)} smaller goal{"s" if len(rest) != 1 else ""} make up {total:.1f}% together.</div>'
     return f'<ol class="sf-sdg" aria-label="Goals your skills point to, biggest first, as a share of your skills">{"".join(rows)}</ol>{more}'
+
+
+# --- My Portfolio: the skill mix ----------------------------------------------------------------------
+
+import math  # noqa: E402  (kept with the section that uses it, so this section merges cleanly with other page work)
+
+from app.home_components import skill_word, trend_word  # noqa: E402
+from app.ui import note  # noqa: E402
+
+MIX_TONES = 6          # segment shades in theme.css (sf-mix-s0 .. sf-mix-s5), reused in turn
+
+
+def share_text(share: float) -> str:
+    """A skill's share of the mix as a whole percent; a share above 0 that rounds to 0 says '<1%' (never a false 0%)."""
+    pct = share * 100
+    return "<1%" if 0 < pct < 0.5 else f"{round(pct)}%"
+
+
+def tiles(cells: list[str], stacked: bool = False) -> str:
+    """Tiles from home_components.tile side by side, as on Home (one column on a narrow phone). `stacked=True` puts them one above
+    the other, for a narrow side column."""
+    return f'<div class="sf-tiles{" sf-tiles-stack" if stacked else ""}">{"".join(cells)}</div>'
+
+
+def _mix_direction(change, trajectory, thin: bool) -> str:
+    if thin:
+        return "low"
+    if change is None:
+        return "flat"
+    word = trend_word(change, trajectory)
+    if word == "unclear":
+        return "lean-up" if change > 0 else "lean-down"
+    return {"rising": "up", "falling": "down"}.get(word, "flat")
+
+
+def skill_mix(held: list[dict], name_of) -> str:
+    """The portfolio picture: ONE bar split by each skill's share of the user's skill mix (engine weights: level / sum of levels),
+    then one row per skill, biggest first: a colour key, the name, the share and the hiring trend as a word (Rising, Steady, Falling,
+    Leaning up/down, Not enough data). `held` is app.dashboard.holdings(). Unreadable shares are left out, never guessed.
+    Colours come from app/theme.css classes (the bar sits on the charcoal card). One line of HTML; names are escaped."""
+    rows = []
+    for h in held or []:
+        share = h.get("weight")
+        if isinstance(share, (int, float)) and not isinstance(share, bool) and math.isfinite(share) and share > 0:
+            rows.append((float(share), h))
+    if not rows:
+        return note("No skills to show yet.")
+    rows.sort(key=lambda r: -r[0])
+    segs, items, alt = [], [], []
+    for i, (share, h) in enumerate(rows):
+        tone = f"sf-mix-s{i % MIX_TONES}"
+        name = " ".join(str(name_of(h["skill_id"])).split())
+        text = share_text(share)
+        alt.append(f"{name} {text}")
+        segs.append(f'<i class="sf-mix-seg {tone}" style="width:{max(round(share * 100, 1), 1):g}%"></i>')
+        change, trajectory, thin = h.get("projected"), h.get("trajectory"), bool(h.get("thin"))
+        word = skill_word(change, trajectory, thin)
+        items.append(f'<div class="sf-mix-row" role="listitem"><span class="sf-mix-key {tone}" aria-hidden="true"></span>'
+                     f'<span class="sf-mix-name">{esc(name)}</span>'
+                     f'<span class="sf-mix-word">{pill(word, _mix_direction(change, trajectory, thin))}</span>'
+                     f'<span class="sf-mix-pct">{esc(text)}</span></div>')
+    label = "Your skill mix: " + ", ".join(alt)
+    return (f'<div class="sf-mix"><div class="sf-mix-bar" role="img" aria-label="{esc(label)}">{"".join(segs)}</div>'
+            f'<div class="sf-mix-list" role="list">{"".join(items)}</div></div>')
