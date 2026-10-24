@@ -21,7 +21,7 @@
 | ----------------- | ---------------------------------------------- |
 | GitHub Repository | https://github.com/SDC-HACKATHON-MIX-MECHS/skillfolio |
 | Replit Project    | [TO FILL]                                      |
-| Live Demo         | [TO FILL]                                      |
+| Live Demo         | https://skillfolio.replit.app/                 |
 | RunPod Endpoint   | https://api.runpod.ai/v2/r0ykxnttw93erm (API address, needs a key) |
 | Slide Deck        | [docs/SDC2026_MIXMECHS_Slides.pdf](docs/SDC2026_MIXMECHS_Slides.pdf) |
 | Demo Video        | [TO FILL]                                      |
@@ -206,7 +206,7 @@ curl -X POST https://api.runpod.ai/v2/$RUNPOD_ENDPOINT_ID/runsync \
 - [x] Team name, domain (Domain 1 / Domain 2) and SDG track filled in
 - [x] Slide deck link added
 - [ ] Demo video link added
-- [ ] Replit used, with proof of use in `submission/`
+- [x] Replit used, with proof of use in `submission/`
 - [x] RunPod used, with proof of use in `submission/`
 - [ ] Preliminary submission completed (`SDC2026_MIXMECHS_Preliminary.pdf`)
 - [ ] Technology declaration completed (`SDC2026_MIXMECHS_TechDeclaration.pdf`)
