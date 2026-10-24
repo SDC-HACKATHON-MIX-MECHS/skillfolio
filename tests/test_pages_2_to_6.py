@@ -207,3 +207,83 @@ def test_methodology_states_the_band_coverage_honestly():
     assert "about 76%" in text and "1.9" in text
     assert "95%" not in text
     assert "HRD" not in text
+
+
+# --- Methodology page accuracy (every claim must match the engine) ------------------------------------------
+
+METH = "6_Methodology.py"
+
+
+def _meth_text() -> str:
+    return all_text(run(METH, None))
+
+
+def test_methodology_planner_describes_the_real_objective():
+    from engine import config
+    text = _meth_text()
+    assert "gain per hour" in text
+    assert "rise in your outlook score plus" in text and "rise in your fit" in text          # engine/pathway.py: readiness gain + BETA * match gain
+    assert f"weight {config.PATHWAY_MATCH_BETA:g}" in text
+    assert "A step can lower your outlook score" in text                                      # the sum can be positive while readiness falls
+    assert "stops when no course has a gain above zero" in text
+    assert "raises your outlook score and your fit with the target role the most per hour" not in text
+
+
+def test_methodology_role_rank_formula_matches_matching_py():
+    from engine import config
+    text = _meth_text()
+    assert "rank = fit × (1 + role growth) × (1 + " in text
+    assert f"{config.SDG_TILT_ALPHA:g} × share of your chosen SDGs the role covers" in text
+    assert "sum of weight × min(your level ÷ required level, 1) ÷ sum of weight" in text
+    assert "demand growth" in text and "importance" in text
+
+
+def test_methodology_has_no_overclaims_or_em_dashes():
+    text = _meth_text()
+    for word in ("exactly", "guarantee", "always"):
+        assert word not in text.lower(), word
+    assert "—" not in text
+
+
+def test_methodology_banned_words_only_appear_in_brackets():
+    at = run(METH, None)
+    parts = [m.value for m in at.markdown if not m.value.lstrip().startswith("<style>")] + [c.value for c in at.caption]
+    text = " ".join(html.unescape(re.sub(r"<[^>]+>", " ", " ".join(parts))).split())      # the page body, without injected stylesheets
+    outside = re.sub(r"\([^)]*\)", " ", text)
+    assert not BANNED.search(outside), BANNED.search(outside).group(0)
+
+
+def test_methodology_numbers_follow_config_and_snapshot(monkeypatch):
+    from engine import config
+    monkeypatch.setattr(config, "THIN_GROWTH_CAP", 0.07)
+    monkeypatch.setattr(config, "THIN_DATA_MIN_MEAN_COUNT", 4)
+    monkeypatch.setattr(config, "ROLE_SDG_MIN_WEIGHT", 3)
+    monkeypatch.setattr(config, "SMOOTHING_MONTHS", 4)
+    text = _meth_text()
+    assert "±7% a year in your hiring trend" in text
+    assert "fewer than 4 posts a month" in text
+    assert "at least 3 in importance" in text
+    assert "average of the last 4 months" in text
+
+
+def test_methodology_has_no_hardcoded_snapshot_facts():
+    src = (APP / "pages" / METH).read_text(encoding="utf-8")
+    for stale in ("2026-10-20", "58 well", "−0.02", "-0.02", "76%", "48%"):
+        if stale in ("76%", "48%"):
+            continue                                   # simulation results quoted from docs/SPEC.md, not snapshot facts
+        assert stale not in src, stale
+    snap = json.loads((ROOT / "data" / "snapshots" / "latest.json").read_text(encoding="utf-8"))
+    text = _meth_text()
+    assert f"On the {snap['snapshot_date']} snapshot" in text
+
+
+def test_methodology_links_are_not_the_dead_api_root():
+    at = run(METH, None)
+    hrefs = re.findall(r'href="([^"]+)"', " ".join(m.value for m in at.markdown))
+    assert hrefs and not any(h.rstrip("/").endswith("hn.algolia.com/api/v1") for h in hrefs), hrefs
+
+
+def test_methodology_states_its_limits():
+    text = _meth_text()
+    for needle in ("tech and data roles", "self-reported", "estimates", "United States", "remote"):
+        assert needle in text, needle
