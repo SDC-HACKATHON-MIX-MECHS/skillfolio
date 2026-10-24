@@ -62,7 +62,6 @@ def test_courses_are_sourced():
     for c in data.load_courses():
         assert c["skill_id"] in skill_ids, f"{c['course_id']}: unknown skill"
         assert c["url"].startswith("https://"), f"{c['course_id']}: needs a working https URL"
-        assert c["hrdc_claimable"] in {"yes", "no", "unknown"}
         assert c["verified_on"], f"{c['course_id']}: needs verified_on"
         assert 1 <= c["level_out"] <= 3 and c["hours"] > 0 and c["cost_rm"] >= 0
         if c["prereq_skill_id"]:

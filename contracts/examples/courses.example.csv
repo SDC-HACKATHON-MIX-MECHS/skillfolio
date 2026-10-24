@@ -1,3 +1,3 @@
-course_id,title,provider,url,skill_id,level_out,hours,cost_rm,hrdc_claimable,prereq_skill_id,prereq_level,verified_on
-example_course_1,EXAMPLE Rising Skill Basics,Example Provider,https://example.org/course-1,rising_skill,2,10,0,unknown,,,2026-01-01
-example_course_2,EXAMPLE Rising Skill Advanced,Example Provider,https://example.org/course-2,rising_skill,3,20,0,unknown,rising_skill,2,2026-01-01
+course_id,title,provider,url,skill_id,level_out,hours,cost_rm,prereq_skill_id,prereq_level,verified_on
+example_course_1,EXAMPLE Rising Skill Basics,Example Provider,https://example.org/course-1,rising_skill,2,10,0,,,2026-01-01
+example_course_2,EXAMPLE Rising Skill Advanced,Example Provider,https://example.org/course-2,rising_skill,3,20,0,rising_skill,2,2026-01-01

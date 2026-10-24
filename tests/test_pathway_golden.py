@@ -21,7 +21,7 @@ ROLE_SKILLS = MATCHING["role_skills"]
 COURSES = GOLD["courses"]
 CASES = list(GOLD["cases"].items())
 STEP_KEYS = {"order", "course_id", "title", "provider", "skill_id", "level_before", "level_out", "hours", "cost_rm", "url",
-             "hrdc_claimable", "gain_per_hour", "cumulative_hours", "cumulative_cost_rm"}
+             "gain_per_hour", "cumulative_hours", "cumulative_cost_rm"}
 METRIC_KEYS = {"growth", "ai_exposure", "volatility", "diversification", "readiness", "match_pct"}
 
 
@@ -52,7 +52,7 @@ def test_the_plan_matches_the_independent_numbers(name, case):
     assert [s["course_id"] for s in out["steps"]] == [s["course_id"] for s in expected["steps"]], name
     for actual, want in zip(out["steps"], expected["steps"]):
         assert set(actual) == STEP_KEYS
-        for key in ("order", "skill_id", "level_before", "level_out", "hours", "cost_rm", "title", "provider", "url", "hrdc_claimable"):
+        for key in ("order", "skill_id", "level_before", "level_out", "hours", "cost_rm", "title", "provider", "url"):
             assert actual[key] == want[key], f"{name}/{want['course_id']}.{key}"
         for key in ("gain_per_hour", "cumulative_hours", "cumulative_cost_rm"):
             close(actual[key], want[key], f"{name}/{want['course_id']}.{key}")
@@ -227,10 +227,9 @@ def test_float_levels_are_reported_as_ints_and_cost_is_cumulative_in_the_output(
 def test_each_step_carries_its_courses_own_details():
     by_id = {c["course_id"]: c for c in COURSES}
     steps = run(GOLD["cases"]["ops_plenty_of_hours"])["steps"]
-    assert {s["hrdc_claimable"] for s in steps} == {"yes", "unknown"}
     for s in steps:
         c = by_id[s["course_id"]]
-        assert (s["title"], s["provider"], s["url"], s["hrdc_claimable"], s["hours"], s["cost_rm"]) == (c["title"], c["provider"], c["url"], c["hrdc_claimable"], c["hours"], c["cost_rm"])
+        assert (s["title"], s["provider"], s["url"], s["hours"], s["cost_rm"]) == (c["title"], c["provider"], c["url"], c["hours"], c["cost_rm"])
 
 
 def test_a_step_with_exactly_zero_gain_is_not_recommended(monkeypatch):

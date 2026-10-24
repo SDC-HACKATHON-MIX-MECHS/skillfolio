@@ -35,14 +35,14 @@ import independent_portfolio as ip  # noqa: E402
 BETA = 1.0
 
 
-def course(cid, skill, level_out, hours, cost=0, prereq=None, prereq_level=None, hrdc="unknown"):
+def course(cid, skill, level_out, hours, cost=0, prereq=None, prereq_level=None):
     return {"course_id": cid, "title": f"Course {cid}", "provider": f"Provider of {cid}", "url": f"https://example.org/{cid}", "skill_id": skill,
-            "level_out": level_out, "hours": hours, "cost_rm": cost, "hrdc_claimable": hrdc,
+            "level_out": level_out, "hours": hours, "cost_rm": cost,
             "prereq_skill_id": prereq or "", "prereq_level": prereq_level}
 
 
 COURSES = [
-    course("c_up2", "shift_up", 2, 10, hrdc="yes"),
+    course("c_up2", "shift_up", 2, 10),
     course("c_up3", "shift_up", 3, 20, prereq="shift_up", prereq_level=2),
     course("c_down1", "shift_down", 1, 6),
     course("c_a_down1", "shift_down", 1, 6),                      # identical to c_down1: the smaller id wins the tie
@@ -139,7 +139,7 @@ def plan(case, snapshot, expected):
         hours_used += c["hours"]
         cost_used += c["cost_rm"]
         steps.append({"order": len(steps) + 1, "course_id": c["course_id"], "skill_id": c["skill_id"], "level_before": current, "level_out": c["level_out"],
-                      "title": c["title"], "provider": c["provider"], "url": c["url"], "hrdc_claimable": c["hrdc_claimable"],
+                      "title": c["title"], "provider": c["provider"], "url": c["url"],
                       "hours": c["hours"], "cost_rm": c["cost_rm"], "gain_per_hour": gain, "cumulative_hours": hours_used, "cumulative_cost_rm": cost_used})
     after_m, after_match = evaluate(levels, role, rows, risk, scenario, snapshot, numbers, expected["skills"], cov_cache)
     return {"steps": steps, "before": dict(before_m, match_pct=before_match), "after": dict(after_m, match_pct=after_match),
