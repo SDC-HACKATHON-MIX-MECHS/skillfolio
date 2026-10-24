@@ -93,15 +93,40 @@ def primary_buttons(at):
 def test_no_profile_shows_one_sentence_one_primary_button_and_a_demo_link(monkeypatch):
     at = run_home(monkeypatch, None, ROLE_SKILLS)
     assert not at.exception
-    assert [b.label for b in at.button] == ["Set up my portfolio", "Try a demo profile"]
+    assert [b.label for b in at.button] == ["Set up my portfolio", "Try this example"]
     assert primary_buttons(at) == ["Set up my portfolio"]
     assert not at.expander
     text = page_text(at.main, True)
-    assert "Roles that fit you, and why." in text and "YOUR SKILLS" not in text
+    assert hc.WELCOME_HEADLINE in text and "YOUR SKILLS" not in text
     for step in ("Resume", "Skills", "Goals", "Your roles"):
         assert step in text
     assert "[01]" not in text
     assert not BANNED.search(text)
+
+
+def test_no_profile_shows_a_live_example_built_from_the_engine_and_labelled_made_up(monkeypatch):
+    at = run_home(monkeypatch, None, ROLE_SKILLS)
+    assert not at.exception
+    snap = json.loads((ROOT / "data" / "snapshots" / "latest.json").read_text(encoding="utf-8"))
+    expected = api.analyse(aina(), snap, "moderate", role_skills=copy.deepcopy(ROLE_SKILLS), top_n=None)
+    top = hc.top_roles(expected["matches"], 1)[0]
+    body = markdown_html(at)
+    text = plain(body)
+    assert "a made-up graduate" in text
+    assert hc.fmt_signed(expected["portfolio"]["growth"]) in text                 # the big number is the engine's growth
+    assert html_lib.escape(top["title"]) in body and f'{hc.fit_percent(top)}%' in text
+    assert 'class="sf-bars"' in body and "sf-bar-est" in body                   # measured bars plus the hatched estimate bar
+    assert "profile" not in at.session_state                                    # the example is not saved as the user's profile
+    assert "Hacker News job posts, retrieved" in text
+
+
+def test_no_profile_without_the_demo_profile_shows_the_hero_alone_and_no_numbers(monkeypatch):
+    monkeypatch.setattr(data, "list_profiles", lambda: [])
+    at = run_home(monkeypatch, None, ROLE_SKILLS)
+    assert not at.exception
+    text = page_text(at.main, True)
+    assert hc.WELCOME_HEADLINE in text and "made-up" not in text and "%" not in text
+    assert 'class="sf-bars"' not in markdown_html(at)
 
 
 def test_demo_profile_button_loads_the_sample_and_shows_roles(monkeypatch):

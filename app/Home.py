@@ -17,9 +17,9 @@ import streamlit as st
 
 from app.dashboard import DEFAULT_RANGE, RANGES, basket_index, holdings, pct_change
 from app.home_components import (
-    NO_FIT_MESSAGE, NO_ROLES_MESSAGE, TOP_N, detail_numbers, first_name, greeting, how_it_works,
-    kpi_items, missing_strip, note, role_card, role_row, section_title, skill_rows, skills_table, tile, top_roles, trend_bars,
-    trend_head, welcome,
+    EXAMPLE_LINK, EXAMPLE_TREND_LABEL, NO_FIT_MESSAGE, NO_ROLES_MESSAGE, TOP_N, WELCOME_LEAD, detail_numbers, example_label, first_name,
+    greeting, how_it_works, kpi_items, missing_strip, note, role_card, role_row, section_title, skill_rows, skills_table, tile, top_roles,
+    trend_bars, trend_head, welcome_hero,
 )
 from app.ui import (
     card_container, dark_container, direction_of, fmt_signed, page_setup, pill, range_tabs, row_container, run_engine, scenario, show,
@@ -28,7 +28,7 @@ from app.ui import (
 from engine import config
 from engine.data import list_profiles, load_profile
 
-DEMO_PROFILE = "aina"          # the sample profile the "Try a demo profile" link loads
+DEMO_PROFILE = "aina"          # the sample profile behind the example cards and the "Try this example" link
 PLAN_PAGE = "pages/5_Rebalance_Plan.py"
 RANGE_TABS = ("1Y", "6M", "All")   # the order of the tabs above the chart
 
@@ -62,17 +62,60 @@ snapshot = page_setup("Home")
 profile = st.session_state.get("profile")
 
 
-# --- No profile: hero, one primary action, one small link, the four steps ---------------------------------
-if not profile or not profile.get("skills"):
-    show(welcome("Roles that fit you, and why.",
-                 lead="Add your skills and see which roles fit you best, and what to learn next."))
-    if st.button("Set up my portfolio", type="primary", key="sf_cta_welcome"):
-        st.switch_page("pages/1_Profile.py")
+def example_result(snap: dict) -> dict | None:
+    """The engine's real output for the made-up demo profile, for the example cards. Not saved as the user's profile.
+    Any problem (no demo profile, the engine fails) returns None and the page shows the hero alone."""
+    from engine import api
+
     try:
-        st.button("Try a demo profile", type="tertiary", key="home_demo", on_click=load_demo_profile)
-    except Exception:                                        # older Streamlit has no tertiary buttons
-        st.button("Try a demo profile", key="home_demo", on_click=load_demo_profile)
-    show(how_it_works())
+        if DEMO_PROFILE not in list_profiles():
+            return None
+        return api.analyse(load_profile(DEMO_PROFILE), snap, scenario(), top_n=None)
+    except Exception:
+        return None
+
+
+def example_cards(snap: dict) -> None:
+    """The live example beside the welcome hero, in the same bento pieces as the real Home: the charcoal card (hiring-trend number,
+    measured month bars, the hatched estimate bar) and the closest role with its Fit arc. Every figure is engine output for the demo
+    profile; a missing piece is left out, never filled in."""
+    result = example_result(snap)
+    if not result:
+        return
+    items = kpi_items(result)
+    roles = top_roles(result["matches"], 1)
+    weights = {s["skill_id"]: s["weight"] for s in result["skills"]}
+    indices = {sid: (result["forecasts"].get(sid) or {}).get("index", []) for sid in weights}
+    thin_ids = {s["skill_id"] for s in result["skills"] if s["thin_data"]}
+    basket, _ = basket_index(weights, indices, skip=thin_ids, months=RANGES[DEFAULT_RANGE])
+    all_months = [mo["month"] for mo in snap["months"]]
+    with dark_container():
+        show(example_label(first_name(load_profile(DEMO_PROFILE))))
+        show(trend_head({**items[0], "label": EXAMPLE_TREND_LABEL}))
+        if basket:
+            show(trend_bars(all_months[-len(basket):], basket, result["portfolio"].get("growth"), n=5))        # 5 months: the card is narrower than Home's
+        source_caption(snap, "hn_whoishiring")
+    if roles:
+        with card_container():
+            show(role_card(roles[0], skill_name, rank=1, lead=True))
+            with strip_container("example"):
+                show(missing_strip(roles[0], skill_name))
+
+
+# --- No profile: the hero on the left (headline, one primary action, the example link, the steps), a live example on the right ---
+if not profile or not profile.get("skills"):
+    hero_col, example_col = st.columns([13, 9], gap="large", vertical_alignment="top")
+    with hero_col:
+        show(welcome_hero(WELCOME_LEAD))
+        if st.button("Set up my portfolio", type="primary", key="sf_cta_welcome"):
+            st.switch_page("pages/1_Profile.py")
+        try:
+            st.button(EXAMPLE_LINK, type="tertiary", key="home_demo", on_click=load_demo_profile, icon=":material/arrow_forward:")
+        except Exception:                                    # older Streamlit has no tertiary buttons
+            st.button(EXAMPLE_LINK, key="home_demo", on_click=load_demo_profile)
+        show(how_it_works())
+    with example_col:
+        example_cards(snapshot)
     st.stop()
 
 

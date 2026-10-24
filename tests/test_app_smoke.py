@@ -36,7 +36,7 @@ def test_home_without_profile_shows_welcome_and_one_primary_button():
     # Home v2 (details in tests/test_home_v2.py): one primary button plus a small demo link
     at = run(APP / "Home.py", None)
     assert not at.exception
-    assert [b.label for b in at.button] == ["Set up my portfolio", "Try a demo profile"]
+    assert [b.label for b in at.button] == ["Set up my portfolio", "Try this example"]
     assert at.button[0].proto.type == "primary"
 
 
