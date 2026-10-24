@@ -110,15 +110,26 @@ a[data-testid="stSidebarNavLink"][href$="/Rebalance_Plan"] p::after { content: "
 [data-testid="stBaseButton-primary"]:hover, button[kind="primary"]:hover { background-color: var(--sf-muted); border-color: var(--sf-muted); }
 [data-testid="stBaseButton-primary"]:disabled { background-color: var(--sf-raised); border: 1px solid var(--sf-border); }
 [data-testid="stBaseButton-primary"]:disabled p, [data-testid="stBaseButton-primary"]:disabled * { color: var(--sf-muted); }
-[data-testid="stBaseButton-tertiary"] { min-height: 44px; padding: 0 8px; color: var(--sf-text); text-decoration: underline; text-underline-offset: 4px; }
-[data-testid="stBaseButton-tertiary"] p { font-size: 1rem; color: var(--sf-text); }
+/* only the words are underlined: an underline on the button also ran under the arrow icon, at a different height */
+[data-testid="stBaseButton-tertiary"] { min-height: 44px; padding: 0 8px; color: var(--sf-text); text-decoration: none; }
+[data-testid="stBaseButton-tertiary"] p { font-size: 1rem; color: var(--sf-text); text-decoration: underline; text-underline-offset: 4px; }
 [data-testid="stPageLink-NavLink"]:hover { background-color: var(--sf-raised); }
-[data-testid="stPageLink-NavLink"] p { font-size: 1rem; }
+/* page links: only the words are underlined (the global `a` underline also ran under the icon, as on tertiary buttons) */
+.stApp [data-testid="stPageLink-NavLink"] { text-decoration: none; }
+[data-testid="stPageLink-NavLink"] p { font-size: 1rem; text-decoration: underline; text-underline-offset: 3px; }
 .stApp a:focus-visible, .stApp button:focus-visible, .stApp input:focus-visible, .stApp textarea:focus-visible,
 .stApp select:focus-visible, .stApp summary:focus-visible, .stApp [role="tab"]:focus-visible,
-.stApp [role="button"]:focus-visible, .stApp [tabindex]:focus-visible {
-  outline: 2px solid var(--sf-text); outline-offset: 2px; border-radius: 999px;
+.stApp [role="button"]:focus-visible, .stApp [tabindex]:not([tabindex="-1"]):focus-visible {
+  outline: 2px solid var(--sf-text); outline-offset: 2px;   /* the outline follows each element's own corners */
 }
+/* containers focused by script (tabindex="-1", e.g. the main area) get no ring: it drew a pill around the whole page */
+.stApp [tabindex="-1"]:focus-visible { outline: none; }
+/* text inside a field: the field's own border turns ink on focus (below), so the inner input draws no second ring
+   (it sat inside the field's 16px corners with different corners of its own) */
+.stApp [data-testid="stSelectbox"] input:focus-visible, .stApp [data-testid="stMultiSelect"] input:focus-visible,
+.stApp [data-testid="stTextInputRootElement"] input:focus-visible, .stApp [data-testid="stTextAreaRootElement"] textarea:focus-visible,
+.stApp [data-baseweb="select"] input:focus-visible, .stApp [data-baseweb="input"] input:focus-visible,
+.stApp [data-baseweb="textarea"] textarea:focus-visible { outline: none !important; }   /* !important: these inputs carry a tabindex, so the [tabindex] ring rule above outranks a plain selector */
 label[data-baseweb="radio"], [data-baseweb="tab"], [data-baseweb="select"], summary, [role="button"], [role="tab"] { cursor: pointer; }
 
 /* ===== Streamlit widgets (ink comes from primaryColor in .streamlit/config.toml, so nothing is blue) ===== */
@@ -142,8 +153,16 @@ label[data-baseweb="radio"], [data-baseweb="tab"], [data-baseweb="select"], summ
 .stApp [data-baseweb="input"]:focus-within, .stApp [data-baseweb="textarea"]:focus-within, .stApp [data-baseweb="select"] > div:focus-within {
   border-color: var(--sf-text) !important;
 }
+/* open dropdown list (rendered outside .stApp): inset the options so the grey highlight's corners nest inside the list's
+   16px corners (outer radius - inset = inner radius) instead of showing square corners */
+[role="listbox"] { padding: 4px !important; }
+[role="listbox"] [role="option"] { border-radius: calc(var(--sf-radius-control) - 4px) !important; }
 .stApp [data-testid="stExpander"] details { border: 1px solid var(--sf-border); background: var(--sf-card); border-radius: var(--sf-radius); box-shadow: var(--sf-shadow); }
 .stApp [data-testid="stExpander"] summary { min-height: 52px; font-size: 1rem; font-weight: 600; }
+/* the header's hover fill follows the box's 32px corners (Streamlit gives it 16px, so the grey showed past the curve);
+   open, only the top corners are round because the content sits below */
+.stApp [data-testid="stExpander"] summary { border-radius: var(--sf-radius) !important; }
+.stApp [data-testid="stExpander"] details[open] > summary { border-radius: var(--sf-radius) var(--sf-radius) 0 0 !important; }
 .stApp [data-testid="stAlert"] { border-radius: var(--sf-radius); border: 1px solid var(--sf-border); background: var(--sf-card); color: var(--sf-text); }
 .stApp [data-testid="stAlert"] p { font-size: 1rem; color: var(--sf-text); }
 /* notices (info, warning, error) are neutral white cards with an ink icon, never Streamlit blue; the words and a left marker carry the status */
@@ -248,10 +267,11 @@ label[data-baseweb="radio"], [data-baseweb="tab"], [data-baseweb="select"], summ
 .st-key-sf-row-sep-home-3::after { display: none; }
 [class*="st-key-sf-row-"] [data-testid="stBaseButton-tertiary"] { justify-content: flex-start; padding: 0; margin-top: 8px; }
 [class*="st-key-sf-row-"] [data-testid="stBaseButton-tertiary"] p { font-weight: 500; }
-/* the strip: text on the left, one button on the right. Flex row; the text may wrap, the button never shrinks, so they cannot overlap. */
+/* the strip: text on the left, one button on the right. Flex row; the text may wrap, the button never shrinks, so they cannot overlap.
+   Corners nest: the button (16px) sits 8px in, so the strip is 16 + 8 = 24px (the tile radius); 16px looked sharper than its button. */
 [class*="st-key-sf-strip"] {
   flex-direction: row !important; flex-wrap: nowrap !important; align-items: center !important; justify-content: space-between; gap: 8px 16px !important;
-  background: var(--sf-bg); border: 1px solid var(--sf-border); border-radius: var(--sf-radius-control); padding: 8px 8px 8px 16px; margin-top: 16px;
+  background: var(--sf-bg); border: 1px solid var(--sf-border); border-radius: var(--sf-radius-tile); padding: 8px 8px 8px 16px; margin-top: 16px;
 }
 [class*="st-key-sf-strip"] > div { width: auto !important; min-width: 0; }
 [class*="st-key-sf-strip"] > div:first-child { flex: 1 1 0 !important; }
@@ -426,7 +446,11 @@ a.sf-chip:hover { border-color: var(--sf-text); }
 .sf-mix-name { font-size: 1rem; font-weight: 500; color: var(--sf-on-charcoal); min-width: 0; }
 .sf-mix-pct { font-size: 1.25rem; font-weight: 600; color: var(--sf-on-charcoal); font-variant-numeric: tabular-nums; text-align: right; }
 .sf-mix-word { justify-self: end; }
-@media (max-width: 480px) {
+/* stack the trend word under the name when the CARD is narrow (it is ~340px beside the side column on a laptop, where the
+   name column was squeezed to ~64px and broke words letter by letter), not only when the whole window is a phone */
+.sf-mix { container-type: inline-size; }
+.sf-mix-name { overflow-wrap: normal; }
+@container (max-width: 480px) {
   .sf-mix-row { grid-template-columns: 16px minmax(0, 1fr) auto; grid-template-areas: "key name pct" ". word word"; row-gap: 8px; }
   .sf-mix-key { grid-area: key; } .sf-mix-name { grid-area: name; } .sf-mix-pct { grid-area: pct; }
   .sf-mix-word { grid-area: word; justify-self: start; }

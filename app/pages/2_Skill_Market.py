@@ -98,7 +98,7 @@ with detail_col:
         e = by_id[pick]
         f = e["f"]
         show(skill_pill(e["change"], e["trajectory"], e["thin"]))
-        ai_text = f"AI impact: {ai_word(e['exposure'])}" + (f" ({round(e['exposure'] * 100)} out of 100)" if e["exposure"] is not None else "")
+        ai_text = f"AI impact: **{ai_word(e['exposure'])}**" + (f" ({round(e['exposure'] * 100)} out of 100)" if e["exposure"] is not None else "")
         st.write(ai_text)
         if f and e["thin"]:
             st.caption("Not enough data: fewer than 3 posts a month on average, so this is not a trend call.")
