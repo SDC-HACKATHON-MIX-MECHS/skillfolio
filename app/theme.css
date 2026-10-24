@@ -403,6 +403,34 @@ a.sf-chip:hover { border-color: var(--sf-text); }
 .st-key-sf-dark .sf-hatch { background: repeating-linear-gradient(135deg, var(--sf-mint) 0 2px, transparent 2px 7px); }
 .sf-bar-label { font-size: 0.875rem; text-align: center; white-space: nowrap; color: var(--sf-on-charcoal-muted); }
 
+/* ===== My Portfolio: the skill mix on the charcoal card =====
+   ONE bar split by each skill's share (mint shades, hairline gaps), then one row per skill: a colour key, the name, the share and the
+   hiring trend as a word. The shares are written out next to every segment colour, so colour is never the only signal. */
+.st-key-sf-dark .sf-sec-title { color: var(--sf-on-charcoal); }
+.st-key-sf-dark .sf-sec-sub { color: var(--sf-on-charcoal-muted); }
+.st-key-sf-dark .sf-sec { margin-top: 16px; }
+.sf-mix-bar { display: flex; gap: 2px; height: 32px; border-radius: 999px; overflow: hidden; margin: 8px 0 16px; }
+.sf-mix-seg { display: block; flex: 0 1 auto; min-width: 4px; height: 100%; }
+.sf-mix-s0 { background: var(--sf-mint); }
+.sf-mix-s1 { background: color-mix(in srgb, var(--sf-mint) 72%, var(--sf-charcoal)); }
+.sf-mix-s2 { background: color-mix(in srgb, var(--sf-mint) 50%, var(--sf-charcoal)); }
+.sf-mix-s3 { background: color-mix(in srgb, var(--sf-on-charcoal) 62%, var(--sf-charcoal)); }
+.sf-mix-s4 { background: var(--sf-on-charcoal); }
+.sf-mix-s5 { background: color-mix(in srgb, var(--sf-on-charcoal) 40%, var(--sf-charcoal)); }
+.sf-mix-list { display: flex; flex-direction: column; }
+.sf-mix-row { display: grid; grid-template-columns: 16px minmax(0, 1fr) auto 64px; align-items: center; gap: 16px; padding: 12px 0;
+              border-top: 1px solid color-mix(in srgb, var(--sf-on-charcoal) 16%, transparent); }
+.sf-mix-row:first-child { border-top: 0; }
+.sf-mix-key { width: 16px; height: 16px; border-radius: 999px; }
+.sf-mix-name { font-size: 1rem; font-weight: 500; color: var(--sf-on-charcoal); min-width: 0; }
+.sf-mix-pct { font-size: 1.25rem; font-weight: 600; color: var(--sf-on-charcoal); font-variant-numeric: tabular-nums; text-align: right; }
+.sf-mix-word { justify-self: end; }
+@media (max-width: 480px) {
+  .sf-mix-row { grid-template-columns: 16px minmax(0, 1fr) auto; grid-template-areas: "key name pct" ". word word"; row-gap: 8px; }
+  .sf-mix-key { grid-area: key; } .sf-mix-name { grid-area: name; } .sf-mix-pct { grid-area: pct; }
+  .sf-mix-word { grid-area: word; justify-self: start; }
+}
+
 .sf-fitpanel { background: var(--sf-mint); border-radius: var(--sf-radius-tile); padding: 24px 24px 20px; margin: 16px 0; }
 .sf-arcwrap { position: relative; max-width: 360px; margin: 0 auto; }
 .sf-arc { display: block; width: 100%; height: auto; overflow: visible; }
@@ -413,6 +441,7 @@ a.sf-chip:hover { border-color: var(--sf-text); }
 .sf-role-lead .sf-arcnum .sf-fit-num { font-size: 3.5rem; line-height: 1; }
 
 .sf-tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 16px; }
+.sf-tiles.sf-tiles-stack { grid-template-columns: minmax(0, 1fr); margin-top: 0; }
 .sf-tile { border-radius: var(--sf-radius-tile); padding: 24px; min-height: 176px; display: flex; flex-direction: column; justify-content: space-between; gap: 8px; }
 .sf-tile-mint { background: var(--sf-mint); color: var(--sf-text); }
 .sf-tile-charcoal { background: var(--sf-charcoal); color: var(--sf-on-charcoal); }
