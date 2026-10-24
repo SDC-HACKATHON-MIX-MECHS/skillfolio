@@ -63,7 +63,8 @@ def run(page: str, profile: dict | None) -> AppTest:
 def all_text(at: AppTest) -> str:
     """Every markdown, caption, info and title on the page, expanders included."""
     parts = [m.value for m in at.markdown] + [c.value for c in at.caption] + [i.value for i in at.info] + [t.value for t in at.title]
-    return html.unescape(" ".join(parts))
+    text = re.sub(r"</?(?:em|b|i|span)[^>]*>", "", " ".join(parts))       # inline tags do not break words
+    return " ".join(html.unescape(re.sub(r"<[^>]+>", " ", text)).split())
 
 
 def visible_text(at: AppTest) -> str:
@@ -83,7 +84,8 @@ def visible_text(at: AppTest) -> str:
                     out.append(val)
 
     walk(at.main)
-    return html.unescape(" ".join(out))
+    text = re.sub(r"</?(?:em|b|i|span)[^>]*>", "", " ".join(out))       # inline tags do not break words ("Source: <span>Hacker News")
+    return " ".join(html.unescape(re.sub(r"<[^>]+>", " ", text)).split())
 
 
 # page file -> texts that must be on it with a profile
@@ -92,7 +94,7 @@ KEY_TEXTS = {
     "3_My_Portfolio.py": ["My portfolio", "Outlook score", "Hiring trend", "AI impact", "Skill variety", "Source: Hacker News"],
     "4_Matches.py": ["Which roles fit me?", "fit", "Source: Hacker News"],
     "5_Rebalance_Plan.py": ["Your learning plan", "Fit with", "Courses, in order", "HRD Corp", "unknown", "estimates"],
-    "6_Methodology.py": ["Methodology and sources", "Where the data comes from", "How the numbers are made", "AI disclosure", "no language model"],
+    "6_Methodology.py": ["Methodology and sources", "Where the data comes from", "How the numbers are made", "AI disclosure", "bge-small-en-v1.5", "Claude Code"],
 }
 
 

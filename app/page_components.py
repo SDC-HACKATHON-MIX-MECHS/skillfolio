@@ -196,18 +196,30 @@ def source_list(rows: list[dict]) -> str:
 
 # --- Charts -------------------------------------------------------------------------------------------
 
-def sdg_donut_fig(allocation: dict[int, float], names: dict[int, str]) -> go.Figure:
-    """Share of the portfolio linked to each SDG, in a warm-neutral donut. SDG 4 is labelled as the baseline."""
-    goals = sorted(allocation, key=lambda g: (-allocation[g], g))
+SDG_SHOWN = 5          # goals listed; the rest are summed into one line so the list stays readable
 
-    def label(goal: int) -> str:
-        return f"SDG {goal} (baseline) · {names.get(goal, '')}" if goal == 4 else f"SDG {goal} · {names.get(goal, '')}"
 
-    colours = [SDG_COLOURS[i % len(SDG_COLOURS)] for i in range(len(goals))]
-    fig = go.Figure(go.Pie(
-        labels=[label(g) for g in goals], values=[allocation[g] for g in goals], hole=0.55, sort=False,
-        marker=dict(colors=colours, line=dict(color=CARD, width=3)),
-        textinfo="percent", textfont=dict(color=TEXT, size=14),
-        hovertemplate="%{label}<br>%{percent} of your skills<extra></extra>",
-    ))
-    return style_fig(fig, height=320)
+def sdg_bars(allocation: dict[int, float], names: dict[int, str], shown: int = SDG_SHOWN) -> str:
+    """Where the user's skills point, as a ranked list: the biggest goals first, each with its name, its share and a thin bar
+    (bars are drawn relative to the biggest share so differences are visible). The smaller goals are one line. SDG 4 is marked as the
+    baseline every skill supports. One line of HTML; names are escaped."""
+    goals = sorted((g for g, v in allocation.items() if v and v > 0), key=lambda g: (-allocation[g], g))
+    if not goals:
+        return ""
+    biggest = allocation[goals[0]]
+    rows = []
+    for goal in goals[:shown]:
+        share = allocation[goal]
+        name = names.get(goal, "")
+        base = '<span class="sf-sub"> · baseline</span>' if goal == 4 else ""
+        width = max(4, round(100 * share / biggest)) if biggest else 0
+        rows.append(f'<li class="sf-sdg-row"><span class="sf-keynum" aria-hidden="true">{int(goal)}</span>'
+                    f'<div class="sf-sdg-main"><div class="sf-sdg-head"><span class="sf-keyname">SDG {int(goal)} · {esc(name)}{base}</span>'
+                    f'<span class="sf-sdg-pct">{share * 100:.1f}%</span></div>'
+                    f'<div class="sf-track sf-track-thin sf-track-neutral" role="img" aria-label="{share * 100:.1f} percent of your skills"><i style="width:{width}%"></i></div></div></li>')
+    rest = goals[shown:]
+    more = ""
+    if rest:
+        total = sum(allocation[g] for g in rest) * 100
+        more = f'<div class="sf-sdg-more">{len(rest)} smaller goal{"s" if len(rest) != 1 else ""} make up {total:.1f}% together.</div>'
+    return f'<ol class="sf-sdg" aria-label="Goals your skills point to, biggest first, as a share of your skills">{"".join(rows)}</ol>{more}'

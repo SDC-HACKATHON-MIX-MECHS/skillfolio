@@ -29,7 +29,7 @@ Build and polish the pages in `app/pages/` (and shared helpers in `app/ui.py`), 
 ## Hard rules
 - **Never invent data.** No made-up jobs, courses, SDG links, statistics or sources. Everything shown comes from `data/` or the engine.
 - **Do not edit** `engine/`, `tests/`, `pipeline/`, `data/` (CSV or snapshots), `contracts/` or `docs/` unless the task says so. They carry verified maths and sourced data.
-- No LLM calls, no API keys, no secrets, no new dependencies without asking.
+- No LLM calls and no new dependencies without asking. The only secrets are `RUNPOD_API_KEY` and `RUNPOD_ENDPOINT_ID` (Replit Secrets), used only through `app/runpod_client.py` for optional resume matching. Never add other keys, and never call RunPod outside that module.
 - Every chart or table shows a caption: `Source: <source> · retrieved <snapshot date>`.
 - Label every forecast as an **estimate**. Rows with `thin_data = true` are greyed out with a "low data" badge and never highlighted. Cap sparkline axes (a skill that appears late can have a huge index).
 - Plain English, sentence case, phone-friendly layout (no wide tables without scrolling).

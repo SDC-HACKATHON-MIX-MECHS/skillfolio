@@ -7,11 +7,11 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import pandas as pd
 import streamlit as st
 
-from app.page_components import PLAIN, compare_cards, course_list, course_row, sdg_donut_fig
+from app.page_components import PLAIN, compare_cards, course_list, course_row, sdg_bars
 from app.ui import (
     SDG_NAMES, call_or_wait, course_catalog, fmt_pct, fmt_rm, fmt_score, fmt_signed, gauge_fig, hero, require_profile,
     page_header, page_setup, risk_return_fig, role_catalog, role_skill_rows, run_engine, section_header, show, show_fig, show_warnings,
-    skill_label, source_caption, user_levels,
+    skill_label, source_caption, source_note, user_levels,
 )
 from engine import portfolio, sdg
 from engine.pathway import plan
@@ -90,7 +90,7 @@ st.caption(
     f"{result_plan['hours_used']:g} of {profile['hours_budget']:g} hours · {fmt_rm(total_cost)} in total"
     f" (your budget {fmt_rm(profile.get('budget_rm'))}). HRD Corp status is 'unknown' until we find a source."
 )
-st.caption("Source: courses.csv, each URL checked on its verified_on date · estimates, not predictions")
+source_note("our course list, each link checked on the date shown in its row", "estimates, not predictions")
 
 # --- The one primary action (the wow moment) ------------------------------------------------------
 if st.button("Undo plan" if applied else "Apply plan", type="primary", use_container_width=True):
@@ -108,7 +108,9 @@ with st.expander("Show details", expanded=applied):
     ready_delta = delta(after["readiness"] - before["readiness"], f"{(after['readiness'] - before['readiness']) * 100:+.1f}".replace("-", "−"))
     # AI impact is not good or bad, so its change is never green or red.
     if applied and before["ai_exposure"] is not None and after["ai_exposure"] is not None:
-        ai_delta = (f"{(after['ai_exposure'] - before['ai_exposure']) * 100:+.0f} points".replace("-", "−"), "flat")
+        # worked out from the two numbers the card shows (rounded), so "+1 points" never sits next to "Before 19 · after plan 19"
+        ai_change = round(after["ai_exposure"] * 100) - round(before["ai_exposure"] * 100)
+        ai_delta = ("no change" if ai_change == 0 else f"{ai_change:+d} points".replace("-", "−"), "flat")
     else:
         ai_delta = (None, "flat")
     show(compare_cards([
@@ -120,7 +122,8 @@ with st.expander("Show details", expanded=applied):
     ]))
     show_fig(gauge_fig(now["ai_exposure"], before=before["ai_exposure"] if applied else None))
     if now["ai_exposure"] is not None and before["ai_exposure"] is not None:
-        show_fig(risk_return_fig(result["matches"], now, before=before if applied else None))
+        with st.container(key="sf-plan-chart"):   # theme.css styles its Before / Now / Both buttons and your dot's pulse
+            show_fig(risk_return_fig(result["matches"], now, before=before if applied else None))
     source_caption(snapshot, "hn_whoishiring", "aei_job_exposure")
 
     st.markdown("**Where your skills point " + ("after the plan" if applied else "today") + "**")
@@ -136,8 +139,8 @@ with st.expander("Show details", expanded=applied):
     else:
         allocation = {a["sdg"]: a["share"] for a in result["sdg_allocation"]}
     if allocation:
-        show_fig(sdg_donut_fig(allocation, SDG_NAMES))
-        st.caption("Source: roles.csv SDG links · every skill supports SDG 4.4")
+        show(sdg_bars(allocation, SDG_NAMES))
+        source_note("our role-to-goal links, with the reason for each on the Matches page", "every skill supports SDG 4.4")
 
     st.markdown("**Before and after, in full**")
     st.dataframe(pd.DataFrame({

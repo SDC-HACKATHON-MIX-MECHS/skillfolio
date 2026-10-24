@@ -6,10 +6,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import streamlit as st
 
 from app.dashboard import holdings, spark_values
-from app.page_components import PLAIN, sdg_donut_fig, skill_list, skill_row
+from app.page_components import PLAIN, sdg_bars, skill_list, skill_row
 from app.ui import (
     LEVEL_LABELS, SDG_NAMES, fmt_pct, fmt_score, fmt_signed, page_header, page_setup, require_profile, risk_return_fig, run_engine,
-    show, show_fig, show_warnings, skill_name, skill_ticker, source_caption, stat_row,
+    show, show_fig, show_warnings, skill_name, skill_ticker, source_caption, source_note, stat_row,
 )
 
 snapshot = page_setup("My Portfolio")
@@ -52,7 +52,7 @@ with st.expander(f"Your {len(held)} skills"):
     st.caption("How much hiring bounces around: " + fmt_pct(m["volatility"], 1) + " a year. " + PLAIN["bounce"])
 
 with st.expander("Show how you compare with future roles"):
-    st.write("Up is more hiring growth; left is less AI impact. Bigger bubbles are roles you already fit more closely.")
+    st.write("Up is more hiring growth, left is less AI impact. Each grey dot is a role; bigger means you already fit it more closely. The orange dot is you.")
     if not result["matches"]:
         show_warnings(result)
     elif m["ai_exposure"] is None:
@@ -63,5 +63,5 @@ with st.expander("Show how you compare with future roles"):
 
 if result["sdg_allocation"]:
     with st.expander("Where your skills point (UN Sustainable Development Goals)"):
-        show_fig(sdg_donut_fig({a["sdg"]: a["share"] for a in result["sdg_allocation"]}, SDG_NAMES))
-        st.caption("Source: roles.csv SDG links (see Matches for each reason) · every skill supports SDG 4.4")
+        show(sdg_bars({a["sdg"]: a["share"] for a in result["sdg_allocation"]}, SDG_NAMES))
+        source_note("our role-to-goal links, with the reason for each on the Matches page", "every skill supports SDG 4.4")

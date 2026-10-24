@@ -13,6 +13,7 @@ Page files never contain hex codes or raw HTML. They use:
 from __future__ import annotations
 
 import html as _html
+import math
 from pathlib import Path
 
 import plotly.graph_objects as go
@@ -222,10 +223,30 @@ def source(snapshot: dict, source_id: str) -> dict:
     return next((s for s in snapshot["sources"] if s["id"] == source_id), {"name": source_id, "retrieved_at": "????-??-??"})
 
 
+SOURCE_LABELS = {"hn_whoishiring": "Hacker News job posts", "aei_job_exposure": "Anthropic Economic Index (AI impact)"}
+
+
+def source_html(items: list[str], note: str | None = "estimates, not predictions") -> str:
+    """The quiet source line under a chart or table: a small icon, then 'Source:' and each source as one unbreakable chunk (so a date
+    never splits across two lines), then the estimate note. One line of HTML; every piece of text is escaped."""
+    chunks = " · ".join(f'<span class="sf-src-i">{esc(item)}</span>' for item in items)
+    tail = f" · {esc(note)}" if note else ""
+    return f'<div class="sf-source">{icon("file-text", 16)}<span>Source: {chunks}{tail}</span></div>'
+
+
 def source_caption(snapshot: dict, *source_ids: str) -> None:
-    """The caption under every chart and table (DESIGN.md §5)."""
-    parts = [f"{source(snapshot, sid)['name']} · retrieved {source(snapshot, sid)['retrieved_at'][:10]}" for sid in source_ids]
-    st.caption("Source: " + " · ".join(parts) + " · estimates, not predictions")
+    """The source line under every chart and table, with the plain name of each source and the date it was retrieved."""
+    items = []
+    for sid in source_ids:
+        src = source(snapshot, sid)
+        name = SOURCE_LABELS.get(sid) or str(src["name"]).split(" — ")[0]
+        items.append(f"{name}, retrieved {src['retrieved_at'][:10]}")
+    show(source_html(items))
+
+
+def source_note(text: str, note: str | None = None) -> None:
+    """The same source line for a source that is not in the snapshot (our own files), e.g. the SDG links or the course list."""
+    show(source_html([text], note))
 
 
 # --- Number formats (DESIGN.md §2) --------------------------------------------------------------
@@ -323,16 +344,17 @@ def demand_fig(months: list[str], values: list[float], direction: str = "flat", 
 
 
 def gauge_fig(exposure: float | None, before: float | None = None) -> go.Figure:
-    """AI-exposure gauge, 0-100, one neutral grey-brown scale with an amber bar (never red/green). Empty with "n/a" when unknown."""
+    """AI-exposure gauge, 0-100, one neutral grey-brown scale with an amber bar (never red/green). Empty with "n/a" when unknown.
+    `before` is accepted for the callers but not drawn: the before and after numbers are written out in the cards next to the chart,
+    and a delta glyph inside the gauge only added clutter."""
     if exposure is None:
         fig = go.Figure(go.Indicator(mode="gauge", value=0, gauge={"axis": {"range": [0, 100]}, "bar": {"color": GRID}},
-                                     title={"text": "AI impact: n/a"}))
-        return style_fig(fig, height=240)
+                                     title={"text": "AI impact: n/a", "font": {"size": 16}}))
+        return style_fig(fig, height=260).update_layout(margin=dict(l=40, r=40, t=64, b=8))
     fig = go.Figure(go.Indicator(
-        mode="gauge+number+delta" if before is not None else "gauge+number",
+        mode="gauge+number",
         value=round(exposure * 100),
-        number={"suffix": "/100"},
-        delta={"reference": round(before * 100), "increasing": {"color": FLAT}, "decreasing": {"color": FLAT}} if before is not None else None,
+        number={"suffix": "/100", "font": {"size": 40}},
         gauge={
             "axis": {"range": [0, 100], "tickcolor": MUTED},
             "bar": {"color": AMBER},
@@ -341,44 +363,213 @@ def gauge_fig(exposure: float | None, before: float | None = None) -> go.Figure:
             "steps": [{"range": [0, 33], "color": EXPOSURE_STEPS[0]}, {"range": [33, 66], "color": EXPOSURE_STEPS[1]},
                       {"range": [66, 100], "color": EXPOSURE_STEPS[2]}],
         },
-        title={"text": "AI impact"},
+        title={"text": "AI impact", "font": {"size": 16}},
     ))
-    return style_fig(fig, height=240)
+    return style_fig(fig, height=260).update_layout(margin=dict(l=40, r=40, t=64, b=8))
+
+
+# One- or two-word names for the risk/return chart, so no label wraps or crowds a dot (the hover keeps the full title).
+SHORT_ROLE_TITLES = {
+    "data_scientist": "Data scientist", "statistician": "Data analyst", "software_developer": "Software developer",
+    "web_developer": "Web developer", "ux_designer": "UX designer", "security_analyst": "Cybersecurity",
+    "cloud_admin": "Cloud admin", "systems_analyst": "Business analyst", "data_architect": "Data architect",
+    "qa_engineer": "QA engineer", "ai_researcher": "AI researcher", "it_manager": "IT manager",
+    "management_analyst": "Process consultant", "electrical_engineer": "Energy engineer",
+    "environmental_specialist": "Sustainability", "marketing_analyst": "Digital marketing", "technical_writer": "Technical writer",
+}
+
+
+def short_role_title(role_id: str | None, title: str) -> str:
+    """The chart name for a role: the curated one above, else the part after ' / ' cut to two words, in sentence case."""
+    if role_id in SHORT_ROLE_TITLES:
+        return SHORT_ROLE_TITLES[role_id]
+    words = title.split(" / ")[-1].split()[:2]
+    return " ".join([words[0]] + [w.lower() for w in words[1:]]) if words else title
+
+
+# Pixel estimates for the risk/return chart's plot area at laptop width (14px text). On a phone a label can still
+# touch a neighbour; the hover text always has the full title.
+_PLOT_W, _PLOT_H, _CHAR_W, _LINE_H, _GAP = 760.0, 300.0, 7.5, 17.0, 4.0
+_LABEL_SIDES = ("middle right", "middle left", "top center", "bottom center")
+
+
+def _label_box(cx: float, cy: float, radius: float, text: str, side: str, bold: bool = False) -> tuple[float, float, float, float]:
+    """The pixel box (x0, y0, x1, y1; y up) of a one-line label beside a dot of this radius."""
+    w, h, r = len(text) * _CHAR_W * (1.1 if bold else 1.0), _LINE_H, radius + _GAP
+    return {
+        "middle right": (cx + r, cy - h / 2, cx + r + w, cy + h / 2),
+        "middle left": (cx - r - w, cy - h / 2, cx - r, cy + h / 2),
+        "top center": (cx - w / 2, cy + r, cx + w / 2, cy + r + h),
+        "bottom center": (cx - w / 2, cy - r - h, cx + w / 2, cy - r),
+    }[side]
+
+
+def _fit_ranges(points: list[tuple[float, float]], sizes: list[float], labels: list[str],
+                x_range: tuple[float, float], y_range: tuple[float, float]) -> tuple[tuple[float, float], tuple[float, float]]:
+    """Widen the x range until every label fits beside its dot on at least one side, however close it is to an edge."""
+    x0, x1 = x_range
+    for _ in range(3):   # each widening shrinks the scale a little, so repeat until it settles
+        x_unit = (x1 - x0) / _PLOT_W
+        for (x, _), size, label in zip(points, sizes, labels):
+            half = (size / 2 + _GAP + len(label) * _CHAR_W) / 2 * x_unit
+            x0, x1 = min(x0, x - half), max(x1, x + half)
+    return (x0, x1), y_range
+
+
+def _place_labels(points: list[tuple[float, float]], sizes: list[float], labels: list[str],
+                  fixed: list[tuple[float, float, float, str, str, bool]],
+                  x_range: tuple[float, float], y_range: tuple[float, float]) -> list[str]:
+    """A side per role label: right of the dot, else left, above or below, whichever hits nothing and stays inside the
+    chart. `fixed` are your own dots and labels (x, y, radius, text, side, bold); covering one counts ten times worse.
+    Labels are re-placed against each other until none can do better."""
+    def px(x: float, y: float) -> tuple[float, float]:
+        return ((x - x_range[0]) / (x_range[1] - x_range[0]) * _PLOT_W, (y - y_range[0]) / (y_range[1] - y_range[0]) * _PLOT_H)
+
+    def overlap(a, b) -> float:
+        return max(0.0, min(a[2], b[2]) - max(a[0], b[0])) * max(0.0, min(a[3], b[3]) - max(a[1], b[1]))
+
+    dots = [(cx - s / 2, cy - s / 2, cx + s / 2, cy + s / 2) for (cx, cy), s in zip((px(*p) for p in points), sizes)]
+    yours = []
+    for x, y, radius, text, side, bold in fixed:
+        cx, cy = px(x, y)
+        yours += [(cx - radius, cy - radius, cx + radius, cy + radius), _label_box(cx, cy, radius, text, side, bold)]
+
+    options = [{sd: _label_box(*px(*p), size / 2, label, sd) for sd in _LABEL_SIDES} for p, size, label in zip(points, sizes, labels)]
+    sides = [_LABEL_SIDES[0]] * len(points)
+
+    def cost(i: int, box: tuple) -> float:
+        others = [options[j][sides[j]] for j in range(len(points)) if j != i]
+        outside = (box[2] - box[0]) * (box[3] - box[1]) - overlap(box, (0, 0, _PLOT_W, _PLOT_H))
+        return sum(overlap(box, t) for t in dots + others) + 10 * sum(overlap(box, t) for t in yours) + 2 * outside
+
+    for _ in range(4):
+        changed = False
+        for i, boxes in enumerate(options):
+            best = min(_LABEL_SIDES, key=lambda sd: (cost(i, boxes[sd]), _LABEL_SIDES.index(sd)))   # ties keep the earlier side
+            if cost(i, boxes[best]) < cost(i, boxes[sides[i]]):
+                sides[i], changed = best, True
+        if not changed:
+            break
+    return sides
+
+
+def _nice_step(lo: float, hi: float, most: int = 4) -> float:
+    """The smallest of 1, 2, 5, 10, 20, 50, ... that puts at most `most` ticks (multiples of it) between lo and hi."""
+    step, factors, i = 1.0, (2, 2.5, 2), 0
+    while math.floor(hi / step) - math.ceil(lo / step) + 1 > most:
+        step, i = step * factors[i % 3], i + 1
+    return step
+
+
+PLAN_VIEWS = ("Before", "Now", "Both")
+
+
+def growth_readout(before: dict, after: dict, view: str) -> str:
+    """The one line beside the Before / Now / Both control."""
+    if view == "Before":
+        return f"Before the plan: {fmt_signed(before['growth'])} a year"
+    if view == "Now":
+        return f"With the plan: {fmt_signed(after['growth'])} a year"
+    change = (after["growth"] - before["growth"]) * 100
+    if abs(change) < 0.05:
+        return "Growth unchanged"
+    return f"Growth {'up' if change > 0 else 'down'} {abs(change):.1f} points"
 
 
 def risk_return_fig(matches: list[dict], user: dict, before: dict | None = None) -> go.Figure:
-    """x = AI exposure, y = growth. Roles as grey bubbles sized by match %, the user as the amber dot with an ink ring."""
+    """x = AI exposure, y = growth. Roles as quiet dots with short names, you as the amber dot labelled "You".
+    With `before`, the chart carries its own Before / Now / Both buttons and a one-line readout. Each button plays a
+    Plotly frame in the browser (no Streamlit rerun), so your dot slides between where you were and where the plan takes
+    you, and "Both" adds a hollow "Before" ring. It opens on "Both"."""
     top = matches[: config.TOP_N_ROLES]
+    now_xy = (user["ai_exposure"] * 100, user["growth"] * 100)
+    before_xy = (before["ai_exposure"] * 100, before["growth"] * 100) if before else None
+    roles = [(m["ai_exposure"] * 100, m["role_growth"] * 100) for m in top]
+    labels = [short_role_title(m.get("role_id"), m["title"]) for m in top]
+    sizes = [20 + 14 * m["match_pct"] for m in top]
+
+    # Ranges from your dot in every view, then widened so each label fits: the chart never rescales between views.
+    mine = [now_xy] + ([before_xy] if before_xy else [])
+    xs, ys = [x for x, _ in roles + mine], [y for _, y in roles + mine]
+    x_pad, y_span = max(6.0, 0.08 * (max(xs) - min(xs))), max(3.0, max(ys) - min(ys))
+    x_range, y_range = _fit_ranges(roles, sizes, labels, (min(xs) - x_pad, max(xs) + x_pad),
+                                   (min(ys) - 0.15 * y_span, max(ys) + 0.15 * y_span))
+
+    def side_for(x: float, prefer: str) -> str:
+        """"You" sits left of its dot and "Before" right of its ring, unless that side runs past the chart's edge."""
+        from_left = (x - x_range[0]) / (x_range[1] - x_range[0]) * _PLOT_W
+        if prefer == "middle left":
+            return "middle left" if from_left > 60 else "middle right"
+        return "middle right" if _PLOT_W - from_left > 80 else "middle left"
+
+    before_side = side_for(before_xy[0], "middle right") if before_xy else "middle right"
+    # Role labels keep clear of your dot and labels in every view, so they never move when you switch.
+    fixed = [(*now_xy, 8, "You", side_for(now_xy[0], "middle left"), True)]
+    if before_xy:
+        fixed += [(*before_xy, 8, "You", side_for(before_xy[0], "middle left"), True),
+                  (*before_xy, 8, "Before", before_side, False)]
+    sides = _place_labels(roles, sizes, labels, fixed, x_range, y_range)
+
+    def ring_trace(show: bool) -> go.Scatter:
+        """The hollow "Before" ring: always drawn (see-through unless shown), so every view has the same traces."""
+        xy = before_xy or now_xy
+        return go.Scatter(
+            x=[xy[0]], y=[xy[1]], mode="markers+text", text=["Before" if show else ""], textposition=before_side,
+            textfont=dict(color=MUTED), cliponaxis=False, name="Before",
+            marker=dict(size=16, color="rgba(0,0,0,0)", line=dict(color=MUTED if show else "rgba(0,0,0,0)", width=1.5)),
+            hovertemplate="You, before the plan<br>AI exposure %{x:.0f}/100<br>Growth %{y:+.1f}%<extra></extra>",
+        )
+
+    def you_trace(xy: tuple[float, float]) -> go.Scatter:
+        """Your dot: the last trace, so theme.css can give it the soft pulse (inside .st-key-sf-plan-chart)."""
+        return go.Scatter(
+            x=[xy[0]], y=[xy[1]], mode="markers+text", text=["<b>You</b>"], textposition=side_for(xy[0], "middle left"),
+            textfont=dict(color=TEXT, size=15), cliponaxis=False, name="You",
+            marker=dict(size=14, color=AMBER, line=dict(color=AMBER, width=0)),
+            hovertemplate="You<br>AI exposure %{x:.0f}/100<br>Growth %{y:+.1f}%<extra></extra>",
+        )
+
     fig = go.Figure()
     fig.add_trace(go.Scatter(
-        x=[m["ai_exposure"] * 100 for m in top],
-        y=[m["role_growth"] * 100 for m in top],
-        mode="markers+text",
-        text=[m["title"] for m in top],
-        textposition="top center",
-        marker=dict(size=[12 + 40 * m["match_pct"] for m in top], color=EXPOSURE_STEPS[1], opacity=0.7),
-        customdata=[[round(m["match_pct"] * 100)] for m in top],
-        hovertemplate="%{text}<br>AI exposure %{x:.0f}/100<br>Growth %{y:+.1f}%<br>Match %{customdata[0]}%<extra></extra>",
+        x=[x for x, _ in roles], y=[y for _, y in roles], mode="markers+text", text=labels, textposition=sides,
+        textfont=dict(color=TEXT), cliponaxis=False,
+        marker=dict(size=sizes, color=EXPOSURE_STEPS[0], line=dict(color=EXPOSURE_LOW, width=1)),
+        customdata=[[round(m["match_pct"] * 100), m["title"]] for m in top],
+        hovertemplate="%{customdata[1]}<br>AI exposure %{x:.0f}/100<br>Growth %{y:+.1f}%<br>Match %{customdata[0]}%<extra></extra>",
         name="Future roles",
     ))
-    if before is not None:
-        fig.add_trace(go.Scatter(
-            x=[before["ai_exposure"] * 100], y=[before["growth"] * 100], mode="markers",
-            marker=dict(size=18, color="rgba(0,0,0,0)", line=dict(color=TEXT, width=2)),
-            hovertemplate="You, before the plan<extra></extra>", name="Before",
-        ))
-        fig.add_annotation(
-            x=user["ai_exposure"] * 100, y=user["growth"] * 100, ax=before["ai_exposure"] * 100, ay=before["growth"] * 100,
-            xref="x", yref="y", axref="x", ayref="y", showarrow=True, arrowhead=3, arrowcolor=TEXT, arrowwidth=2,
-        )
-    fig.add_trace(go.Scatter(
-        x=[user["ai_exposure"] * 100], y=[user["growth"] * 100], mode="markers+text", text=["You"], textposition="bottom center",
-        marker=dict(size=18, color=AMBER, line=dict(color=TEXT, width=2)),
-        hovertemplate="You<br>AI exposure %{x:.0f}/100<br>Growth %{y:+.1f}%<extra></extra>", name="You",
-    ))
-    fig.update_xaxes(title="AI exposure (0–100) — lower is harder to automate")
-    fig.update_yaxes(title="Expected demand growth (%/yr)")
-    return style_fig(fig, height=380)
+    fig.add_trace(ring_trace(before_xy is not None))
+    fig.add_trace(you_trace(now_xy))
+    style_fig(fig, height=420 if before_xy else 400)
+    axis = dict(showline=False, zeroline=False, ticks="", tickfont=dict(color=MUTED, size=14), title_font=dict(color=MUTED, size=14))
+    fig.update_xaxes(**axis, title="AI exposure (lower is harder to automate)", range=list(x_range), showgrid=False,
+                     tick0=0, dtick=20)
+    fig.update_yaxes(**axis, title="Demand growth (%/yr)", range=list(y_range), showgrid=True, gridcolor=GRID, gridwidth=1,
+                     tick0=0, dtick=_nice_step(*y_range))
+    fig.update_layout(showlegend=False, margin=dict(l=8, r=8, t=8, b=8))
+    if before_xy is None:
+        return fig
+
+    def readout(view: str) -> dict:
+        return dict(text=f"<b>{esc(growth_readout(before, user, view))}</b>", xref="paper", yref="paper", x=1, y=1.02,
+                    xanchor="right", yanchor="bottom", showarrow=False, font=dict(color=TEXT, size=15))
+
+    you_at = {"Before": before_xy, "Now": now_xy, "Both": now_xy}
+    fig.frames = [go.Frame(name=v, traces=[1, 2], data=[ring_trace(v == "Both"), you_trace(you_at[v])],
+                           layout=dict(annotations=[readout(v)])) for v in PLAN_VIEWS]
+    # redraw=True so the readout (a layout annotation) changes too; the dot still slides during the transition.
+    slide = dict(frame=dict(duration=600, redraw=True), transition=dict(duration=600, easing="cubic-in-out"), mode="immediate")
+    fig.update_layout(
+        margin=dict(t=56),
+        annotations=[readout("Both")],
+        updatemenus=[dict(
+            type="buttons", direction="right", active=PLAN_VIEWS.index("Both"), showactive=True,
+            x=0, y=1.02, xanchor="left", yanchor="bottom", pad=dict(t=0, r=0, b=0, l=0),
+            bgcolor=CARD, bordercolor=BORDER, borderwidth=1, font=dict(color=TEXT, size=15),
+            buttons=[dict(label=v, method="animate", args=[[v], slide]) for v in PLAN_VIEWS],
+        )],
+    )
+    return fig
 
 
 SDG_COLOURS = [AMBER, "#F2CB8A", "#D9C7A3", "#B8AA90", "#F7E3BD", "#CFC8BA", "#E3B46B", "#EFE6D2"]   # warm neutrals + amber; ink text stays >= 7:1 on all
@@ -417,7 +608,7 @@ def _css_vars() -> str:
         f"--sf-text:{TEXT};--sf-muted:{MUTED};--sf-on-ink:{ON_INK};--sf-amber:{AMBER};"
         f"--sf-up:{UP};--sf-up-text:{UP_TEXT};--sf-down:{DOWN};--sf-down-text:{DOWN_TEXT};"
         f"--sf-up-bg:color-mix(in srgb,{UP} 12%,{CARD});--sf-down-bg:color-mix(in srgb,{DOWN} 10%,{CARD});"
-        f"--sf-flat-bg:{RAISED};--sf-exposure:{EXPOSURE_HIGH};"
+        f"--sf-flat-bg:{RAISED};--sf-exposure:{EXPOSURE_HIGH};--sf-exposure-soft:{EXPOSURE_STEPS[1]};"
         f"--sf-font:{FONT_TEXT};--sf-radius:{RADIUS}px;--sf-shadow:{SHADOW};"
         "}"
     )

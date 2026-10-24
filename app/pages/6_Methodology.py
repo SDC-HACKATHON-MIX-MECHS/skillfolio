@@ -7,7 +7,7 @@ import pandas as pd
 import streamlit as st
 
 from app.page_components import concept_card, source_list
-from app.ui import page_header, page_setup, section_header, show
+from app.ui import page_header, page_setup, section_header, show, source_note
 from engine import config
 
 snapshot = page_setup("Methodology")
@@ -100,7 +100,7 @@ with st.expander("Show every setting"):
         {"Setting": "Pull of the skill-swing table toward its diagonal", "Value": f"{config.COVARIANCE_SHRINKAGE:.0%}"},
         {"Setting": "SDG tilt α", "Value": config.SDG_TILT_ALPHA},
     ]).astype({"Value": str}), hide_index=True, use_container_width=True)
-    st.caption("Source: engine/config.py")
+    source_note("the settings file engine/config.py")
 
 # --- Limits -----------------------------------------------------------------------------------------
 show(section_header("What this cannot tell you", icon_name="info"))
@@ -120,6 +120,10 @@ st.markdown(
 # --- AI disclosure ----------------------------------------------------------------------------------
 show(section_header("AI disclosure", icon_name="user"))
 st.markdown(
-    "- **In the product:** no language model is used. CV text is matched against our own skill list with fixed rules.\n"
-    "- **While building:** AI coding assistants (Claude Code, Replit Agent) helped write code. The team reviews all logic."
+    "- **In the product:** forecasts and plans use statistics, not AI models. To read a resume, the app also uses an open "
+    "embedding model, BAAI/bge-small-en-v1.5 (MIT licence), running on a RunPod GPU (on by default; untick it to skip). It can only suggest skills from our own "
+    "list, you can remove any that are wrong, and without it the app matches your resume with fixed keyword rules. "
+    "SkillFolio keeps no copy of your resume text. No generative language model is used.\n"
+    "- **While building:** we used Claude Code (Anthropic) to help write code, tests, data files and documents, and "
+    "Replit Agent to help build pages. The team reviews all logic, and every change passes the tests and a pull request."
 )
