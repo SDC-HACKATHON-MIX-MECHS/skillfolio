@@ -181,6 +181,16 @@ curl -X POST https://api.runpod.ai/v2/$RUNPOD_ENDPOINT_ID/runsync \
 - **Small, real data.** About 250 job posts a month is enough for clear trends in common skills but not rare ones, so thin-data skills are greyed out and never given a trend.
 - **Deploying on RunPod.** The first worker never started because the default 5 GB disk was too small for GPU PyTorch; raising it to 20 GB fixed it.
 
+## Known Limitations
+
+- **Industries:** our 20 roles and 73 skills are tech and data. Other industries are not covered yet.
+- **Progress is self-reported:** users tick their own course progress; a very short course can raise the fit score sharply.
+- **Portfolios are not saved:** a portfolio lasts one browser session.
+- **Job data:** Hacker News posts are mostly US and remote tech jobs, not the Malaysian market. Skills with too few posts get no trend.
+- **HRD Corp:** claimability is shown as "unknown", because we found no public source for it.
+- **AI model:** it can over-suggest (for example all three clouds for "a cloud server"), and after a quiet spell the RunPod worker can take up to a minute to start, in which case the app uses keyword matching.
+- **Forecasts are estimates under two AI scenarios, not predictions.**
+
 ## Future Improvements
 
 - [ ] Saved portfolios, so users can return and keep updating their skills over time
