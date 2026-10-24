@@ -94,7 +94,7 @@ KEY_TEXTS = {
     "3_My_Portfolio.py": ["My portfolio", "Outlook score", "Hiring trend", "AI impact", "Skill variety", "Source: Hacker News"],
     "4_Matches.py": ["Which roles fit me?", "fit", "Source: Hacker News"],
     "5_Rebalance_Plan.py": ["Your learning plan", "Fit with", "Courses, in order", "HRD Corp", "unknown", "estimates"],
-    "6_Methodology.py": ["Methodology and sources", "Where the data comes from", "How the numbers are made", "AI disclosure", "no language model"],
+    "6_Methodology.py": ["Methodology and sources", "Where the data comes from", "How the numbers are made", "AI disclosure", "bge-small-en-v1.5", "Claude Code"],
 }
 
 

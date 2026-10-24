@@ -41,16 +41,16 @@ The cost is personal and national: wasted learning hours, graduates stuck below 
 
 SkillFolio treats a person's skills as an investment portfolio and AI as the market. For Aina, it estimates that demand for her current skills grows about 9.7% a year, rates their AI impact at 19 out of 100, and ranks Systems Analyst as her closest role at 68% Fit. A plan of two free courses, 35.5 hours in total, raises that Fit to 88%.
 
-1. **Profile.** The user picks skills and levels, or pastes CV text that fixed matching rules map to our 73-skill catalogue, then sets hours, risk comfort and SDGs.
+1. **Profile.** The user picks skills and levels, or pastes CV text that keyword rules and an optional embedding model map to our 73-skill catalogue, then sets hours, risk comfort and SDGs.
 2. **Skill Market.** Each skill's demand trend comes from 7,961 dated Hacker News "Who is hiring" posts over 25 months. Its AI exposure is derived from the Anthropic Economic Index's occupation-level scores. A statistical model estimates momentum with a nominal 80% band, damps noisy trends, and re-runs under moderate and fast AI-disruption scenarios.
 3. **Matches.** Roles are ranked by an explainable Fit score with a skills-gap list and the UN SDG target each role serves. The SDGs the user picks tilt the ranking.
 4. **Plan.** A greedy optimiser orders free courses by their gain in Fit and outlook per learning hour, within the user's hours.
 
-What sets SkillFolio apart is honesty. We tested our uncertainty band by simulation: the nominal 80% band covered only 48%, so we widened it to about 76%. Scenarios are labelled as what-ifs, skills with too little data are flagged rather than headlined, every number shows its source and date, and an ID allow-list means only catalogued roles and courses can appear. 810 automated tests check the data and the engine. SkillFolio informs; the user decides.
+What sets SkillFolio apart is honesty. We tested our uncertainty band by simulation: the nominal 80% band covered only 48%, so we widened it to about 76%. Scenarios are labelled as what-ifs, skills with too little data are flagged rather than headlined, every number shows its source and date, and an ID allow-list means only catalogued roles and courses can appear. 855 automated tests check data and engine. SkillFolio informs; the user decides.
 
-From the SDC workshops we use cloud hosting (Replit) and data design (dated, versioned snapshots under written contracts). The product uses no language model.
+From the SDC workshops we use cloud hosting (Replit; a RunPod GPU for the embedding model) and data design (dated, versioned snapshots under written contracts).
 
-*(296 / 300 words)*
+*(299 / 300 words)*
 
 ---
 
@@ -65,9 +65,9 @@ From the SDC workshops we use cloud hosting (Replit) and data design (dated, ver
 | Data pipeline | Python + Requests: HN Algolia API → skill extraction (fixed alias rules) → dated JSON snapshots |
 | Data store | Versioned CSV and JSON files in Git: 73 skills, 20 roles, curated role-skill lists, 52 courses, 5 synthetic profiles, dated snapshots. Every file follows a written data contract and is checked by automated tests |
 | Data sources | Hacker News "Who is hiring" (HN Algolia API); Anthropic Economic Index occupation exposure (CC-BY), from which we derive skill exposure; O*NET 31.0 Technology Skills (CC BY 4.0); UN SDG targets, mapped to roles by hand |
-| Hosting | Replit (development and public deployment) |
-| Quality | pytest suite (810 tests passing on 22 Oct 2026: data integrity, engine specification, extractor accuracy), GitHub pull requests with review |
-| AI in the product | Statistical forecasting and optimisation only. No language model: CV text is matched to skills by fixed rules |
+| Hosting | Replit (development and public deployment); RunPod Serverless GPU for the embedding model (scales to zero when idle) |
+| Quality | pytest suite (855 tests passing on 24 Oct 2026: data integrity, engine specification, extractor accuracy, resume matching), GitHub pull requests with review |
+| AI in the product | Statistical forecasting and optimisation. For resume reading, an optional open embedding model (BAAI/bge-small-en-v1.5, MIT licence) on a RunPod Serverless GPU suggests skills by meaning. It can only return skill IDs from our catalogue, suggestions are shown on the next step for the user to remove any that are wrong, and if it is unavailable the app falls back to fixed keyword rules. SkillFolio stores no copy of the resume text. No generative language model is used |
 | AI in development | Built with the help of Claude Code (Anthropic) and Replit Agent. The team reviewed all logic, and every change goes through tests and a pull request |
 
 **System block diagram**
@@ -78,6 +78,9 @@ From the SDC workshops we use cloud hosting (Replit) and data design (dated, ver
  O*NET 31.0 ─────┘                                       │
                                                           ▼
  User (phone / laptop) ─► Streamlit app on Replit ─► engine/ ─► forecasts · portfolio · matches · plan · SDG lens
+                                │  ▲
+        resume text (optional) ▼  │ catalogue skill IDs only
+                      RunPod GPU: bge-small-en-v1.5 embedding model
                                 ▲                        │
                                 └── charts, sources, ◄───┘
                                     dates, estimates      ▲
@@ -119,7 +122,7 @@ From the SDC workshops we use cloud hosting (Replit) and data design (dated, ver
 - Malay Mail, "Mosti: AI disruption looms in Malaysia, 600,000 workers must reskill in three to five years", 7 Jan 2025: https://www.malaymail.com/news/malaysia/2025/01/07/mosti-ai-disruption-looms-in-malaysia-600000-workers-must-reskill-in-three-to-five-years/162368
 - UN Statistics Division, SDG targets 4.4 and 8.5: https://unstats.un.org/sdgs/metadata/?Text=&Goal=4&Target=4.4 · https://unstats.un.org/sdgs/metadata/?Text=&Goal=8&Target=8.5
 - Anthropic Economic Index, `job_exposure.csv`: https://huggingface.co/datasets/Anthropic/EconomicIndex · method: Massenkoff & McCrory, *Labor market impacts of AI: A new measure and early evidence*, Anthropic, 5 Mar 2026: https://www.anthropic.com/research/labor-market-impacts
-- Measured figures (Aina's line, Fit gain, AI impact, outlook, test count): SkillFolio repository, snapshot of 20 Oct 2026, `main` on 22 Oct 2026
+- Measured figures (Aina's line, Fit gain, AI impact, outlook, test count): SkillFolio repository, snapshot of 20 Oct 2026, `main` on 22 Oct 2026 (test count: `main` with the RunPod resume-matching branch, 24 Oct 2026)
 
 ---
 
@@ -153,9 +156,12 @@ From the SDC workshops we use cloud hosting (Replit) and data design (dated, ver
 | O*NET 31.0 Technology Skills | dataset | CC BY 4.0 |
 | UN SDG target wording (targets mapped to roles by the team) | reference text | UN public data |
 | Course catalogue (52 free courses from freeCodeCamp, Microsoft Learn, Kaggle, Cisco NetAcad, AWS Skill Builder, The Open University and others) | links and metadata only | Each provider's public listing |
-| Claude Code (Anthropic) | AI development tool: helped write code, data files and documents | Anthropic terms of service |
+| Claude Code (Anthropic) | AI development tool: helped write code, tests, data files, documents and this proposal | Anthropic terms of service |
 | Replit Agent | AI development tool: helped write code | Replit terms of service |
-| Pre-trained AI models in the product | model | None |
+| BAAI/bge-small-en-v1.5 (pre-trained embedding model, used unchanged for resume-to-skill matching) | model | MIT |
+| sentence-transformers | code | Apache-2.0 |
+| PyTorch | code | BSD-3-Clause |
+| RunPod Python SDK, RunPod Serverless | code; cloud GPU platform | MIT; RunPod terms of service |
 
 All AI-assisted output was reviewed by the team, checked by the automated tests and merged through pull requests.
 
@@ -167,5 +173,7 @@ All AI-assisted output was reviewed by the team, checked by the automated tests 
 ## 7. Declaration
 
 By submitting this proposal, the team leader confirms that the information provided is accurate to the best of the team's knowledge and that the project will be original work created during the SDC 2026 hackathon period.
+
+**Use of generative AI.** The team used **Claude Code (Anthropic)** throughout the hackathon to help write the code, tests, data files, documents and this proposal, and **Replit Agent** to help build app pages. The team set the direction, reviewed all AI-assisted output, and checked it with the automated test suite and pull-request review before merging. The only AI model inside the product is the open embedding model listed in 6.2.
 
 [Signature] **[Leader]** · [Date]

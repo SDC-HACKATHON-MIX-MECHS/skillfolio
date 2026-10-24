@@ -103,8 +103,8 @@ Known limit: Hacker News postings are global and tech-heavy, so SkillFolio targe
 
 ## AI disclosure
 
-- **In the product:** no language model is required for the preliminary demo. If we add one (to read CV text into skills and phrase explanations), it will be named here, and it may only choose from our own skill / role / course lists.
-- **While building:** AI coding assistants (e.g. Claude Code, Replit Agent) helped write code. All logic is reviewed by the team.
+- **In the product:** forecasts, matching and plans are statistics, not AI models. Resume reading can optionally use the open embedding model [`BAAI/bge-small-en-v1.5`](https://huggingface.co/BAAI/bge-small-en-v1.5) (MIT) on a RunPod Serverless GPU ([`runpod/README.md`](runpod/README.md)). It can only return skill IDs from our catalogue, the user sees each suggestion and can remove it, and on any error the app falls back to keyword rules. SkillFolio stores no copy of the resume text. No generative language model is used.
+- **While building:** Claude Code (Anthropic) helped write code, tests, data files and documents; Replit Agent helped build pages. All logic is reviewed by the team and passes the test suite and pull-request review.
 
 ## Team agreement
 
