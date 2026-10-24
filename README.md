@@ -32,17 +32,18 @@
 
 ### Problem
 
-AI is changing which skills employers want faster than career advice can keep up. In 2024, 66.0% of Malaysian graduates aged 24 and under worked in jobs below their qualifications (DOSM, Graduates Statistics 2024). A fresh graduate with a few hundred learning hours a year has no way to tell which skills are growing, which roles they could realistically reach, or which courses are worth their time, and chatbots that answer this can invent jobs, courses and numbers.
+A resume is a snapshot, but the job market is a moving target. AI is changing which skills employers want faster than career advice can keep up, and graduates and career switchers have no way to keep track of their skills against it. In 2024, 66.0% of Malaysian graduates aged 24 and under worked in jobs below their qualifications (DOSM, Graduates Statistics 2024). Someone with a few hundred learning hours a year can't see which of their skills are growing, which roles they could reach, or whether each course is moving them closer, and chatbots that answer this can invent jobs, courses and numbers.
 
 ### Solution
 
-SkillFolio treats a person's skills like an investment portfolio and AI as the market. It reads real, dated job posts (Hacker News "Who is hiring", 25 months) and AI-exposure data (Anthropic Economic Index, O*NET) to estimate how demand for each skill is moving under two AI scenarios. It then ranks the roles a person can reach with an explainable fit score, and builds an ordered plan of free courses that moves them closer fastest. An open AI model on a RunPod GPU reads the user's resume and suggests skills they describe without naming. Every number shows its source and date, forecasts are labelled as estimates, and the app can only recommend roles, skills and courses from its own verified lists, so it cannot invent them. The person makes the decision.
+SkillFolio is a living skill portfolio. The user pastes or uploads a resume and the app builds their portfolio from a catalogue of 73 skills, each rated Basic, Working or Strong. They then track and update it as they learn, and watch how it changes their fit for the roles they want, whether they are moving into tech and data or growing in it. It reads real, dated job posts (Hacker News "Who is hiring", 25 months) and AI-exposure data (Anthropic Economic Index, O*NET) to estimate how demand for each skill is moving under two AI scenarios, ranks the roles they can reach with an explainable fit score, and builds an ordered plan of free courses. When they mark a course finished, the skill level and the fit score update. An open AI model on a RunPod GPU suggests skills a resume describes without naming. Every number shows its source and date, forecasts are labelled as estimates, and the app can only recommend roles, skills and courses from its own verified lists, so it cannot invent them. The person makes the decision.
 
 ### Key Features
 
-- **Resume to skills** — paste a resume; keyword matching plus an embedding model on RunPod suggest skills from our catalogue of 73, and the user confirms each one.
+- **Resume to skill portfolio** — paste a resume; keyword matching plus an embedding model on RunPod suggest skills from our 73, and the user confirms each one and sets a level.
+- **Track your learning** — mark progress on each planned course; finishing one raises that skill's level and your fit, and the Profile page shows plan progress, hours left and skill coverage.
 - **Skill Market (AI-trend signal)** — every skill's job-post demand trend, a 12-month estimate with a range, and its AI exposure, from a dated snapshot that can be refreshed.
-- **Role matching** — ranked roles with a fit score, the skills that count towards it, the biggest missing skill, and the SDGs each role serves.
+- **Role matching** — 20 ranked roles with a fit score, the skills that count towards it, the biggest missing skill, and the SDGs each role serves.
 - **Learning plan** — free courses in order, with hours and HRD Corp status; "Apply plan" shows the fit and AI exposure change live.
 - **Two AI futures** — every number re-runs under a moderate and a fast AI-disruption scenario.
 
@@ -177,6 +178,7 @@ curl -X POST https://api.runpod.ai/v2/$RUNPOD_ENDPOINT_ID/runsync \
 
 ## Future Improvements
 
+- [ ] Saved portfolios, so users can return and keep updating their skills over time
 - [ ] Add a Malaysian job source so non-tech skills (marketing, accounting, supply chain) get real trends
 - [ ] Use the RunPod model to read job posts as well, so trend counts catch skills described without their name
 - [ ] Verify HRD Corp claimability for each course
