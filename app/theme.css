@@ -261,10 +261,11 @@ label[data-baseweb="radio"], [data-baseweb="tab"], [data-baseweb="select"], summ
 .st-key-sf-row-sep-home-3::after { display: none; }
 [class*="st-key-sf-row-"] [data-testid="stBaseButton-tertiary"] { justify-content: flex-start; padding: 0; margin-top: 8px; }
 [class*="st-key-sf-row-"] [data-testid="stBaseButton-tertiary"] p { font-weight: 500; }
-/* the strip: text on the left, one button on the right. Flex row; the text may wrap, the button never shrinks, so they cannot overlap. */
+/* the strip: text on the left, one button on the right. Flex row; the text may wrap, the button never shrinks, so they cannot overlap.
+   Corners nest: the button (16px) sits 8px in, so the strip is 16 + 8 = 24px (the tile radius); 16px looked sharper than its button. */
 [class*="st-key-sf-strip"] {
   flex-direction: row !important; flex-wrap: nowrap !important; align-items: center !important; justify-content: space-between; gap: 8px 16px !important;
-  background: var(--sf-bg); border: 1px solid var(--sf-border); border-radius: var(--sf-radius-control); padding: 8px 8px 8px 16px; margin-top: 16px;
+  background: var(--sf-bg); border: 1px solid var(--sf-border); border-radius: var(--sf-radius-tile); padding: 8px 8px 8px 16px; margin-top: 16px;
 }
 [class*="st-key-sf-strip"] > div { width: auto !important; min-width: 0; }
 [class*="st-key-sf-strip"] > div:first-child { flex: 1 1 0 !important; }
