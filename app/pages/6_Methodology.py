@@ -151,6 +151,6 @@ st.markdown(
     "embedding model, BAAI/bge-small-en-v1.5 (MIT licence), running on a RunPod GPU (optional: used only when the endpoint keys are set, and the user can untick it). It can only suggest skills from our own "
     "list, you can remove any that are wrong, and without it the app matches your resume with fixed keyword rules. "
     "SkillFolio keeps no copy of your resume text. No generative language model is used.\n"
-    "- **While building:** we used Claude Code (Anthropic) to help write code, tests, data files and documents, and "
-    "Replit Agent to help build pages. The team reviews all logic, runs the tests before merging, and merges changes through pull requests."
+    "- **While building:** we used Claude Code (Anthropic) to help write code, tests, data files and documents. "
+    "The team reviews all logic, runs the tests before merging, and merges changes through pull requests."
 )

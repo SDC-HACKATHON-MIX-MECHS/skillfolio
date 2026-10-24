@@ -1,6 +1,6 @@
-# SkillFolio — instructions for AI agents (Replit Agent)
+# SkillFolio — instructions for AI agents
 
-> Replit Agent reads this file when it works in the Repl. It is kept in the repository as part of our AI disclosure: it shows the rules the agent had to follow.
+> Any AI agent that works in the Repl reads this file. The team did not use Replit Agent; Claude Code was the only generative-AI tool used (see the AI disclosure in the README).
 
 SkillFolio treats a person's skills like an investment portfolio. Each skill has a demand trend (return), a demand swing (risk) and an AI-exposure beta, computed from public, dated job-post data. It is a Streamlit app for the SDC Hackathon 2026, Domain 1 (the Aiversecity Future-Ready Workforce). **AI advises; the person decides.**
 
@@ -55,4 +55,4 @@ Build and polish the pages in `app/pages/` (and shared helpers in `app/ui.py`), 
 
 ## Git
 - Work on a branch named `app/<page>` (for example `app/skill-market`). Small commits. Pull before you push. Never force-push. Open a pull request into `main`.
-- Say in the pull request that the Replit Agent was used (the hackathon requires AI disclosure).
+- Say in the pull request which AI tool was used (the hackathon requires AI disclosure).
