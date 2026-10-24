@@ -22,7 +22,7 @@
 | GitHub Repository | https://github.com/SDC-HACKATHON-MIX-MECHS/skillfolio |
 | Replit Project    | [TO FILL]                                      |
 | Live Demo         | [TO FILL]                                      |
-| RunPod Endpoint   | https://api.runpod.ai/v2/r0ykxnttw93erm        |
+| RunPod Endpoint   | https://api.runpod.ai/v2/r0ykxnttw93erm (API address, needs a key) |
 | Slide Deck        | [TO FILL]                                      |
 | Demo Video        | [TO FILL]                                      |
 
@@ -76,7 +76,7 @@ SkillFolio turns a resume into a skill portfolio. The user pastes a resume and w
 │   ├── skill_match.py       # Resume-to-skills matching logic
 │   └── Dockerfile           # Image RunPod builds the endpoint from
 ├── contracts/               # Data shapes every file must follow
-├── docs/                    # Specification, design notes, proposal
+├── docs/                    # Specification and screenshots
 ├── submission/              # Required submission documents
 ├── tests/                   # Unit and app tests
 ├── .env.example             # Example environment variables
