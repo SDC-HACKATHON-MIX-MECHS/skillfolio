@@ -137,7 +137,7 @@ def test_change_pill_has_arrow_sign_and_word():
 def test_thin_data_says_low_data_and_greys_the_row():
     row = ui.holding_row("Rust", "RS", 0.9, "stable", True, [1, 2], 0.3)
     assert "low data" in row and "sf-row-thin" in row and "+90.0%" not in row
-    assert "Rust" in row and "(RS)" in row                       # Name (TICKER)
+    assert "Rust" in row and "(RS)" not in row                   # the name only: no ticker in brackets
 
 
 def test_exposure_bar_is_amber_never_red_or_green():
@@ -251,10 +251,16 @@ def test_place_labels_keeps_role_labels_off_your_dot_and_inside_the_chart():
 
 # --- the source line -------------------------------------------------------------------------------------------
 
-def test_source_line_keeps_each_source_and_its_date_in_one_unbreakable_chunk():
+def test_source_line_protects_every_date_from_splitting_but_lets_long_names_wrap():
     html = ui.source_html(["Hacker News job posts, retrieved 2026-10-20", "Anthropic Economic Index (AI impact), retrieved 2026-10-20"])
-    assert html.count('class="sf-src-i"') == 2 and "Source: " in html and "estimates, not predictions" in html and "\n" not in html
+    assert html.count('class="sf-src-i"') == 2 and html.count('<span class="sf-nowrap">2026-10-20</span>') == 2   # a date is one unbreakable unit
+    assert "Source: " in html and "estimates, not predictions" in html and chr(10) not in html
     assert "<script>" not in ui.source_html([HOSTILE], HOSTILE)
+
+
+def _plain(html: str) -> str:
+    import re
+    return " ".join(re.sub(r"<[^>]+>", " ", re.sub(r"</?span[^>]*>", "", html)).split())
 
 
 def test_source_caption_uses_plain_names_not_file_names(monkeypatch):
@@ -263,7 +269,8 @@ def test_source_caption_uses_plain_names_not_file_names(monkeypatch):
     snap = {"sources": [{"id": "hn_whoishiring", "name": "Hacker News — Ask HN: Who is hiring?", "retrieved_at": "2026-10-20T09:36:00Z"},
                         {"id": "aei_job_exposure", "name": "Anthropic Economic Index — job_exposure.csv", "retrieved_at": "2026-10-20T09:36:00Z"}]}
     ui.source_caption(snap, "hn_whoishiring", "aei_job_exposure")
-    assert "Hacker News job posts, retrieved 2026-10-20" in seen[0] and "Anthropic Economic Index (AI impact)" in seen[0] and ".csv" not in seen[0]
+    text = _plain(seen[0])
+    assert "Hacker News job posts, retrieved 2026-10-20" in text and "Anthropic Economic Index (AI impact)" in text and ".csv" not in text
 
 
 # --- the SDG list --------------------------------------------------------------------------------------------
@@ -280,3 +287,10 @@ def test_sdg_bars_rank_the_biggest_goals_and_fold_the_rest_into_one_line():
 def test_sdg_bars_escape_names():
     from app.page_components import sdg_bars
     assert "<script>" not in sdg_bars({4: 1.0}, {4: HOSTILE})
+
+
+def test_the_you_dot_on_the_plan_chart_has_an_ink_ring_so_mint_is_never_the_only_mark():
+    matches = [{"title": f"Role {i}", "role_id": f"r{i}", "match_pct": 0.6, "ai_exposure": 0.1 * i, "role_growth": 0.05 + 0.01 * i} for i in range(1, 4)]
+    fig = ui.risk_return_fig(matches, {"ai_exposure": 0.2, "growth": 0.09})
+    rings = [t.marker.line for t in fig.data if t.marker is not None and t.marker.color == ui.MINT]
+    assert rings and all(r.color == ui.TEXT and r.width >= 2 for r in rings)         # mint on a light card is about 1.3:1: the ring carries the contrast

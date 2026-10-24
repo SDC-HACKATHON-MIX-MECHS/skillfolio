@@ -8,14 +8,13 @@ import streamlit as st
 from app.dashboard import holdings, spark_values
 from app.page_components import PLAIN, sdg_bars, skill_list, skill_row
 from app.ui import (
-    LEVEL_LABELS, SDG_NAMES, fmt_pct, fmt_score, fmt_signed, page_header, page_setup, require_profile, risk_return_fig, run_engine,
+    SDG_NAMES, fmt_pct, fmt_score, fmt_signed, page_header, page_setup, require_profile, risk_return_fig, run_engine,
     show, show_fig, show_warnings, skill_name, skill_ticker, source_caption, source_note, stat_row,
 )
 
 snapshot = page_setup("My Portfolio")
 _who = (st.session_state.get("profile") or {}).get("display_name")
-page_header("My portfolio",
-            f"{_who}: how your skills look to employers today." if _who else "How your skills look to employers today.", narrow=True)
+page_header("My portfolio")
 profile = require_profile()
 
 result = run_engine(profile, snapshot)
@@ -25,11 +24,11 @@ m = result["portfolio"]
 
 # --- A strip of three numbers -----------------------------------------------------------------------
 show(stat_row([
-    ("Outlook score", f"{m['readiness'] * 100:.1f}", PLAIN["outlook"]),
-    ("Hiring trend, 12 months", fmt_signed(m["growth"]), PLAIN["trend"]),
-    ("AI impact (0 to 100)", fmt_score(m["ai_exposure"]).replace("/100", ""), PLAIN["ai"]),
+    ("Outlook score", f"{m['readiness'] * 100:.1f}"),
+    ("Hiring trend, 12 months", fmt_signed(m["growth"])),
+    ("AI impact (0 to 100)", fmt_score(m["ai_exposure"]).replace("/100", "")),
 ]))
-st.caption("Outlook score: " + PLAIN["outlook"] + " All three are estimates for your skills as a whole, not predictions.")
+st.caption("All three are estimates, not predictions.")
 source_caption(snapshot, "hn_whoishiring", "aei_job_exposure")
 
 # --- The one primary action -------------------------------------------------------------------------
@@ -42,8 +41,7 @@ with st.expander(f"Your {len(held)} skills"):
     show(skill_list([
         skill_row(
             skill_name(h["skill_id"]), skill_ticker(h["skill_id"]), h["projected"], h["trajectory"], h["thin"],
-            spark_values(h["index"]), h["exposure"],
-            sub=f"Level {LEVEL_LABELS[h['level']]} · {h['weight'] * 100:.0f}% of your skills", with_ai=True,
+            spark_values(h["index"]), h["exposure"], with_ai=True,
         )
         for h in held
     ], with_ai=True))

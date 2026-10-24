@@ -17,8 +17,7 @@ from engine import portfolio, sdg
 from engine.pathway import plan
 
 snapshot = page_setup("Your learning plan")
-page_header("Your learning plan",
-            "The courses that move you toward a role fastest, in the order to take them.", narrow=True)
+page_header("Your learning plan")
 profile = require_profile()
 
 result = run_engine(profile, snapshot)
@@ -80,7 +79,7 @@ rows = [
     for s in steps
 ]
 SHOWN = 3
-show(section_header("Courses, in order", "Chosen to move you toward this role fastest for each hour.", icon_name="briefcase"))
+show(section_header("Courses, in order", icon_name="briefcase"))
 show(course_list(rows[:SHOWN]))
 if len(rows) > SHOWN:
     with st.expander(f"Show the other {len(rows) - SHOWN} courses"):

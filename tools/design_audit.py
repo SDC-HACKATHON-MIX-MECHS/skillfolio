@@ -44,11 +44,10 @@ def blend(fg: str, alpha: float, bg: str) -> str:
 
 def token_pairs() -> list[tuple[str, str, str, float]]:
     """(label, foreground, background, minimum ratio). Tints are blended over the surface they sit on.
-    AMBER is a FILL colour only (it is about 2:1 on white and is never text), so it is not in this list: every amber fill
-    (progress track, chart line, selected underline, nav marker) always has its value written out as text next to it."""
+    MINT is a FILL colour on light surfaces (about 1.3:1 on a card, never text there), so only the pairs it really carries are listed:
+    ink ON mint, and mint text ON charcoal. Every mint fill has its value written out as text next to it and an ink outline."""
     pill_up = blend(ui.UP, 0.12, ui.CARD)
     pill_down = blend(ui.DOWN, 0.10, ui.CARD)
-    strong_chip = blend(ui.AMBER, 0.28, ui.CARD)       # 'Strong fit' chip tint
     pairs = []
     for surface_name, surface in (("page", ui.BG), ("card", ui.CARD), ("raised", ui.RAISED), ("sidebar", ui.SIDEBAR)):
         pairs += [
@@ -66,7 +65,11 @@ def token_pairs() -> list[tuple[str, str, str, float]]:
         ("rising chip text on its tint", ui.UP_TEXT, pill_up, 7.0),
         ("falling chip text on its tint", ui.DOWN_TEXT, pill_down, 7.0),
         ("flat chip text on its fill", ui.TEXT, ui.RAISED, 7.0),
-        ("'Strong fit' chip text on its amber tint", ui.TEXT, strong_chip, 7.0),
+        ("'Strong fit' chip text (ink on mint)", ui.TEXT, ui.MINT, 7.0),
+        ("feature tile text (ink on mint)", ui.TEXT, ui.MINT, 7.0),
+        ("charcoal card text", ui.ON_CHARCOAL, ui.CHARCOAL, 7.0),
+        ("charcoal card secondary text", ui.ON_CHARCOAL_MUTED, ui.CHARCOAL, 7.0),
+        ("mint on charcoal (numbers, bars)", ui.MINT, ui.CHARCOAL, 7.0),
         ("active nav item text on its fill", ui.TEXT, ui.RAISED, 7.0),
         ("disabled button label on its fill", ui.MUTED, ui.RAISED, 4.5),
         ("unselected radio outline against the page (non-text)", ui.MUTED, ui.BG, 3.0),

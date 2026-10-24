@@ -4,7 +4,7 @@ The look is the v4 LIGHT system: warm off-white page, white cards with a 1px sof
 family (Inter), amber used for fills only (progress tracks, the chart line, the selected underline).
 
 Page files never contain hex codes or raw HTML. They use:
-  * tokens below (BG, CARD, AMBER, UP, DOWN, FLAT, ...),
+  * tokens below (BG, CARD, MINT, UP, DOWN, FLAT, ...),
   * `page_setup(title)`, which injects the one shared stylesheet (`inject_css()`) and draws the sidebar,
   * the component builders in "HTML components" (each returns an HTML string; render it with `show(...)`),
   * `style_fig` / `show_fig` for Plotly.
@@ -13,6 +13,7 @@ Page files never contain hex codes or raw HTML. They use:
 from __future__ import annotations
 
 import html as _html
+import re
 import math
 from pathlib import Path
 
@@ -23,30 +24,37 @@ from engine import config
 from engine.data import load_courses, load_role_skills, load_roles, load_skills, load_snapshot
 
 # --- Design tokens (docs/DESIGN.md section 1): the ONE token set for every page. No hex codes in page files. --------
-# Contrast is computed by tools/design_audit.py (and tests/test_design_audit.py): text >= 7:1 for body and secondary
-# text, >= 4.5:1 for everything else. AMBER fails as text (about 2:1 on white), so it is a FILL colour only.
-BG = "#F7F5F0"            # page (warm off-white)
-CARD = "#FFFFFF"          # cards, inputs
-SIDEBAR = "#FBFAF7"       # sidebar surface
-RAISED = "#F1EEE6"        # hover rows, selected nav item, segmented-control track
-BORDER = "#E7E2D8"        # 1px soft border
-GRID = "#ECE8DE"          # chart gridlines
-TEXT = "#1B1A17"          # ink: body text, primary button fill, links
-MUTED = "#534E49"         # secondary text (never lighter; never smaller than 14px)
-ON_INK = "#FFFFFF"        # label on an ink fill (primary button)
-AMBER = "#E8A33D"         # FILLS ONLY: progress track, chart line, selected-tab underline, nav marker
+# The look: a soft sage page, off-white cards with very large corners, ONE charcoal feature card, and mint green as the accent
+# fill. Contrast is computed by tools/design_audit.py (and tests/test_design_audit.py): text >= 7:1 on every surface.
+# MINT is about 1.3:1 on the light cards, so it is a FILL (bars, chips, the selected tab) and never text there; ink goes ON
+# mint, and mint goes ON charcoal. There is no violet in this palette.
+BG = "#D9E0D6"            # page (soft sage)
+CARD = "#F2F4F0"          # cards, inputs (off-white)
+SIDEBAR = "#E9EEE6"       # sidebar surface
+RAISED = "#E2E8DE"        # hover rows, selected nav track, segmented-control track
+BORDER = "#C9D2C5"        # 1px soft border
+GRID = "#CAD3C6"          # chart gridlines
+TEXT = "#171A18"          # ink: body text, primary button fill, links, outlines
+MUTED = "#3D453F"         # secondary text (never lighter; never smaller than 14px)
+ON_INK = "#F2F4F0"        # label on an ink fill (primary button)
+CHARCOAL = "#1D1E1D"      # the one dark feature card
+ON_CHARCOAL = "#F2F4F0"           # text on charcoal
+ON_CHARCOAL_MUTED = "#BEC6BC"     # secondary text on charcoal
+MINT = "#A8F5A2"          # THE ACCENT FILL: progress bars, chips, the selected tab, chart areas, the feature tile (ink text on it)
 UP = "#1E8E5A"            # rising: arrows and chart marks (never text on its own)
-UP_TEXT = "#115A38"       # rising: text on a white card or a green tint
+UP_TEXT = "#0B4527"       # rising: text on a card or a green tint
 DOWN = "#C8372D"          # falling: arrows and chart marks
-DOWN_TEXT = "#93251E"     # falling: text on a white card or a red tint
+DOWN_TEXT = "#7A1F19"     # falling: text on a card or a red tint
 FLAT = MUTED
-EXPOSURE_LOW = "#CFC5B0"  # AI impact: one neutral grey-brown scale, never red/green (AI impact is not "bad")
-EXPOSURE_HIGH = "#6B5D45"
-EXPOSURE_STEPS = ["#E4DDCE", "#B8AA90", "#6B5D45"]
+EXPOSURE_LOW = "#C2CBBE"  # AI impact: one neutral grey-green scale, never red/green/mint (AI impact is not "bad")
+EXPOSURE_HIGH = "#4E5A52"
+EXPOSURE_STEPS = ["#D3DAD0", "#A6B2A2", "#4E5A52"]
 DIRECTION_COLOUR = {"up": UP, "down": DOWN, "flat": FLAT, "low": FLAT}
 FONT_TEXT = "'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"   # the only family
-RADIUS = 10               # px: cards, inputs, expanders (buttons and inputs use 8, chips 6)
-SHADOW = "0 1px 2px rgba(27,26,23,0.06)"   # the only shadow: very soft, on cards
+RADIUS = 32               # px: cards and expanders (very large corners, as in the reference)
+RADIUS_TILE = 24          # px: tiles inside a card (the mint tile, a chart panel)
+RADIUS_CONTROL = 16       # px: buttons, inputs, nav items (chips and tabs are fully round)
+SHADOW = "0 10px 30px rgba(23,26,24,0.07)"   # the only shadow: very soft, on cards
 
 # UN SDG short names (https://sdgs.un.org/goals)
 SDG_NAMES = {
@@ -216,7 +224,7 @@ def skill_ticker(skill_id: str) -> str:
 
 def skill_label(skill_id: str) -> str:
     skill = skill_catalog().get(skill_id)
-    return f"{skill['name']} ({skill['ticker']})" if skill else skill_id
+    return skill["name"] if skill else skill_id
 
 
 def source(snapshot: dict, source_id: str) -> dict:
@@ -227,9 +235,12 @@ SOURCE_LABELS = {"hn_whoishiring": "Hacker News job posts", "aei_job_exposure": 
 
 
 def source_html(items: list[str], note: str | None = "estimates, not predictions") -> str:
-    """The quiet source line under a chart or table: a small icon, then 'Source:' and each source as one unbreakable chunk (so a date
-    never splits across two lines), then the estimate note. One line of HTML; every piece of text is escaped."""
-    chunks = " · ".join(f'<span class="sf-src-i">{esc(item)}</span>' for item in items)
+    """The quiet source line under a chart or table: a small icon, then 'Source:' and each source as a chunk whose DATE never splits
+    across two lines (long names may wrap), then the estimate note. One line of HTML; every piece of text is escaped."""
+    def protect(text: str) -> str:      # a date is one unit and never splits across two lines; names and words may wrap
+        return re.sub(r"\d{4}-\d{2}-\d{2}", lambda m: f'<span class="sf-nowrap">{m.group(0)}</span>', esc(text))
+
+    chunks = " · ".join(f'<span class="sf-src-i">{protect(item)}</span>' for item in items)
     tail = f" · {esc(note)}" if note else ""
     return f'<div class="sf-source">{icon("file-text", 16)}<span>Source: {chunks}{tail}</span></div>'
 
@@ -330,7 +341,8 @@ def demand_fig(months: list[str], values: list[float], direction: str = "flat", 
     """The line chart: ONE amber line, an ink dot on the last month, a dotted line at the start level (100).
     `direction` is kept for callers; the line is amber whatever it is (up or down is said in words next to the chart)."""
     fig = go.Figure(go.Scatter(
-        x=months, y=values, mode="lines", line=dict(color=AMBER, width=3, shape="spline", smoothing=0.4),
+        x=months, y=values, mode="lines", line=dict(color=TEXT, width=3, shape="spline", smoothing=0.4),
+        fill="tozeroy", fillcolor="rgba(168,245,162,0.55)",
         hovertemplate="%{x}<br>Demand index %{y:.1f}<extra></extra>", showlegend=False,
     ))
     fig.add_trace(go.Scatter(
@@ -340,6 +352,9 @@ def demand_fig(months: list[str], values: list[float], direction: str = "flat", 
     fig.add_hline(y=100, line_dash="dot", line_color=BORDER, line_width=1)
     fig.update_yaxes(title=None)
     fig.update_xaxes(title=None, showgrid=False)
+    lo, hi = min(values + [100.0]), max(values + [100.0])
+    pad = max((hi - lo) * 0.15, 2.0)
+    fig.update_yaxes(range=[lo - pad, hi + pad])      # the line uses the plot; the mint area fills down to the axis, not to zero
     return style_fig(fig, height=height)
 
 
@@ -357,7 +372,7 @@ def gauge_fig(exposure: float | None, before: float | None = None) -> go.Figure:
         number={"suffix": "/100", "font": {"size": 40}},
         gauge={
             "axis": {"range": [0, 100], "tickcolor": MUTED},
-            "bar": {"color": AMBER},
+            "bar": {"color": MINT, "line": {"color": TEXT, "width": 2}},
             "bgcolor": RAISED,
             "borderwidth": 0,
             "steps": [{"range": [0, 33], "color": EXPOSURE_STEPS[0]}, {"range": [33, 66], "color": EXPOSURE_STEPS[1]},
@@ -525,7 +540,7 @@ def risk_return_fig(matches: list[dict], user: dict, before: dict | None = None)
         return go.Scatter(
             x=[xy[0]], y=[xy[1]], mode="markers+text", text=["<b>You</b>"], textposition=side_for(xy[0], "middle left"),
             textfont=dict(color=TEXT, size=15), cliponaxis=False, name="You",
-            marker=dict(size=14, color=AMBER, line=dict(color=AMBER, width=0)),
+            marker=dict(size=16, color=MINT, line=dict(color=TEXT, width=2)),
             hovertemplate="You<br>AI exposure %{x:.0f}/100<br>Growth %{y:+.1f}%<extra></extra>",
         )
 
@@ -572,7 +587,7 @@ def risk_return_fig(matches: list[dict], user: dict, before: dict | None = None)
     return fig
 
 
-SDG_COLOURS = [AMBER, "#F2CB8A", "#D9C7A3", "#B8AA90", "#F7E3BD", "#CFC8BA", "#E3B46B", "#EFE6D2"]   # warm neutrals + amber; ink text stays >= 7:1 on all
+SDG_COLOURS = [MINT, "#7ED67A", "#CFE9CB", "#9FB09B", "#BFC9BA", "#8FA08A", "#D9E8D6", "#B5E3B0"]   # mint and sage greens; ink text stays >= 7:1 on all
 
 
 def sdg_donut(allocation: dict[int, float]) -> go.Figure:
@@ -605,11 +620,12 @@ def _css_vars() -> str:
     return (
         ":root{"
         f"--sf-bg:{BG};--sf-card:{CARD};--sf-sidebar:{SIDEBAR};--sf-raised:{RAISED};--sf-border:{BORDER};"
-        f"--sf-text:{TEXT};--sf-muted:{MUTED};--sf-on-ink:{ON_INK};--sf-amber:{AMBER};"
+        f"--sf-text:{TEXT};--sf-muted:{MUTED};--sf-on-ink:{ON_INK};--sf-mint:{MINT};"
+        f"--sf-charcoal:{CHARCOAL};--sf-on-charcoal:{ON_CHARCOAL};--sf-on-charcoal-muted:{ON_CHARCOAL_MUTED};"
         f"--sf-up:{UP};--sf-up-text:{UP_TEXT};--sf-down:{DOWN};--sf-down-text:{DOWN_TEXT};"
         f"--sf-up-bg:color-mix(in srgb,{UP} 12%,{CARD});--sf-down-bg:color-mix(in srgb,{DOWN} 10%,{CARD});"
         f"--sf-flat-bg:{RAISED};--sf-exposure:{EXPOSURE_HIGH};--sf-exposure-soft:{EXPOSURE_STEPS[1]};"
-        f"--sf-font:{FONT_TEXT};--sf-radius:{RADIUS}px;--sf-shadow:{SHADOW};"
+        f"--sf-font:{FONT_TEXT};--sf-radius:{RADIUS}px;--sf-radius-tile:{RADIUS_TILE}px;--sf-radius-control:{RADIUS_CONTROL}px;--sf-shadow:{SHADOW};"
         "}"
     )
 
@@ -702,6 +718,15 @@ def strip_container(key: str):
     Use as `with strip_container(f"{role_id}"): show(...); st.button(...)`."""
     try:
         return st.container(key=f"sf-strip-{key}")
+    except TypeError:                       # older Streamlit without container keys: plain container
+        return st.container()
+
+
+def dark_container():
+    """The ONE charcoal feature card on a page (Home: the hiring-trend number and its bars). Widgets inside it (the range tabs) are
+    styled for a dark surface by app/theme.css."""
+    try:
+        return st.container(key="sf-dark")
     except TypeError:                       # older Streamlit without container keys: plain container
         return st.container()
 
@@ -867,8 +892,8 @@ def holding_row(name: str, ticker: str, change: float | None = None, trajectory:
     else:
         direction = _direction(change)
     sub_html = f'<div class="sf-sub">{esc(sub)}</div>' if sub else ""
-    return (f'<div class="sf-row{" sf-row-thin" if thin else ""}" role="listitem" aria-label="{esc(name)} ({esc(ticker)})">'
-            f'<div class="sf-c-name"><div class="sf-name">{esc(name)}<span class="sf-tick">({esc(ticker)})</span></div>{sub_html}</div>'
+    return (f'<div class="sf-row{" sf-row-thin" if thin else ""}" role="listitem" aria-label="{esc(name)}">'
+            f'<div class="sf-c-name"><div class="sf-name">{esc(name)}</div>{sub_html}</div>'
             f'<div class="sf-c-spark">{sparkline(trend, direction if not thin else "flat")}</div>'
             f'<div class="sf-c-pill">{change_pill(change, trajectory, thin)}</div>'
             f'<div class="sf-c-exp">{exposure_bar(exposure)}</div></div>')

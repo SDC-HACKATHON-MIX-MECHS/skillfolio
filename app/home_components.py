@@ -12,6 +12,7 @@ Plain labels only (no "momentum", "readiness", "spread", ...): the precise terms
 
 from __future__ import annotations
 
+import math
 import re
 from typing import Callable
 
@@ -216,6 +217,72 @@ def fit_track(pct: int) -> str:
             f'aria-valuenow="{pct}"><i style="width:{pct}%"></i></div>')
 
 
+MONTH_ABBR = ("Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec")
+
+
+def short_month(label) -> str:
+    """'2026-10' -> 'Oct' (the bars are always the latest months, so the year would only crowd the label). Anything that is not a
+    year-month is returned as plain text."""
+    m = re.fullmatch(r"(\d{4})-(\d{2})", str(label).strip())
+    return MONTH_ABBR[int(m.group(2)) - 1] if m and 1 <= int(m.group(2)) <= 12 else str(label)
+
+
+def trend_bars(months: list, values: list, forecast: float | None = None, n: int = 6) -> str:
+    """The thick bars in the dark card: the last `n` months of job-post demand as solid mint bars (measured), then ONE hatched bar for the
+    12-month estimate (last month x (1 + the estimated yearly change)). The hatch means 'estimate' everywhere in the app. Heights come
+    from the numbers (the tallest fills the plot, none is a sliver). Bad numbers are dropped; nothing here is invented. One line of HTML."""
+    pairs = [(m, float(v)) for m, v in zip(months, values) if isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v)][-n:]
+    if not pairs:
+        return ""
+    est = None
+    if isinstance(forecast, (int, float)) and not isinstance(forecast, bool) and math.isfinite(forecast):
+        est = max(0.0, pairs[-1][1] * (1 + forecast))
+    peak = max([v for _, v in pairs] + ([est] if est is not None else [])) or 1.0
+
+    def height(v: float) -> int:
+        return max(12, min(100, round(100 * v / peak)))
+
+    bars = []
+    for i, (month, value) in enumerate(pairs):
+        now = " sf-bar-now" if i == len(pairs) - 1 else ""
+        bars.append(f'<div class="sf-bar-col"><div class="sf-bar-plot"><div class="sf-bar sf-bar-m{now}" style="height:{height(value)}%"></div></div>'
+                    f'<span class="sf-bar-label">{esc(short_month(month))}</span></div>')
+    if est is not None:
+        bars.append(f'<div class="sf-bar-col"><div class="sf-bar-plot"><div class="sf-bar sf-bar-est sf-hatch" style="height:{height(est)}%"></div></div>'
+                    f'<span class="sf-bar-label">Estimate</span></div>')
+    label = (f"Job-post demand for your skills over the last {len(pairs)} months"
+             + (", and an estimate for the next 12 months" if est is not None else ""))
+    return f'<div class="sf-bars" role="img" aria-label="{esc(label)}">{"".join(bars)}</div>'
+
+
+def fit_arc(pct) -> str:
+    """The Fit gauge: a half ring, thick, with the share you already cover in solid ink and the part still to learn hatched.
+    Percent is clamped to 0..100 (anything unreadable is 0). Colours come from the theme classes, so there is no hex here."""
+    try:
+        p = max(0, min(100, round(float(pct))))
+    except (TypeError, ValueError, OverflowError):
+        p = 0
+    path = "M 20 100 A 80 80 0 0 1 180 100"
+    return (f'<svg class="sf-arc" viewBox="0 0 200 112" role="progressbar" aria-label="Fit" aria-valuemin="0" aria-valuemax="100" '
+            f'aria-valuenow="{p}" focusable="false"><defs><pattern id="sf-arc-hatch" width="7" height="7" patternUnits="userSpaceOnUse" '
+            f'patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="7" class="sf-arc-line"/></pattern></defs>'
+            f'<path d="{path}" pathLength="100" class="sf-arc-rest" fill="none" stroke="url(#sf-arc-hatch)" stroke-width="24"/>'
+            f'<path d="{path}" pathLength="100" class="sf-arc-fit" fill="none" stroke-dasharray="{p} 100" stroke-width="24"/></svg>')
+
+
+def tile(label: str, value: str, sub: str = "", tone: str = "mint", fraction: float | None = None) -> str:
+    """A small stat tile (a mint one or a charcoal one), optionally with a thick bar showing a fraction. An unknown tone is mint."""
+    tone = tone if tone in ("mint", "charcoal") else "mint"
+    bar = ""
+    if isinstance(fraction, (int, float)) and not isinstance(fraction, bool) and math.isfinite(fraction):
+        pct = max(0, min(100, round(fraction * 100)))
+        bar = (f'<div class="sf-track" role="progressbar" aria-label="{esc(label)}" aria-valuemin="0" aria-valuemax="100" '
+               f'aria-valuenow="{pct}"><i style="width:{pct}%"></i></div>')
+    sub_html = f'<div class="sf-tile-sub">{esc(sub)}</div>' if sub else ""
+    return (f'<div class="sf-tile sf-tile-{tone}"><div class="sf-tile-label">{esc(label)}</div>'
+            f'<div class="sf-tile-value">{esc(value)}</div>{bar}{sub_html}</div>')
+
+
 FIT_HELP = "How much of this role's skill list you already cover at the level it needs."
 
 
@@ -226,11 +293,15 @@ def role_card(match: dict, name_of: Callable[[str], str] | None = None, rank: in
     title = match.get("title") or match.get("role_id") or "Role"
     pct = fit_percent(match)
     rank_text = f"Role {int(rank)}: " if rank else ""
+    if lead:        # the lead role: a mint panel with the Fit arc and the big number inside it
+        fit_block = (f'<div class="sf-fitpanel" title="{esc(FIT_HELP)}"><div class="sf-arcwrap">{fit_arc(pct)}'
+                     f'<div class="sf-arcnum"><span class="sf-fit-num">{pct}%</span><span class="sf-fit-label">Fit</span></div></div></div>')
+    else:
+        fit_block = (f'<div class="sf-fitrow" title="{esc(FIT_HELP)}"><span class="sf-fit-num">{pct}%</span><span class="sf-fit-label">Fit</span></div>'
+                     f'{fit_track(pct)}')
     return (f'<div class="sf-role{" sf-role-lead" if lead else ""}" role="group" aria-label="{rank_text}{esc(title)}, {pct} percent fit">'
             f'<div class="sf-role-head"><div class="sf-role-title">{esc(title)}</div>{fit_chip(pct)}</div>'
-            f'<div class="sf-fitrow" title="{esc(FIT_HELP)}"><span class="sf-fit-num">{pct}%</span><span class="sf-fit-label">Fit</span></div>'
-            f'{fit_track(pct)}'
-            f'<div class="sf-why">{esc(why_sentence(match, name_of))}</div>'
+            f'{fit_block}'
             f'<div>{hiring_pill(match.get("role_growth"))}</div></div>')
 
 
@@ -242,8 +313,7 @@ def role_row(match: dict, name_of: Callable[[str], str] | None = None, rank: int
     rank_text = f"Role {int(rank)}: " if rank else ""
     return (f'<div class="sf-rrow" role="group" aria-label="{rank_text}{esc(title)}, {pct} percent fit">'
             f'<div class="sf-rrow-head"><div class="sf-rrow-title">{esc(title)}</div>{fit_chip(pct)}</div>'
-            f'<div class="sf-rrow-fit" title="{esc(FIT_HELP)}"><span class="sf-rrow-num">{pct}%</span><span class="sf-fit-label">Fit</span>{fit_track(pct)}</div>'
-            f'<div class="sf-rrow-sub">{esc(why_sentence(match, name_of))}</div></div>')
+            f'<div class="sf-rrow-fit" title="{esc(FIT_HELP)}"><span class="sf-rrow-num">{pct}%</span><span class="sf-fit-label">Fit</span>{fit_track(pct)}</div></div>')
 
 
 def missing_strip(match: dict, name_of: Callable[[str], str] | None = None) -> str:
@@ -275,10 +345,20 @@ def kpi_items(result: dict | None) -> list[dict]:
          "pill": ("up" if word == "rising" else "down" if word == "falling" else "flat", word.capitalize() if word else "Not available"),
          "sub": "Estimate for the next 12 months"},
         {"label": "Roles that are a good fit", "value": str(fitting), "pill": (None, ""),
-         "sub": f"A fit of {GOOD_FIT}% or more, of {len(matches)} roles" if matches else "We have no role list yet"},
+         "sub": f"A fit of {GOOD_FIT}% or more, of {len(matches)} roles" if matches else "We have no role list yet",
+         "fraction": fitting / len(matches) if matches else None},
         {"label": "Skills you have", "value": str(len(skills)),
          "pill": ("up", f"{rising} rising") if rising else ("flat", "None rising yet"), "sub": "Counted from your profile"},
     ]
+
+
+def trend_head(item: dict) -> str:
+    """The top of the charcoal card: a label, the big hiring-trend number, its word (with an arrow) and one line of help. `item` is the
+    first entry of `kpi_items`. One line of HTML; all text escaped."""
+    direction, text = item["pill"]
+    chip = f'<div class="sf-trend-chip">{pill(text, direction)}</div>' if direction else ""
+    return (f'<div class="sf-trend-head"><div class="sf-trend-label">{esc(item["label"])}</div>'
+            f'<div class="sf-trend-num">{esc(item["value"])}</div>{chip}</div>')
 
 
 def kpi_strip(items: list[dict]) -> str:
