@@ -243,7 +243,7 @@ def short_month(label) -> str:
     return MONTH_ABBR[int(m.group(2)) - 1] if m and 1 <= int(m.group(2)) <= 12 else str(label)
 
 
-def trend_bars(months: list, values: list, forecast: float | None = None, n: int = 6) -> str:
+def trend_bars(months: list, values: list, forecast: float | None = None, n: int = 6, whose: str = "your skills") -> str:
     """The thick bars in the dark card: the last `n` months of job-post demand as solid mint bars (measured), then ONE hatched bar for the
     12-month estimate (last month x (1 + the estimated yearly change)). The hatch means 'estimate' everywhere in the app. Heights come
     from the numbers (the tallest fills the plot, none is a sliver). Bad numbers are dropped; nothing here is invented. One line of HTML."""
@@ -266,7 +266,7 @@ def trend_bars(months: list, values: list, forecast: float | None = None, n: int
     if est is not None:
         bars.append(f'<div class="sf-bar-col"><div class="sf-bar-plot"><div class="sf-bar sf-bar-est sf-hatch" style="height:{height(est)}%"></div></div>'
                     f'<span class="sf-bar-label">Estimate</span></div>')
-    label = (f"Job-post demand for your skills over the last {len(pairs)} months"
+    label = (f"Job-post demand for {whose} over the last {len(pairs)} months"
              + (", and an estimate for the next 12 months" if est is not None else ""))
     return f'<div class="sf-bars" role="img" aria-label="{esc(label)}">{"".join(bars)}</div>'
 

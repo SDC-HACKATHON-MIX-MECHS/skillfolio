@@ -125,5 +125,5 @@ st.markdown(
     "list, you can remove any that are wrong, and without it the app matches your resume with fixed keyword rules. "
     "SkillFolio keeps no copy of your resume text. No generative language model is used.\n"
     "- **While building:** we used Claude Code (Anthropic) to help write code, tests, data files and documents, and "
-    "Replit Agent to help build pages. The team reviews all logic, and every change passes the tests and a pull request."
+    "Replit Agent to help build pages. The team reviews all logic, runs the tests before merging, and merges changes through pull requests."
 )

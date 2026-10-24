@@ -185,6 +185,11 @@ def test_skill_rows_words_only_use_the_lean_pill():
     assert "sf-pill-lean-up" in html and "Leaning up · uncertain" in html and "%" not in html
 
 
+def test_trend_bars_screen_reader_label_names_whose_skills():
+    assert "demand for your skills" in hc.trend_bars(["2026-09", "2026-10"], [100, 110])
+    assert "demand for these skills" in hc.trend_bars(["2026-09", "2026-10"], [100, 110], whose="these skills")
+
+
 # --- names and greeting ------------------------------------------------------------------------------
 
 @pytest.mark.parametrize("profile,expected", [

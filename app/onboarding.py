@@ -11,7 +11,7 @@ Privacy contract (the page tells the user this, so it must stay true):
     discards the uploaded file.
   * Parsing is the repo's rule-based matcher (pipeline.extract_skills). When the RunPod endpoint is configured AND the user leaves
     "Also use our AI model" ticked, the text is also sent once to our own RunPod endpoint (app/runpod_client.py), which ranks
-    skills from our catalogue only and keeps nothing. Unticked, or with no keys, the text goes nowhere else.
+    skills from our catalogue only; our code does not store it. Unticked, or with no keys, the text goes nowhere else.
 
 Session-state contract: the finished profile is stored in st.session_state["profile"] as
   {profile_id, display_name, synthetic, headline, hours_budget, budget_rm, risk_tolerance, sdg_interests, skills:[{skill_id, level}]}
@@ -52,6 +52,9 @@ WELCOME_LEAD = ("See which of your skills employers want more or less, how much 
 
 NOTICE = ("Please do not use a real resume or personal details in this competition demo: use a made-up or sample one. "
           "What you add is sent to this app's server, read in memory and discarded. We do not save it or pass it on.")
+NOTICE_AI = ("Please do not use a real resume or personal details in this competition demo: use a made-up or sample one. "
+             "What you add is read in memory on this app's server and discarded. If 'Also use our AI model' is ticked, the text is also "
+             "sent once to our AI model on RunPod, which returns skill names; our code does not store it. We do not save it.")
 AI_MODEL = "BAAI/bge-small-en-v1.5 on RunPod"
 PDF_MISSING = "PDF upload is not available on this server, so paste the text or upload a .txt file instead."
 
@@ -482,7 +485,7 @@ def _step_resume() -> None:
                                  "The text is cleared once we have your skills.")
     else:
         _head("Add your resume", "We look for skill names in it. No AI model reads it, and the text is cleared once we have your skills.")
-    st.info(NOTICE, icon=":material/shield:")
+    st.info(NOTICE_AI if runpod_client.configured() else NOTICE, icon=":material/shield:")
     error = _ss().get("ob_error")
     if error:
         st.error(error, icon=":material/error:")
@@ -501,7 +504,7 @@ def _step_resume() -> None:
             st.caption(PDF_MISSING)
     if runpod_client.configured():
         st.checkbox("Also use our AI model", value=True, key="ob_use_ai",
-                    help=f"Sends the text once to our RunPod endpoint ({AI_MODEL}), which picks matching skills from our list only and keeps nothing.")
+                    help=f"Sends the text once to our RunPod endpoint ({AI_MODEL}), which picks matching skills from our list only; our code does not store it.")
     st.button("Find my skills", type="primary", icon=":material/search:", use_container_width=True,
               key="ob_find", on_click=_analyse_resume)
     left, right = st.columns(2)

@@ -269,6 +269,16 @@ def test_runpod_suggestions_are_added_after_the_keyword_matches_and_named(monkey
     assert "Built dashboards" not in all_session_text(at)          # the resume text is still discarded
 
 
+def test_privacy_notice_says_the_text_goes_to_our_model_only_when_the_model_is_on(monkeypatch):
+    at = to_resume_step(open_profile_page())
+    off = visible_text(at)
+    assert "do not save it or pass it on" in off and "RunPod" not in off
+    runpod_on(monkeypatch, ["powerbi"])
+    on = visible_text(to_resume_step(open_profile_page()))
+    assert "pass it on" not in on                                    # with the model on, the text does go to RunPod
+    assert "sent once to our AI model on RunPod" in on and "We do not save it" in on
+
+
 def test_unticking_the_ai_box_means_the_text_is_not_sent(monkeypatch):
     calls = runpod_on(monkeypatch, ["powerbi"])
     at = to_resume_step(open_profile_page())
