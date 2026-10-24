@@ -377,6 +377,14 @@ a.sf-chip:hover { border-color: var(--sf-text); }
 .st-key-sf-dark [data-testid="stButtonGroup"] button[data-testid$="Active"] p, .st-key-sf-dark [data-testid="stButtonGroup"] button[aria-checked="true"] p,
 .st-key-sf-dark [data-testid="stButtonGroup"] button[aria-pressed="true"] p { color: var(--sf-text) !important; }
 .st-key-sf-dark .sf-source { color: var(--sf-on-charcoal-muted); border-top-color: color-mix(in srgb, var(--sf-on-charcoal) 24%, transparent); margin: 0; }
+
+/* no-profile Home: the two-line welcome headline and the label on the example's charcoal card */
+.sf-welcome h1.sf-title { font-size: 2.5rem; line-height: 1.15; letter-spacing: -0.025em; }
+.sf-welcome h1.sf-title [data-heading-text] > span { display: block; }
+.sf-welcome [data-testid="stHeaderActionElements"] { display: none; }
+.sf-welcome { margin-top: 48px; }
+.sf-welcome .sf-lead { margin-top: 16px; }
+.sf-ex-label { font-size: 0.875rem; line-height: 1.4; color: var(--sf-on-charcoal-muted); margin: 0 0 4px; }
 .st-key-sf-dark .sf-source .sf-icon { color: var(--sf-on-charcoal-muted); }
 .sf-trend-head { margin: 0; }
 .sf-trend-label { font-size: 0.9375rem; font-weight: 500; color: var(--sf-on-charcoal-muted); }
@@ -475,6 +483,8 @@ a.sf-chip:hover { border-color: var(--sf-text); }
   .sf-sec { margin-top: 32px; }
 }
 @media (max-width: 640px) {
+  .sf-welcome h1.sf-title { font-size: 2rem; }
+  .sf-welcome { margin-top: 0; }
   .block-container, [data-testid="stMainBlockContainer"] { padding: 32px 16px 48px !important; }
   .stApp h1, .stApp h1.sf-title { font-size: 1.75rem; }
   .sf-pagehead { margin-bottom: 24px; }

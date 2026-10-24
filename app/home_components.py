@@ -446,3 +446,24 @@ def demand_chart(months: list[str], values: list[float], direction: str = "flat"
     fig.update_xaxes(tickfont=dict(size=14, color=MUTED), tickangle=0, nticks=4, tickformat="%b %y")
     fig.update_yaxes(tickfont=dict(size=14, color=MUTED))
     return fig
+
+
+# --- No-profile Home: the hero and a live example (the product working before sign-up) ---------------------------------------
+
+WELCOME_HEADLINE = "Your skills are a portfolio. AI is the market."
+WELCOME_LEAD = "See which roles fit you, why, and what to learn next. It takes about two minutes."
+EXAMPLE_LINK = "Try this example"
+EXAMPLE_TREND_LABEL = "Hiring trend for these skills"
+
+
+def welcome_hero(lead_text: str) -> str:
+    """The no-profile headline, set as two short lines (one sentence each) so it never breaks mid-phrase, plus one lead line."""
+    first, _, second = WELCOME_HEADLINE.partition(". ")
+    return (f'<header class="sf-pagehead sf-welcome"><h1 class="sf-title"><span>{esc(first)}.</span> <span>{esc(second)}</span></h1>'
+            f'<p class="sf-lead">{esc(lead_text)}</p></header>')
+
+
+def example_label(name: str) -> str:
+    """The small line at the top of the example's charcoal card: says the person is made up."""
+    who = f"Example: {name}, a made-up graduate" if name else "Example: a made-up graduate"
+    return f'<div class="sf-ex-label">{esc(who)}</div>'
