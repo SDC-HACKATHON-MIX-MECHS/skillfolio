@@ -1,4 +1,4 @@
-"""Count which skills each month's job posts mention (SPEC 4.2). Lane B.
+"""Count which skills each month's job posts mention (SPEC 4.2).
 
 The same matcher is reused by the Profile page to read pasted CV text,
 so it must not depend on HN-specific formatting.

@@ -9,10 +9,9 @@ from app.dashboard import spark_values
 from app.page_components import PLAIN, ai_word, card_list, choice_control, skill_card, skill_list, skill_row
 from app.home_components import skill_pill
 from app.ui import (
-    call_or_wait, demand_fig, fmt_pct, fmt_signed, page_header, page_setup, scenario, section_header, show, show_fig, side_panel,
+    demand_fig, fmt_pct, fmt_signed, page_header, page_setup, scenario, section_header, show, show_fig, side_panel,
     skill_catalog, skill_label, skill_name, skill_ticker, source_caption, stat_row,
 )
-from engine import config
 from engine.data import list_snapshots
 from engine.forecast import forecast_all
 from pipeline.build_snapshot import build
@@ -20,7 +19,7 @@ from pipeline.build_snapshot import build
 snapshot = page_setup("Skill Market")
 page_header("Skill Market")
 
-forecasts = call_or_wait("A", "skill forecasts", forecast_all, snapshot, scenario())
+forecasts = forecast_all(snapshot, scenario())
 series = snapshot["skills"]
 catalog = skill_catalog()
 SORTS = ["Hiring trend", "AI impact", "A to Z"]
@@ -125,8 +124,6 @@ if st.button("Refresh data", type="primary", use_container_width=True, icon=":ma
     with st.spinner("Fetching this month's job posts…"):
         try:
             build(refresh_current_only=True)
-        except NotImplementedError:
-            st.info("Waiting for lane B: live refresh isn't built yet.")
         except Exception as exc:  # network down, API change… keep the old data on screen
             st.error(f"Couldn't reach Hacker News. Still showing the snapshot from {snapshot['snapshot_date']}.")
             with st.expander("Details"):

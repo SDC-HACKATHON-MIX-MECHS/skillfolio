@@ -1,4 +1,4 @@
-"""Download HN "Ask HN: Who is hiring?" threads (SPEC 4.1). Lane B.
+"""Download HN "Ask HN: Who is hiring?" threads (SPEC 4.1).
 
 Run:  python -m pipeline.fetch_hn --months 25
 """

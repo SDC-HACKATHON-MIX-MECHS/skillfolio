@@ -1,8 +1,7 @@
-"""Home (roles first): the pieces of the Home screen. Visual rules: docs/DESIGN.md. The stylesheet is the shared app/theme.css (nothing page-specific lives here).
+"""Home (roles first): the pieces of the Home screen. The stylesheet is the shared app/theme.css (nothing page-specific lives here).
 
 Two halves:
-  * PURE LOGIC (no Streamlit calls, unit-tested in tests/test_home_components.py): the one-sentence "why" for a role,
-    the top-3 filter, trend words, the profile's first name.
+  * PURE LOGIC (no Streamlit calls, unit-tested in tests/test_home_components.py): the top-3 filter, trend words, the profile's first name.
   * HTML BUILDERS + one stylesheet. Every builder returns ONE LINE of HTML and escapes all data text with `esc()`
     (skill names, role titles and profile names are user or file input). Render with `app.ui.show(...)`.
 
@@ -17,7 +16,7 @@ import re
 from typing import Callable
 
 from engine import config
-from app.ui import TEXT, MUTED, esc, fmt_signed, note, page_head, pill, section_header, status_chip, steps_html
+from app.ui import esc, fmt_signed, note, page_head, pill, section_header, status_chip, steps_html
 
 STEPS = ("Resume", "Skills", "Goals", "Your roles")
 STRONG_FIT, GOOD_FIT = 70, 40      # display cut-offs (percent) for the "Strong fit" / "Good fit" / "Stretch" chip
@@ -42,54 +41,12 @@ def first_name(profile: dict | None) -> str:
     return "" if first.lower() == "you" else first             # the wizard's default name is "You": not a name to greet
 
 
-def list_phrase(names: list[str], limit: int = 2) -> str:
-    """['Excel'] -> 'Excel'; two -> 'Excel and SQL'; more -> 'Excel, SQL and 3 others'. Empty -> ''."""
-    names = [n for n in names if n]
-    if not names:
-        return ""
-    head = names[:limit]
-    extra = len(names) - len(head)
-    if extra > 0:
-        return f"{', '.join(head)} and {extra} other{'s' if extra != 1 else ''}"
-    return " and ".join(head)
-
-
 def _skill_text(skill_id, name_of: Callable[[str], str]) -> str:
     try:
         text = name_of(skill_id)
     except Exception:           # a failing lookup must never break the screen; fall back to the id
         text = skill_id
     return " ".join(str(text if text is not None else skill_id).split())
-
-
-def why_sentence(match: dict | None, name_of: Callable[[str], str] | None = None) -> str:
-    """ONE plain-English sentence on why a role fits, built only from the engine's Match object:
-    the skills the user already has that the role uses (`contributions`, credit > 0) and the biggest gap (`gaps`).
-    A gap the user has none of is "missing"; if every gap is a skill they partly have, it is a "step up".
-    Missing or malformed data gives a calm fallback, never an invented claim. Returns plain text (escape on render)."""
-    name_of = name_of or (lambda skill_id: str(skill_id))
-    match = match if isinstance(match, dict) else {}
-    contributions = [c for c in (match.get("contributions") or [])
-                     if isinstance(c, dict) and c.get("skill_id") and _positive(c.get("credit"))]
-    gaps = [g for g in (match.get("gaps") or []) if isinstance(g, dict) and g.get("skill_id")]
-    have = list_phrase([_skill_text(c["skill_id"], name_of) for c in contributions])
-
-    missing = next((g for g in gaps if not _positive(g.get("user_level"))), None)
-    step_up = None if missing else (gaps[0] if gaps else None)
-
-    if have and missing:
-        return f"You already use {have}, which this role needs, but {_skill_text(missing['skill_id'], name_of)} is the biggest skill you are missing."
-    if have and step_up:
-        skill = _skill_text(step_up["skill_id"], name_of)
-        level = LEVEL_WORDS.get(step_up.get("required_level"))
-        goal = f"reaching {level} level in {skill}" if level else f"building up {skill}"
-        return f"You already use {have}, which this role needs, and your biggest step up is {goal}."
-    if have:
-        return f"You already cover the skills this role needs, including {have}."
-    if missing or step_up:
-        gap = missing or step_up
-        return f"You do not have this role's key skills yet, and {_skill_text(gap['skill_id'], name_of)} is the biggest one to learn."
-    return "We do not have a skill list for this role yet."
 
 
 def _positive(x) -> bool:
@@ -208,11 +165,6 @@ def greeting(name: str, line: str, lead: str | None = None) -> str:
     return page_head(text, lead)
 
 
-def welcome(headline: str, lead: str | None = None) -> str:
-    """No profile yet: the same header, with the welcome copy."""
-    return page_head(headline, lead)
-
-
 def how_it_works(steps: tuple[str, ...] = STEPS) -> str:
     """'Resume, Skills, Goals, Your roles' as one plain line of words (no numbering)."""
     return steps_html(steps, None, "How it works", extra_class="sf-home-steps")
@@ -303,8 +255,8 @@ FIT_HELP = "How much of this role's skill list you already cover at the level it
 
 
 def role_card(match: dict, name_of: Callable[[str], str] | None = None, rank: int | None = None, lead: bool = False) -> str:
-    """The top of a role card (Home and Matches): title and status chip, Fit % with its progress track, one
-    sentence on why, hiring pill. `lead=True` is the dominant first card (bigger Fit number and title); the others are quieter,
+    """The top of a role card (Home and Matches): title and status chip, Fit % with its progress track and
+    hiring pill. `lead=True` is the dominant first card (bigger Fit number and title); the others are quieter,
     so three cards never read as three identical tiles. The 'Missing: X' strip and its button come after it (see `missing_strip`, rendered by the page)."""
     title = match.get("title") or match.get("role_id") or "Role"
     pct = fit_percent(match)
@@ -322,7 +274,7 @@ def role_card(match: dict, name_of: Callable[[str], str] | None = None, rank: in
 
 
 def role_row(match: dict, name_of: Callable[[str], str] | None = None, rank: int | None = None) -> str:
-    """A compact role row (roles 2 and 3 on Home): title and status chip, a small Fit % with a thin track, one sentence on why.
+    """A compact role row (roles 2 and 3 on Home): title and status chip, a small Fit % with a thin track.
     The page puts a 'See your plan' link beside it. Quieter than the lead card on purpose: three equal cards read as a template."""
     title = match.get("title") or match.get("role_id") or "Role"
     pct = fit_percent(match)
@@ -375,17 +327,6 @@ def trend_head(item: dict) -> str:
     chip = f'<div class="sf-trend-chip">{pill(text, direction)}</div>' if direction else ""
     return (f'<div class="sf-trend-head"><div class="sf-trend-label">{esc(item["label"])}</div>'
             f'<div class="sf-trend-num">{esc(item["value"])}</div>{chip}</div>')
-
-
-def kpi_strip(items: list[dict]) -> str:
-    """Up to three big numbers on ONE surface with dividers (not three identical cards): label, number, a small pill, one line of help."""
-    cells = []
-    for it in items[:3]:
-        direction, text = it["pill"]
-        chip = f'<div class="sf-stat-pill">{pill(text, direction)}</div>' if direction else ""
-        cells.append(f'<div class="sf-stat"><div class="sf-stat-label">{esc(it["label"])}</div><div class="sf-stat-value">{esc(it["value"])}</div>'
-                     f'{chip}<div class="sf-stat-sub">{esc(it["sub"])}</div></div>')
-    return f'<div class="sf-stats" role="group" aria-label="Your numbers">{"".join(cells)}</div>'
 
 
 def section_title(title: str, sub: str | None = None, tight: bool = False) -> str:
@@ -452,18 +393,6 @@ def detail_numbers(metrics: dict) -> str:
     cells = "".join(f'<div class="sf-num-item"><div class="sf-num-label">{esc(label)}</div><div class="sf-num-value">{esc(value)}</div>'
                     f'<div class="sf-num-help">{esc(help_text)}</div></div>' for label, value, help_text in items)
     return f'<div class="sf-nums">{cells}</div>'
-
-
-def demand_chart(months: list[str], values: list[float], direction: str = "flat", height: int = 320):
-    """The market-demand line chart (the basket chart), with larger labels and plain wording."""
-    from app.ui import demand_fig
-
-    fig = demand_fig(months, values, direction, height=height)
-    fig.data[0].hovertemplate = "%{x}<br>Job-post demand %{y:.1f}<extra></extra>"
-    fig.update_layout(font=dict(size=15, color=TEXT))
-    fig.update_xaxes(tickfont=dict(size=14, color=MUTED), tickangle=0, nticks=4, tickformat="%b %y")
-    fig.update_yaxes(tickfont=dict(size=14, color=MUTED))
-    return fig
 
 
 # --- No-profile Home: the hero and a live example (the product working before sign-up) ---------------------------------------

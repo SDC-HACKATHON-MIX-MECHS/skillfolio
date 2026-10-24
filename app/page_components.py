@@ -1,6 +1,6 @@
 """Extra building blocks for pages 2-6 (Skill Market, My Portfolio, Matches, Rebalance Plan, Methodology).
 
-Brief v2: one message per screen, at most one hero + three cards or rows + one chart, big type, plain words, detail
+Design rules: one message per screen, at most one hero + three cards or rows + one chart, big type, plain words, detail
 behind expanders. Same technical rules as app/ui.py: every builder returns ONE LINE of HTML, every piece of data text
 goes through `esc()`, render with `show(...)`; page files never contain raw HTML or hex codes. There is no stylesheet
 here: every class used below is styled by the shared app/theme.css (injected once per page by `ui.page_setup`).
@@ -8,13 +8,10 @@ here: every class used below is styled by the shared app/theme.css (injected onc
 
 from __future__ import annotations
 
-import plotly.graph_objects as go
-import streamlit as st
-
 from app.home_components import skill_pill
-from app.ui import CARD, SDG_COLOURS, TEXT, esc, exposure_bar, icon, lead, pill, range_tabs, small_label, sparkline, status_chip, style_fig  # noqa: F401  (lead: re-exported)
+from app.ui import esc, exposure_bar, icon, pill, range_tabs, small_label, sparkline, status_chip
 
-# --- Plain-English words (brief v2 rule 3). Precise terms live only in expanders and on Methodology. ----------
+# --- Plain-English words. Precise terms live only in expanders and on Methodology. ----------
 
 PLAIN = {
     "trend": "How much more or less often job posts ask for this skill over a year. An estimate, not a prediction.",
@@ -114,11 +111,6 @@ def card_list(cards: list[str], empty_text: str = "Nothing to show yet.") -> str
     return f'<div class="sf-cards" role="list">{"".join(cards)}</div>'
 
 
-def panel(inner_html: str) -> str:
-    """A bordered panel (the detail panel at wide widths)."""
-    return f'<div class="sf-card">{inner_html}</div>'
-
-
 # --- Matches ------------------------------------------------------------------------------------------
 
 def sdg_chips(sdgs: list[int], names: dict[int, str], url=None) -> str:
@@ -146,7 +138,6 @@ def role_extras(growth_pill_html: str, exposure: float | None, chips_html: str) 
 def course_row(order: int, title: str, provider: str | None, skill_label_text: str, hours: float, cost_text: str,
                url, lead: bool = False) -> str:
     """One course card in the ordered plan: step number, course, skill and provider, status chips (hours, cost), link."""
-    sub = skill_label_text + (f" · {provider}" if provider else "")
     chips = chip_row([f"{hours:g} h", cost_text])
     return (
         f'<div class="sf-order{" sf-order-lead" if lead else ""}" role="listitem"><div class="sf-ord-n">{int(order):02d}</div>'

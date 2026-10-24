@@ -109,11 +109,6 @@ def study_meta(row: dict) -> str:
             f'<span class="sf-study-left">{esc(left)}</span><span class="sf-study-pct">{ring(pct)}<span>{pct}%</span></span></div>')
 
 
-def study_row(row: dict, skill_label_text: str) -> str:
-    """One course you are studying, in one piece: study_main + study_meta."""
-    return f'<div class="sf-study">{study_main(row, skill_label_text)}{study_meta(row)}</div>'
-
-
 def petal_chart(items: list[tuple[str, int]], fit: int) -> str:
     """Six hexagon petals around a centre disc. Each petal: a skill and the percent of the required level you hold; shaded by strength."""
     petals = []
@@ -141,7 +136,7 @@ def render(profile: dict, snapshot: dict) -> bool:
     import streamlit as st
 
     from app.ui import (
-        card_container, course_catalog, fmt_signed, role_catalog, role_skill_rows, run_engine, scenario, show, skill_label, skill_name,
+        card_container, course_catalog, role_catalog, role_skill_rows, run_engine, scenario, show, skill_label, skill_name,
         user_levels,
     )
     from engine import api
@@ -158,7 +153,7 @@ def render(profile: dict, snapshot: dict) -> bool:
     try:
         planned = plan(user_levels(profile["skills"]), roles[target_id], role_skill_rows(), list(course_catalog().values()),
                        result["forecasts"], snapshot, profile["risk_tolerance"], profile["hours_budget"], **kwargs)
-    except (ValueError, NotImplementedError):
+    except ValueError:
         return False
     if not planned["steps"]:
         return False
@@ -175,7 +170,7 @@ def render(profile: dict, snapshot: dict) -> bool:
             updated = api.analyse(profile_with_completed(profile, rows, courses), snapshot, scenario(), top_n=None)
             target_match = next(m for m in updated["matches"] if m["role_id"] == target_id)
             fit_now = target_match["match_pct"] * 100
-        except (ValueError, NotImplementedError, StopIteration):
+        except (ValueError, StopIteration):
             pass
     finished = sum(r["pct"] == 100 for r in rows)
     initial = esc((profile.get("display_name") or "You")[:1].upper())
@@ -185,7 +180,6 @@ def render(profile: dict, snapshot: dict) -> bool:
          f'<span>{esc(profile.get("display_name") or "You")}</span></div></header>')
     with card_container():
         show(goal_block(fit_now, fit_after, plan_done_pct(rows), roles[target_id]["title"]))
-        delta = fit_now - fit_before
         show(stat_columns([
             ("Skills you have", str(len(profile["skills"])), "in your profile"),
             ("Courses still to do", str(len(rows) - finished), f"{finished} done of {len(rows)}"),

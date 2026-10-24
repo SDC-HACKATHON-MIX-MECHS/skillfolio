@@ -66,15 +66,6 @@ def _forecast(projected, thin=False, trajectory="stable"):
     return {"projected": projected, "thin_data": thin, "exposure": 0.2, "index": [100, 101], "trajectory": trajectory}
 
 
-def test_watchlist_skips_owned_sorts_by_momentum_and_puts_thin_last():
-    f = {"own": _forecast(0.9), "x": _forecast(0.1), "y": _forecast(0.3), "z": _forecast(0.2),
-         "thin_hi": _forecast(0.8, thin=True), "thin_lo": _forecast(0.0, thin=True)}
-    rows = d.watchlist(f, {"own"}, n=2, thin_n=1)
-    assert [r["skill_id"] for r in rows] == ["y", "z", "thin_hi"]
-    assert rows[-1]["thin"] is True
-    assert "own" not in {r["skill_id"] for r in d.watchlist(f, {"own"})}
-
-
 def test_holdings_sorted_by_weight_with_forecast_fields():
     result = {
         "skills": [
@@ -97,8 +88,6 @@ def _all_components_with(text):
         ui.hero(text, text, text, "up", caption=text),
         ui.section_header(text, text, "briefcase", right_html=ui.pill(text)),
         ui.stat_row([(text, text, text)]),
-        ui.holding_row(text, text, 0.1, "rising", False, [1, 2, 3], 0.5, sub=text),
-        ui.holdings_list([], empty_text=text),
     ]
 
 
@@ -115,30 +104,12 @@ def test_esc_escapes_quotes_and_collapses_whitespace():
 
 
 def test_components_are_single_line_html():
-    sample = ui.holdings_list([ui.holding_row("Python", "PY", 0.1, "rising", False, [1, 2, 3], 0.2)])
-    for out in [sample, ui.hero("Readiness score", "7.5", "+9.7%", "up"), ui.section_header("T", "S", "eye"),
+    for out in [ui.hero("Readiness score", "7.5", "+9.7%", "up"), ui.section_header("T", "S", "eye"),
                 ui.stat_row([("A", "1")]), *_all_components_with("x\n\ny")]:
         assert "\n" not in out and "  " not in out
 
 
 # --- HTML components: meaning never by colour alone ---------------------------------------------------
-
-def test_change_pill_has_arrow_sign_and_word():
-    up = ui.change_pill(0.123, "rising")
-    assert "<svg" in up and "+12.3%" in up and "rising" in up and "sf-pill-up" in up
-    down = ui.change_pill(-0.04, "declining")
-    assert "−4.0%" in down and "declining" in down and "sf-pill-down" in down
-    flat = ui.change_pill(0.008, "stable")
-    assert "+0.8%" in flat and "stable" in flat and "sf-pill-flat" in flat
-    assert "sf-pill-up" in ui.change_pill(0.2) and "rising" in ui.change_pill(0.2)    # word from the sign when no trajectory
-    assert "n/a" in ui.change_pill(None)
-
-
-def test_thin_data_says_low_data_and_greys_the_row():
-    row = ui.holding_row("Rust", "RS", 0.9, "stable", True, [1, 2], 0.3)
-    assert "low data" in row and "sf-row-thin" in row and "+90.0%" not in row
-    assert "Rust" in row and "(RS)" not in row                   # the name only: no ticker in brackets
-
 
 def test_exposure_bar_is_amber_never_red_or_green():
     for value in (0.0, 0.5, 1.0):

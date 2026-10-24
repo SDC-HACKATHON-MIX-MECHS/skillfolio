@@ -1,4 +1,4 @@
-"""Shared UI helpers for every page (lane C). Visual rules: docs/DESIGN.md and .claude/skills/skillfolio-design.
+"""Shared UI helpers for every page.
 
 The look is the v4 LIGHT system: warm off-white page, white cards with a 1px soft border and 10px radius, ink text, ONE
 family (Inter), amber used for fills only (progress tracks, the chart line, the selected underline).
@@ -23,7 +23,7 @@ import streamlit as st
 from engine import config
 from engine.data import load_courses, load_role_skills, load_roles, load_skills, load_snapshot
 
-# --- Design tokens (docs/DESIGN.md section 1): the ONE token set for every page. No hex codes in page files. --------
+# --- Design tokens: the ONE token set for every page. No hex codes in page files. --------
 # The look: a soft sage page, off-white cards with very large corners, ONE charcoal feature card, and mint green as the accent
 # fill. Contrast is computed by tools/design_audit.py (and tests/test_design_audit.py): text >= 7:1 on every surface.
 # MINT is about 1.3:1 on the light cards, so it is a FILL (bars, chips, the selected tab) and never text there; ink goes ON
@@ -67,10 +67,7 @@ SDG_NAMES = {
 }
 LEVEL_LABELS = {1: "1 · basic", 2: "2 · working", 3: "3 · strong"}
 RISK_LABELS = {"low": "Low — play it safe", "medium": "Medium", "high": "High — chase growth"}
-TRAJECTORY = {"rising": "▲ rising", "stable": "● stable", "declining": "▼ declining"}
-LOW_DATA = "● low data"
-
-# Tooltips (DESIGN.md §6)
+# Tooltips
 HELP = {
     "momentum": "How fast job posts mentioning this skill grew over the last 12 months, adjusted for the AI scenario. Above zero means rising. An estimate.",
     "exposure": "How much of this work already shows up in real AI use, 0–100. It means the work is changing fastest, not that the job disappears.",
@@ -175,20 +172,6 @@ def require_profile() -> dict:
     return profile
 
 
-def call_or_wait(lane: str, what: str, fn, *args, **kwargs):
-    """Call another lane's function; if it isn't built yet, say so on the page and return None."""
-    try:
-        return fn(*args, **kwargs)
-    except NotImplementedError:
-        st.info(f"Waiting for lane {lane}: {what} isn't built yet.")
-        return None
-
-
-def todo(owner: str, items: list[str]) -> None:
-    """Placeholder listing what this page must show (from docs/SPEC.md section 6)."""
-    st.info(f"**To build ({owner}):**\n\n" + "\n".join(f"- {item}" for item in items))
-
-
 # --- Data lookups -------------------------------------------------------------------------------
 
 @st.cache_data
@@ -260,18 +243,7 @@ def source_note(text: str, note: str | None = None) -> None:
     show(source_html([text], note))
 
 
-# --- Number formats (DESIGN.md §2) --------------------------------------------------------------
-
-def arrow(x: float, threshold: float = 0.005) -> str:
-    return "▲" if x > threshold else "▼" if x < -threshold else "●"
-
-
-def fmt_change(x: float | None) -> str:
-    """0.123 -> '▲ +12.3%'."""
-    if x is None:
-        return "—"
-    return f"{arrow(x)} {x * 100:+.1f}%".replace("-", "−")
-
+# --- Number formats --------------------------------------------------------------
 
 def fmt_pct(x: float | None, decimals: int = 0) -> str:
     return "—" if x is None else f"{x * 100:.{decimals}f}%"
@@ -298,7 +270,7 @@ def run_engine(profile: dict, snapshot: dict) -> dict | None:
     from engine import api
 
     try:
-        result = call_or_wait("A", "the engine", api.analyse, profile, snapshot, scenario(), top_n=None)
+        result = api.analyse(profile, snapshot, scenario(), top_n=None)
     except ValueError as exc:
         st.error(f"We couldn't score this profile: {exc}")
         st.page_link("pages/1_Profile.py", label="Fix it on 1 · Profile", icon=":material/person:")
@@ -314,7 +286,7 @@ def show_warnings(result: dict) -> None:
         st.info(f"Nothing to show yet: {warning}.")
 
 
-# --- Charts (DESIGN.md section 5) ---------------------------------------------------------------------
+# --- Charts ---------------------------------------------------------------------
 
 def style_fig(fig: go.Figure, height: int = 340) -> go.Figure:
     """Light Plotly styling for every figure: white-card template, transparent background (sits on the card), soft grid, Inter."""
@@ -587,22 +559,6 @@ def risk_return_fig(matches: list[dict], user: dict, before: dict | None = None)
     return fig
 
 
-SDG_COLOURS = [MINT, "#7ED67A", "#CFE9CB", "#9FB09B", "#BFC9BA", "#8FA08A", "#D9E8D6", "#B5E3B0"]   # mint and sage greens; ink text stays >= 7:1 on all
-
-
-def sdg_donut(allocation: dict[int, float]) -> go.Figure:
-    goals = sorted(allocation, key=allocation.get, reverse=True)
-    fig = go.Figure(go.Pie(
-        labels=[f"SDG {g} · {SDG_NAMES.get(g, '')}" for g in goals],
-        values=[allocation[g] for g in goals],
-        hole=0.55, sort=False,
-        marker=dict(colors=[SDG_COLOURS[i % len(SDG_COLOURS)] for i in range(len(goals))], line=dict(color=CARD, width=2)),
-        hovertemplate="%{label}<br>%{percent} of your skills<extra></extra>",
-        textinfo="percent", textfont=dict(color=TEXT, size=14),
-    ))
-    return style_fig(fig, height=320)
-
-
 # --- CSS (the one injection point) --------------------------------------------------------------------
 
 _CSS_IMPORT = "@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');"
@@ -808,18 +764,6 @@ def fmt_signed(x: float | None, decimals: int = 1) -> str:
 _TRAJECTORY_DIR = {"rising": "up", "declining": "down", "stable": "flat"}
 
 
-def change_pill(change: float | None, trajectory: str | None = None, thin: bool = False) -> str:
-    """Momentum pill: '+9.7% rising' / '−3.0% declining' / '+0.8% stable' / 'low data'.
-    `trajectory` is the engine's word ('rising'|'stable'|'declining'); without it the word comes from the sign."""
-    if thin:
-        return pill("low data", "low")
-    if change is None:
-        return pill("n/a", "flat")
-    if trajectory not in _TRAJECTORY_DIR:
-        trajectory = {"up": "rising", "down": "declining", "flat": "stable"}[_direction(change)]
-    return pill(f"{fmt_signed(change)} {trajectory}", _TRAJECTORY_DIR[trajectory])
-
-
 def _direction(x: float | None, threshold: float = 0.005) -> str:
     return "flat" if x is None else "up" if x > threshold else "down" if x < -threshold else "flat"
 
@@ -884,28 +828,3 @@ def stat_row(items: list[tuple]) -> str:
     return f'<div class="sf-stats">{"".join(cells)}</div>'
 
 
-def holding_row(name: str, ticker: str, change: float | None = None, trajectory: str | None = None, thin: bool = False,
-                trend: list[float] | None = None, exposure: float | None = None, sub: str | None = None) -> str:
-    """One row of the Holdings / Watchlist list: Name (TICKER) + sub line, sparkline, momentum pill, AI exposure bar.
-    `change` = 12-month estimate as a fraction; `thin` greys the row and says 'low data'; `exposure` is 0..1."""
-    if thin:
-        direction = "low"
-    elif trajectory in _TRAJECTORY_DIR:
-        direction = _TRAJECTORY_DIR[trajectory]
-    else:
-        direction = _direction(change)
-    sub_html = f'<div class="sf-sub">{esc(sub)}</div>' if sub else ""
-    return (f'<div class="sf-row{" sf-row-thin" if thin else ""}" role="listitem" aria-label="{esc(name)}">'
-            f'<div class="sf-c-name"><div class="sf-name">{esc(name)}</div>{sub_html}</div>'
-            f'<div class="sf-c-spark">{sparkline(trend, direction if not thin else "flat")}</div>'
-            f'<div class="sf-c-pill">{change_pill(change, trajectory, thin)}</div>'
-            f'<div class="sf-c-exp">{exposure_bar(exposure)}</div></div>')
-
-
-def holdings_list(rows: list[str], empty_text: str = "Nothing to show yet.") -> str:
-    """Wrap holding_row() strings in the list card with its column header. Empty -> a plain message."""
-    if not rows:
-        return f'<div class="sf-list"><div class="sf-empty">{esc(empty_text)}</div></div>'
-    head = ('<div class="sf-list-head" aria-hidden="true"><div class="sf-c-name">Skill</div><div class="sf-c-spark">Demand</div>'
-            '<div class="sf-c-pill">Hiring trend (estimate)</div><div class="sf-c-exp">AI impact</div></div>')
-    return f'<div class="sf-list" role="list">{head}{"".join(rows)}</div>'

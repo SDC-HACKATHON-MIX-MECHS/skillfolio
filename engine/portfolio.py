@@ -1,4 +1,4 @@
-"""Portfolio metrics for a set of skills (SPEC 5.2). Lane A.
+"""Portfolio metrics for a set of skills (SPEC 5.2).
 
 The user's skills are weighted by self-rated level. From each skill's forecast and the covariance of
 the skills' monthly demand changes we get expected growth, AI exposure, volatility, diversification

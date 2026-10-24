@@ -1,4 +1,4 @@
-"""Skill -> occupations -> AI exposure (SPEC 4.3). Lane B.
+"""Skill -> occupations -> AI exposure (SPEC 4.3).
 
 Sources:
 - Anthropic Economic Index job_exposure.csv (CC-BY):
@@ -138,7 +138,7 @@ def skill_exposure(skills: list[dict], job_exposure: dict[str, float], onet_tech
 
 def generate_role_skills(roles: list[dict], skills: list[dict], onet_tech: list[dict]) -> list[dict]:
     """Rows for data/role_skills.generated.csv: In Demand -> weight 3, Hot Technology -> weight 2.
-    Lanes A + D curate this into data/role_skills.csv (max 10 skills per role)."""
+    The team curates this into data/role_skills.csv (max 10 skills per role)."""
     skill_by_example = {ex: s["skill_id"] for s in skills for ex in s["onet_examples"]}
     best: dict[tuple[str, str], tuple[int, str]] = {}
     for role in roles:

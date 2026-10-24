@@ -1,4 +1,4 @@
-"""The app's single front door (lane A -> lane C): one call returns everything a page needs.
+"""The app's single front door: one call returns everything a page needs.
 
 `analyse(profile, snapshot, scenario)` runs the whole engine for one learner: skill forecasts, portfolio
 metrics, the top role matches and the SDG allocation. The result is plain JSON (dicts, lists, numbers,

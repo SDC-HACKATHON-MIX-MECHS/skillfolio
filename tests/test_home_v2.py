@@ -156,13 +156,12 @@ def test_ranked_home_has_greeting_three_role_cards_and_one_primary_button(ranked
 
 def test_role_cards_show_the_engines_fit_and_titles_without_a_why_sentence(ranked, monkeypatch):
     monkeypatch.setattr(data, "load_role_skills", lambda: copy.deepcopy(ROLE_SKILLS))
-    from app.ui import skill_name
     result = api.analyse(aina(), data.load_snapshot("latest"), "moderate", top_n=None)
     html = markdown_html(ranked)
     for i, match in enumerate(hc.top_roles(result["matches"])[:3]):
         assert f'{round(match["match_pct"] * 100)}%' in html
         assert html_lib.escape(match["title"], quote=True) in html
-        assert html_lib.escape(hc.why_sentence(match, skill_name), quote=True) not in html     # no explaining sentence under a role
+        assert "biggest skill you are missing" not in plain(html)            # no explaining sentence under a role
         if i == 0:                                                      # only the lead card carries the hiring chip; rows stay quiet
             assert hc.hiring_text(match["role_growth"]) in plain(html)
 
@@ -180,7 +179,6 @@ def test_each_card_has_a_chip_a_fit_track_and_a_missing_strip_with_one_button(ra
 
 def _ranked_role_ids(at) -> list[str]:
     from app.home_components import top_roles
-    from app.ui import scenario  # noqa: F401  (the page uses the default scenario in a fresh session)
     result = api.analyse(aina(), data.load_snapshot("latest"), "moderate", top_n=None)
     return [m["role_id"] for m in top_roles(result["matches"])]
 

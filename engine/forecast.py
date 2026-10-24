@@ -1,4 +1,4 @@
-"""Skill forecasts: demand index, damped momentum, volatility, scenarios (SPEC 5.1). Lane A.
+"""Skill forecasts: demand index, damped momentum, volatility, scenarios (SPEC 5.1).
 
 Input is one skill's entry from a snapshot (`counts`, `shares`, `exposure`)
 plus the snapshot's `months`. Output is a SkillForecast dict
