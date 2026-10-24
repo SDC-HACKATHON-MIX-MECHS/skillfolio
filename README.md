@@ -8,11 +8,11 @@
 
 | Field                  | Details                                     |
 | ---------------------- | ------------------------------------------- |
-| **Team Name**          | [TO FILL]                                   |
+| **Team Name**          | MIX MECHS                                   |
 | **Team Domain**        | Domain 1 — The Aiversecity Future-Ready Workforce |
 | **SDG Track (1–17)**   | SDG 4 — Quality Education (target 4.4); SDG 8 — Decent Work and Economic Growth (target 8.5) |
 | **Team Leader**        | Jaiydaan Raj                                |
-| **University**         | [TO FILL]                                   |
+| **University**         | University of Southampton Malaysia          |
 | **Number of Members**  | 4                                           |
 
 ## Links
@@ -147,7 +147,7 @@ python -m pytest
 - **Hosting:** the app is published with Replit Deployments at the Live Demo link above.
 - **Secrets:** the RunPod API key and endpoint ID are stored in Replit Secrets, never in the code.
 
-📄 Proof of use: [`submission/SDC2026_TeamName_Replit_POU.pdf`](submission/SDC2026_TeamName_Replit_POU.pdf)
+📄 Proof of use: [`submission/SDC2026_MIXMECHS_Replit_POU.pdf`](submission/SDC2026_MIXMECHS_Replit_POU.pdf)
 
 ## How We Use RunPod *(Required)*
 
@@ -164,7 +164,7 @@ curl -X POST https://api.runpod.ai/v2/$RUNPOD_ENDPOINT_ID/runsync \
   -d '{"input": {"task": "match_skills", "text": "Built dashboards for senior management.", "skills": [{"skill_id": "powerbi", "text": "Building dashboards and reports for managers in Microsoft Power BI."}]}}'
 ```
 
-📄 Proof of use: [`submission/SDC2026_TeamName_Runpod_POU.pdf`](submission/SDC2026_TeamName_Runpod_POU.pdf)
+📄 Proof of use: [`submission/SDC2026_MIXMECHS_Runpod_POU.pdf`](submission/SDC2026_MIXMECHS_Runpod_POU.pdf)
 
 ---
 
@@ -200,9 +200,9 @@ curl -X POST https://api.runpod.ai/v2/$RUNPOD_ENDPOINT_ID/runsync \
 - [ ] Demo video link added
 - [ ] Replit used, with proof of use in `submission/`
 - [ ] RunPod used, with proof of use in `submission/`
-- [ ] Preliminary submission completed (`SDC2026_TeamName_Preliminary.pdf`)
-- [ ] Technology declaration completed (`SDC2026_TeamName_TechDeclaration.pdf`)
-- [ ] Submission files renamed with your team name (replace `TeamName`)
+- [ ] Preliminary submission completed (`SDC2026_MIXMECHS_Preliminary.pdf`)
+- [ ] Technology declaration completed (`SDC2026_MIXMECHS_TechDeclaration.pdf`)
+- [ ] Submission files renamed with your team name (replace `TeamName` with `MIXMECHS`)
 - [ ] "How to Run" steps verified
 - [ ] No API keys or secrets committed to the repository
 
