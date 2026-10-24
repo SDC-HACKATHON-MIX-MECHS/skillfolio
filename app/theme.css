@@ -439,7 +439,7 @@ a.sf-chip:hover { border-color: var(--sf-text); }
 .sf-goal-fill { position: absolute; left: 0; top: 0; bottom: 0; background: var(--sf-mint); border-right: 2px solid var(--sf-text); box-sizing: border-box; }
 .sf-goal-gain { position: absolute; top: 0; bottom: 0; }
 .sf-goal-mark { position: absolute; top: 0; bottom: 0; width: 4px; background: var(--sf-text); transform: translateX(-2px); }
-.sf-pstats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 24px 0 8px; }
+.sf-pstats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); padding: 24px 0 8px; }
 .sf-pstat { padding: 0 24px; border-left: 1px solid var(--sf-border); }
 .sf-pstat:first-child { padding-left: 0; border-left: 0; }
 .sf-pstat-label { font-size: 0.9375rem; color: var(--sf-text); font-weight: 500; }

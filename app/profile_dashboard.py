@@ -67,8 +67,9 @@ def coverage(match: dict, name_of) -> list[tuple[str, int]]:
 
 # --- builders (one line of HTML, all data text escaped) ----------------------------------------------------------------
 
-def goal_block(fit: int, fit_after: int, done_pct: int, role_title: str) -> str:
-    """The big fit number, '<n>% of your plan done', and a wide bar: solid up to your fit, hatched up to the fit the plan reaches."""
+def goal_block(fit: int, fit_after: int, role_title: str) -> str:
+    """The big fit number and a wide bar: solid up to your fit today, hatched up to the fit the finished plan could reach. The bar is fit,
+    not course progress (that is the 'Plan done' stat)."""
     fit, fit_after = max(0, min(100, round(fit))), max(0, min(100, round(fit_after)))
     gain = ""
     if fit_after > fit:
@@ -76,8 +77,8 @@ def goal_block(fit: int, fit_after: int, done_pct: int, role_title: str) -> str:
     return (
         f'<div class="sf-goal"><div class="sf-goal-num"><div class="sf-goal-big">{fit}</div>'
         f'<div class="sf-goal-cap">fit with {esc(role_title)}</div></div>'
-        f'<div class="sf-goal-main"><div class="sf-goal-line"><b>{int(done_pct)}% of your plan done</b>'
-        f'<span> · the plan reaches {fit_after}%, an estimate</span></div>'
+        f'<div class="sf-goal-main"><div class="sf-goal-line"><b>{fit}% is your fit today</b>'
+        f'<span> · finishing your plan could reach {fit_after}%, an estimate</span></div>'
         f'<div class="sf-goal-bar" role="img" aria-label="Fit {fit} percent; the plan reaches {fit_after} percent">'
         f'<div class="sf-goal-fill" style="width:{fit}%"></div>{gain}<div class="sf-goal-mark" style="left:{fit_after}%"></div></div></div></div>'
     )
@@ -179,11 +180,12 @@ def render(profile: dict, snapshot: dict) -> bool:
          f'<div class="sf-whoami"><span class="sf-avatar" aria-hidden="true">{initial}</span>'
          f'<span>{esc(profile.get("display_name") or "You")}</span></div></header>')
     with card_container():
-        show(goal_block(fit_now, fit_after, plan_done_pct(rows), roles[target_id]["title"]))
+        show(goal_block(fit_now, fit_after, roles[target_id]["title"]))
         show(stat_columns([
             ("Skills you have", str(len(profile["skills"])), "in your profile"),
             ("Courses still to do", str(len(rows) - finished), f"{finished} done of {len(rows)}"),
             ("Hours left", f"{hours_left(rows):g} h", "an estimate, from your plan"),
+            ("Plan done", f"{plan_done_pct(rows)}%", "of the planned hours"),
         ]))
     left, right = st.columns(2, gap="large")
     with left:
