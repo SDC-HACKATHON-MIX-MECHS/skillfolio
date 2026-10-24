@@ -23,7 +23,7 @@
 | Replit Project    | [TO FILL]                                      |
 | Live Demo         | [TO FILL]                                      |
 | RunPod Endpoint   | https://api.runpod.ai/v2/r0ykxnttw93erm (API address, needs a key) |
-| Slide Deck        | [TO FILL]                                      |
+| Slide Deck        | [docs/SDC2026_MIXMECHS_Slides.pdf](docs/SDC2026_MIXMECHS_Slides.pdf) |
 | Demo Video        | [TO FILL]                                      |
 
 ---
@@ -204,7 +204,7 @@ curl -X POST https://api.runpod.ai/v2/$RUNPOD_ENDPOINT_ID/runsync \
 ## Submission Checklist
 
 - [x] Team name, domain (Domain 1 / Domain 2) and SDG track filled in
-- [ ] Slide deck link added
+- [x] Slide deck link added
 - [ ] Demo video link added
 - [ ] Replit used, with proof of use in `submission/`
 - [x] RunPod used, with proof of use in `submission/`
