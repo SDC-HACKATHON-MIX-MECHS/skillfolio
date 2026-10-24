@@ -32,20 +32,20 @@
 
 ### Problem
 
-A resume is a snapshot, but the job market is a moving target. AI is changing which skills employers want faster than career advice can keep up, and graduates and career switchers have no way to keep track of their skills against it. In 2024, 66.0% of Malaysian graduates aged 24 and under worked in jobs below their qualifications (DOSM, Graduates Statistics 2024). Someone with a few hundred learning hours a year can't see which of their skills are growing, which roles they could reach, or whether each course is moving them closer, and chatbots that answer this can invent jobs, courses and numbers.
+AI is changing which skills employers ask for faster than career advice can keep up, and graduates and career switchers have no way to track their own skills against it. In 2024, 66.0% of Malaysian graduates aged 24 and under were working in jobs below their qualifications (DOSM, Graduates Statistics 2024). Someone with a few hundred hours a year to learn can't tell which of their skills are in demand, which roles they could reach, or whether a course moved them closer. Chatbots that answer these questions can make up jobs, courses and numbers.
 
 ### Solution
 
-SkillFolio is a living skill portfolio. The user pastes or uploads a resume and the app builds their portfolio from a catalogue of 73 skills, each rated Basic, Working or Strong. They then track and update it as they learn, and watch how it changes their fit for the roles they want, whether they are moving into tech and data or growing in it. It reads real, dated job posts (Hacker News "Who is hiring", 25 months) and AI-exposure data (Anthropic Economic Index, O*NET) to estimate how demand for each skill is moving under two AI scenarios, ranks the roles they can reach with an explainable fit score, and builds an ordered plan of free courses. When they mark a course finished, the skill level and the fit score update. An open AI model on a RunPod GPU suggests skills a resume describes without naming. Every number shows its source and date, forecasts are labelled as estimates, and the app can only recommend roles, skills and courses from its own verified lists, so it cannot invent them. The person makes the decision.
+SkillFolio turns a resume into a skill portfolio. The user pastes a resume and we build their portfolio from a list of 73 skills, each rated Basic, Working or Strong. We read 25 months of dated job posts (Hacker News "Who is hiring") and AI-exposure data (Anthropic Economic Index, O*NET) to estimate demand for each skill under two AI scenarios. The app ranks 20 roles by fit, builds an ordered plan of free courses, and updates the user's skill levels and fit as they mark courses finished. An open AI model on RunPod suggests skills that a resume describes without naming. Every number shows its source and date, forecasts are labelled as estimates, and the app can only recommend roles, skills and courses from our checked lists, so it can't make them up. The user makes the decision.
 
 ### Key Features
 
-- **Resume to skill portfolio** — paste a resume; keyword matching plus an embedding model on RunPod suggest skills from our 73, and the user confirms each one and sets a level.
-- **Track your learning** — mark progress on each planned course; finishing one raises that skill's level and your fit, and the Profile page shows plan progress, hours left and skill coverage.
-- **Skill Market (AI-trend signal)** — every skill's job-post demand trend, a 12-month estimate with a range, and its AI exposure, from a dated snapshot that can be refreshed.
-- **Role matching** — 20 ranked roles with a fit score, the skills that count towards it, the biggest missing skill, and the SDGs each role serves.
-- **Learning plan** — free courses in order, with hours; "Apply plan" shows the fit and AI exposure change live.
-- **Two AI futures** — every number re-runs under a moderate and a fast AI-disruption scenario.
+- **Resume to skills** — paste a resume; keyword matching and an AI model on RunPod suggest skills from our 73, and the user confirms each one and sets a level.
+- **Track your learning** — mark progress on each course; finishing one raises that skill's level and your fit. The Profile page shows plan progress, hours left and skill coverage.
+- **Skill Market** — each skill's job-post demand trend, a 12-month estimate with a range, and its AI exposure, from a dated snapshot that can be refreshed.
+- **Role matching** — 20 ranked roles with a fit score, the biggest missing skill, and the SDGs each role serves.
+- **Learning plan** — free courses in order, with hours. "Apply plan" shows the fit and AI exposure change.
+- **Two AI futures** — every number re-runs under a moderate and a fast AI scenario.
 
 ### Tech Stack
 
@@ -176,18 +176,18 @@ curl -X POST https://api.runpod.ai/v2/$RUNPOD_ENDPOINT_ID/runsync \
 
 ## Challenges & Learnings
 
-- **Keeping every number honest.** We fixed data contracts and tests first, so no role, course or statistic can enter the app without a source and date, and the app cannot recommend anything outside its own lists.
-- **Matching resumes by meaning.** Comparing resume sentences with lists of tool names gave noisy results; writing one plain sentence about the work each skill involves made the embedding model accurate.
-- **Small, real data.** About 250 job posts a month is enough for clear trends in common skills but not rare ones, so thin-data skills are greyed out and never given a trend.
-- **Deploying on RunPod.** The first worker never started because the default 5 GB disk was too small for GPU PyTorch; raising it to 20 GB fixed it.
+- **Keeping every number honest.** We agreed data formats and tests first, so no role, course or number can enter the app without a source and date, and the app can't recommend anything outside its own lists.
+- **Matching resumes by meaning.** Comparing resume sentences with tool names gave noisy results. Writing one plain sentence about the work behind each skill fixed it.
+- **Small data.** About 250 job posts a month is enough for common skills but not rare ones, so rare skills get no trend.
+- **Deploying on RunPod.** The first worker never started because the default 5 GB disk was too small for PyTorch. 20 GB fixed it.
 
 ## Known Limitations
 
-- **Industries:** our 20 roles and 73 skills are tech and data. Other industries are not covered yet.
-- **Progress is self-reported:** users tick their own course progress; a very short course can raise the fit score sharply.
-- **Portfolios are not saved:** a portfolio lasts one browser session.
+- **Industries:** our 20 roles and 73 skills are tech and data. Other industries aren't covered yet.
+- **Progress is self-reported:** users tick their own course progress, and a very short course can raise the fit score a lot.
+- **Portfolios aren't saved:** a portfolio lasts one browser session.
 - **Job data:** Hacker News posts are mostly US and remote tech jobs, not the Malaysian market. Skills with too few posts get no trend.
-- **AI model:** it can over-suggest (for example all three clouds for "a cloud server"), and after a quiet spell the RunPod worker can take up to a minute to start, in which case the app uses keyword matching.
+- **AI model:** it can suggest too much (all three clouds for "a cloud server"), and after a quiet spell the RunPod worker can take up to a minute to start. The app then uses keyword matching.
 - **Forecasts are estimates under two AI scenarios, not predictions.**
 
 ## Future Improvements
