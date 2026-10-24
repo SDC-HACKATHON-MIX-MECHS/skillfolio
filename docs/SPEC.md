@@ -229,7 +229,7 @@ Rules the loop leaves open (implemented in `engine/pathway.py`):
 - Every skill / role / course ID that reaches the UI must exist in our CSVs; unknown IDs are dropped and logged.
 - Every number on screen carries its source ID and snapshot date.
 - Profiles have **no** age, gender, race or name-based fields used in scoring.
-- Optional LLM (Phase 2 or if time allows): may only map CV text → skill IDs from `skills.csv` and phrase explanations from engine output. **Default without LLM:** CV text is matched with the same alias rules as the pipeline.
+- Optional model (built 24 Oct 2026): an open embedding model (`BAAI/bge-small-en-v1.5`) on RunPod Serverless maps CV text → skill IDs from `skills.csv` only (`runpod/`, `app/runpod_client.py`). No generative LLM. **Default and fallback:** CV text is matched with the same alias rules as the pipeline.
 
 ---
 
@@ -253,7 +253,7 @@ Rules the loop leaves open (implemented in `engine/pathway.py`):
 
 | # | Must-have | Where it lives |
 |---|---|---|
-| 1 | Skills profile intake | Profile page: picker + CV text matching (+ optional LLM) |
+| 1 | Skills profile intake | Profile page: picker + CV text matching (+ optional embedding model on RunPod) |
 | 2 | AI-trend signal layer (updatable, source + date) | HN Algolia pipeline → dated snapshots; Refresh button; source captions |
 | 3 | Future-role matching (explainable score + gap) | `matching.py`; Matches page breakdown |
 | 4 | Personalised reskilling pathway (ordered, timed, free/low-cost) | `pathway.py`; Rebalance Plan page; `courses.csv` with hours, cost, HRD Corp flag |

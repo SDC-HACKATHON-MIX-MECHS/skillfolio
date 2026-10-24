@@ -230,3 +230,58 @@ def test_profile_dashboard_shows_for_a_returning_user_and_right_after_the_wizard
     at.run()
     assert not at.exception and GOAL in visible_text(at)
     assert primary_buttons(at) == ["Open my portfolio"]
+
+
+# --- the RunPod model on the resume step ------------------------------------------------------------------
+
+AI_RESUME = "Built dashboards for senior management. Wrote Python scripts."
+
+
+def runpod_on(monkeypatch, answer):
+    from app import runpod_client
+    calls = []
+    monkeypatch.setattr(runpod_client, "settings", lambda: {"RUNPOD_API_KEY": "k", "RUNPOD_ENDPOINT_ID": "e"})
+    monkeypatch.setattr(runpod_client, "suggest_skills", lambda text, catalog, env=None: calls.append(text) or answer)
+    return calls
+
+
+def to_resume_step(at):
+    at.button(key="ob_start").click().run()
+    return at
+
+
+def test_without_runpod_keys_there_is_no_ai_box_and_the_page_says_no_ai_reads_it():
+    at = to_resume_step(open_profile_page())
+    assert not [c for c in at.checkbox if c.key == "ob_use_ai"]
+    assert "No AI model reads it" in visible_text(at)
+
+
+def test_runpod_suggestions_are_added_after_the_keyword_matches_and_named(monkeypatch):
+    calls = runpod_on(monkeypatch, ["powerbi", "python", "made_up"])
+    at = to_resume_step(open_profile_page())
+    assert at.checkbox(key="ob_use_ai").value is True
+    at.text_area(key="ob_resume_text").set_value(AI_RESUME)
+    at.button(key="ob_find").click().run()
+    assert not at.exception and calls == [AI_RESUME]
+    ids = [e[0] for e in at.session_state["ob_skills"]]
+    assert ids[0] == "python" and "powerbi" in ids and "made_up" not in ids and ids.count("python") == 1
+    assert "AI model also suggested: Power BI" in visible_text(at)
+    assert "Built dashboards" not in all_session_text(at)          # the resume text is still discarded
+
+
+def test_unticking_the_ai_box_means_the_text_is_not_sent(monkeypatch):
+    calls = runpod_on(monkeypatch, ["powerbi"])
+    at = to_resume_step(open_profile_page())
+    at.checkbox(key="ob_use_ai").uncheck().run()
+    at.text_area(key="ob_resume_text").set_value(AI_RESUME)
+    at.button(key="ob_find").click().run()
+    assert calls == [] and "powerbi" not in [e[0] for e in at.session_state["ob_skills"]]
+
+
+def test_when_runpod_fails_the_keyword_skills_stay_and_the_page_says_so(monkeypatch):
+    runpod_on(monkeypatch, None)
+    at = to_resume_step(open_profile_page())
+    at.text_area(key="ob_resume_text").set_value(AI_RESUME)
+    at.button(key="ob_find").click().run()
+    assert not at.exception and [e[0] for e in at.session_state["ob_skills"]] == ["python"]
+    assert "keyword matching only" in visible_text(at)
