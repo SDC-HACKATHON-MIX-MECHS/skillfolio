@@ -49,6 +49,8 @@ FLAT = MUTED
 EXPOSURE_LOW = "#C2CBBE"  # AI impact: one neutral grey-green scale, never red/green/mint (AI impact is not "bad")
 EXPOSURE_HIGH = "#4E5A52"
 EXPOSURE_STEPS = ["#D3DAD0", "#A6B2A2", "#4E5A52"]
+ROLE_DOT = "#61A66B"       # role dots on the risk/return charts: a darker shade of MINT, so they stand out but stay quieter than "You"
+ROLE_DOT_EDGE = "#3A7A4C"  # their 1px outline
 DIRECTION_COLOUR = {"up": UP, "down": DOWN, "flat": FLAT, "low": FLAT}
 FONT_TEXT = "'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"   # the only family
 RADIUS = 32               # px: cards and expanders (very large corners, as in the reference)
@@ -306,7 +308,12 @@ def style_fig(fig: go.Figure, height: int = 340) -> go.Figure:
 
 
 def show_fig(fig: go.Figure) -> None:
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+    """Every chart is read-only: no drag-to-zoom, scroll-wheel zoom, pinch or double-click reset (hover still works)."""
+    fig.update_xaxes(fixedrange=True)
+    fig.update_yaxes(fixedrange=True)
+    fig.update_layout(dragmode=False)
+    st.plotly_chart(fig, use_container_width=True,
+                    config={"displayModeBar": False, "scrollZoom": False, "doubleClick": False, "showAxisDragHandles": False})
 
 
 def demand_fig(months: list[str], values: list[float], direction: str = "flat", height: int = 300) -> go.Figure:
@@ -522,7 +529,7 @@ def risk_return_fig(matches: list[dict], user: dict, before: dict | None = None,
     fig.add_trace(go.Scatter(
         x=[x for x, _ in roles], y=[y for _, y in roles], mode="markers+text", text=labels, textposition=sides,
         textfont=dict(color=TEXT), cliponaxis=False,
-        marker=dict(size=sizes, color=EXPOSURE_STEPS[0], line=dict(color=EXPOSURE_LOW, width=1)),
+        marker=dict(size=sizes, color=ROLE_DOT, opacity=1, line=dict(color=ROLE_DOT_EDGE, width=1)),   # Plotly fades these to 0.7 by default
         customdata=[[round(m["match_pct"] * 100), m["title"]] for m in top],
         hovertemplate="%{customdata[1]}<br>AI exposure %{x:.0f}/100<br>Growth %{y:+.1f}%<br>Match %{customdata[0]}%<extra></extra>",
         name="Future roles",

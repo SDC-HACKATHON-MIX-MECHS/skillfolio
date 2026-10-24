@@ -110,15 +110,24 @@ a[data-testid="stSidebarNavLink"][href$="/Rebalance_Plan"] p::after { content: "
 [data-testid="stBaseButton-primary"]:hover, button[kind="primary"]:hover { background-color: var(--sf-muted); border-color: var(--sf-muted); }
 [data-testid="stBaseButton-primary"]:disabled { background-color: var(--sf-raised); border: 1px solid var(--sf-border); }
 [data-testid="stBaseButton-primary"]:disabled p, [data-testid="stBaseButton-primary"]:disabled * { color: var(--sf-muted); }
-[data-testid="stBaseButton-tertiary"] { min-height: 44px; padding: 0 8px; color: var(--sf-text); text-decoration: underline; text-underline-offset: 4px; }
-[data-testid="stBaseButton-tertiary"] p { font-size: 1rem; color: var(--sf-text); }
+/* only the words are underlined: an underline on the button also ran under the arrow icon, at a different height */
+[data-testid="stBaseButton-tertiary"] { min-height: 44px; padding: 0 8px; color: var(--sf-text); text-decoration: none; }
+[data-testid="stBaseButton-tertiary"] p { font-size: 1rem; color: var(--sf-text); text-decoration: underline; text-underline-offset: 4px; }
 [data-testid="stPageLink-NavLink"]:hover { background-color: var(--sf-raised); }
 [data-testid="stPageLink-NavLink"] p { font-size: 1rem; }
 .stApp a:focus-visible, .stApp button:focus-visible, .stApp input:focus-visible, .stApp textarea:focus-visible,
 .stApp select:focus-visible, .stApp summary:focus-visible, .stApp [role="tab"]:focus-visible,
-.stApp [role="button"]:focus-visible, .stApp [tabindex]:focus-visible {
-  outline: 2px solid var(--sf-text); outline-offset: 2px; border-radius: 999px;
+.stApp [role="button"]:focus-visible, .stApp [tabindex]:not([tabindex="-1"]):focus-visible {
+  outline: 2px solid var(--sf-text); outline-offset: 2px;   /* the outline follows each element's own corners */
 }
+/* containers focused by script (tabindex="-1", e.g. the main area) get no ring: it drew a pill around the whole page */
+.stApp [tabindex="-1"]:focus-visible { outline: none; }
+/* text inside a field: the field's own border turns ink on focus (below), so the inner input draws no second ring
+   (it sat inside the field's 16px corners with different corners of its own) */
+.stApp [data-testid="stSelectbox"] input:focus-visible, .stApp [data-testid="stMultiSelect"] input:focus-visible,
+.stApp [data-testid="stTextInputRootElement"] input:focus-visible, .stApp [data-testid="stTextAreaRootElement"] textarea:focus-visible,
+.stApp [data-baseweb="select"] input:focus-visible, .stApp [data-baseweb="input"] input:focus-visible,
+.stApp [data-baseweb="textarea"] textarea:focus-visible { outline: none !important; }   /* !important: these inputs carry a tabindex, so the [tabindex] ring rule above outranks a plain selector */
 label[data-baseweb="radio"], [data-baseweb="tab"], [data-baseweb="select"], summary, [role="button"], [role="tab"] { cursor: pointer; }
 
 /* ===== Streamlit widgets (ink comes from primaryColor in .streamlit/config.toml, so nothing is blue) ===== */
@@ -142,6 +151,10 @@ label[data-baseweb="radio"], [data-baseweb="tab"], [data-baseweb="select"], summ
 .stApp [data-baseweb="input"]:focus-within, .stApp [data-baseweb="textarea"]:focus-within, .stApp [data-baseweb="select"] > div:focus-within {
   border-color: var(--sf-text) !important;
 }
+/* open dropdown list (rendered outside .stApp): inset the options so the grey highlight's corners nest inside the list's
+   16px corners (outer radius - inset = inner radius) instead of showing square corners */
+[role="listbox"] { padding: 4px !important; }
+[role="listbox"] [role="option"] { border-radius: calc(var(--sf-radius-control) - 4px) !important; }
 .stApp [data-testid="stExpander"] details { border: 1px solid var(--sf-border); background: var(--sf-card); border-radius: var(--sf-radius); box-shadow: var(--sf-shadow); }
 .stApp [data-testid="stExpander"] summary { min-height: 52px; font-size: 1rem; font-weight: 600; }
 .stApp [data-testid="stAlert"] { border-radius: var(--sf-radius); border: 1px solid var(--sf-border); background: var(--sf-card); color: var(--sf-text); }
