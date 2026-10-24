@@ -1,4 +1,4 @@
-"""Role matching and ranking (SPEC 5.3). Lane A.
+"""Role matching and ranking (SPEC 5.3).
 
 A role is a bundle of skills, each with an importance weight and a required level. The match is how much
 of that bundle the user covers; the rank score also rewards roles built from growing skills and roles that

@@ -1,4 +1,4 @@
-"""Pure-logic tests for Home v2 (app/home_components.py): the one-sentence "why", the top-3 filter, trend words
+"""Pure-logic tests for Home v2 (app/home_components.py): the top-3 filter, trend words
 and HTML escaping. Contrast and stylesheet rules: tests/test_design_audit.py."""
 
 import re
@@ -30,85 +30,6 @@ def match(**kw):
             "contributions": [], "gaps": []}
     base.update(kw)
     return base
-
-
-# --- why_sentence ------------------------------------------------------------------------------------
-
-def test_why_names_skills_you_have_and_the_biggest_missing_skill():
-    m = match(contributions=[contribution("excel"), contribution("sql")], gaps=[gap("erp"), gap("aws")])
-    text = hc.why_sentence(m, name_of)
-    assert text == "You already use Excel and SQL, which this role needs, but ERP is the biggest skill you are missing."
-
-
-def test_why_is_one_sentence():
-    m = match(contributions=[contribution("excel")], gaps=[gap("erp")])
-    assert hc.why_sentence(m, name_of).count(".") == 1
-
-
-def test_why_caps_the_list_of_skills_you_have():
-    m = match(contributions=[contribution(s) for s in ("excel", "sql", "python", "aws")], gaps=[gap("erp")])
-    assert "Excel, SQL and 2 others" in hc.why_sentence(m, name_of)
-
-
-def test_why_uses_a_step_up_when_you_have_every_skill_at_least_partly():
-    m = match(contributions=[contribution("excel"), contribution("python", credit=0.5)], gaps=[gap("python", user_level=1)])
-    text = hc.why_sentence(m, name_of)
-    assert "biggest step up is reaching working level in Python" in text
-    assert "missing" not in text
-
-
-def test_why_prefers_a_skill_you_lack_over_a_step_up():
-    m = match(contributions=[contribution("excel")], gaps=[gap("python", user_level=1), gap("erp", user_level=0)])
-    assert "ERP is the biggest skill you are missing" in hc.why_sentence(m, name_of)
-
-
-def test_why_with_no_gaps():
-    m = match(contributions=[contribution("excel")], gaps=[])
-    assert hc.why_sentence(m, name_of) == "You already cover the skills this role needs, including Excel."
-
-
-def test_why_with_nothing_in_common():
-    m = match(contributions=[], gaps=[gap("erp")])
-    text = hc.why_sentence(m, name_of)
-    assert "ERP is the biggest one to learn" in text
-    assert "already use" not in text
-
-
-def test_why_ignores_zero_credit_contributions():
-    m = match(contributions=[contribution("excel", credit=0)], gaps=[gap("erp")])
-    assert "already use" not in hc.why_sentence(m, name_of)
-
-
-@pytest.mark.parametrize("bad", [None, {}, [], "x", 3, {"contributions": None, "gaps": None},
-                                 {"contributions": [None, 5, {}], "gaps": ["a", None, {"skill_id": ""}]}])
-def test_why_with_missing_or_malformed_data_is_a_calm_fallback(bad):
-    assert hc.why_sentence(bad, name_of) == "We do not have a skill list for this role yet."
-
-
-def test_why_without_a_name_lookup_uses_the_skill_id():
-    assert "erp" in hc.why_sentence(match(gaps=[gap("erp")]))
-
-
-def test_why_survives_a_failing_name_lookup():
-    def boom(_):
-        raise KeyError("nope")
-    text = hc.why_sentence(match(contributions=[contribution("excel")], gaps=[gap("erp")]), boom)
-    assert "excel" in text and "erp" in text
-
-
-def test_why_with_hostile_and_non_ascii_names_is_text_not_markup_once_rendered():
-    names = {"excel": HOSTILE, "erp": "Gestão de Projetos ção 日本語"}
-    m = match(contributions=[contribution("excel")], gaps=[gap("erp")])
-    text = hc.why_sentence(m, lambda s: names[s])
-    assert HOSTILE in text and "日本語" in text           # the logic does not alter the name
-    html = hc.role_card({**m, "title": HOSTILE}, lambda s: names[s])
-    assert "<script>" not in html and "&lt;script&gt;" in html        # rendering escapes it
-    assert "&#36;x&#36;" in html
-
-
-def test_why_collapses_whitespace_and_newlines_in_names():
-    text = hc.why_sentence(match(contributions=[contribution("excel")]), lambda s: "Ex\ncel\t  Pro")
-    assert "Ex cel Pro" in text
 
 
 # --- top_roles / fit ---------------------------------------------------------------------------------
@@ -190,6 +111,18 @@ def test_trend_bars_screen_reader_label_names_whose_skills():
     assert "demand for these skills" in hc.trend_bars(["2026-09", "2026-10"], [100, 110], whose="these skills")
 
 
+def test_a_failing_skill_name_lookup_falls_back_to_the_id_and_never_breaks_the_page():
+    def boom(_):
+        raise KeyError("no such skill")
+    html = hc.missing_strip(match(gaps=[gap("erp")]), boom)
+    assert "erp" in html and "Missing" in html
+
+
+def test_skill_names_have_whitespace_and_newlines_collapsed():
+    html = hc.missing_strip(match(gaps=[gap("erp")]), lambda _: "SAP\n /\t  ERP")
+    assert "SAP / ERP" in html and "\n" not in html
+
+
 # --- names and greeting ------------------------------------------------------------------------------
 
 @pytest.mark.parametrize("profile,expected", [
@@ -211,7 +144,7 @@ def test_greeting_is_a_title_and_one_line_with_no_eyebrow_or_emphasis_word():
     html = hc.greeting("Aina", "these roles fit you best", lead="Short grey line.")
     assert "<h1" in html and "Aina, these roles fit you best" in html and "Short grey line." in html
     assert "<em>" not in html and "YOUR SKILLS" not in html            # v4: no serif emphasis word, no mono eyebrow
-    assert "<em>" not in hc.welcome("Plain headline")
+    assert "<em>" not in hc.welcome_hero("Plain lead")
 
 
 def test_greeting_without_a_name_starts_with_a_capital():
@@ -278,7 +211,7 @@ def test_missing_strip_escapes_the_skill_name():
 
 def test_every_builder_escapes_hostile_text():
     m = match(title=HOSTILE)
-    for html in (hc.role_card(m), hc.welcome(HOSTILE), hc.note(HOSTILE), hc.section_title(HOSTILE, HOSTILE),
+    for html in (hc.role_card(m), hc.welcome_hero(HOSTILE), hc.note(HOSTILE), hc.section_title(HOSTILE, HOSTILE),
                  hc.skill_rows([{"skill_id": "x", "projected": 0.1, "trajectory": "rising", "thin": False}], lambda _: HOSTILE)):
         assert "<script>" not in html and "\n" not in html
 
@@ -326,11 +259,6 @@ def test_kpi_items_with_nothing_rising_or_no_data_never_invent_a_number():
     assert items[0]["value"] == "—" and items[0]["pill"][1] == "Not available"
     assert items[1]["value"] == "0" and items[2]["pill"] == ("flat", "None rising yet")
     assert [i["value"] for i in hc.kpi_items(None)][:2] == ["—", "0"]
-
-
-def test_kpi_strip_is_one_surface_of_at_most_three_cells_and_escapes_text():
-    html = hc.kpi_strip(hc.kpi_items(_analyse_result([0.5])) + [{"label": HOSTILE, "value": "1", "pill": (None, ""), "sub": HOSTILE}])
-    assert html.count('class="sf-stat"') == 3 and html.count('class="sf-stats"') == 1 and "<script>" not in html and "\n" not in html
 
 
 def test_skill_rows_can_show_words_only():

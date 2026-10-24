@@ -1,15 +1,12 @@
-# SkillFolio — Build Spec
-
-**Version:** v1 · 20 Oct 2026 · **Owner:** Jaiydaan (lane A) · **Status:** agreed direction (Idea 3), build in progress
-**Deadline:** internal Sat 24 Oct 9 pm · hard Sun 25 Oct 08:00
+# SkillFolio — Design Spec
 
 > **Your skills are a portfolio. AI is the market.**
 
-This document is the single source of truth for *what* we build. [TASKS.md](TASKS.md) says *who builds what, by when*. [../contracts/](../contracts/) defines the data shapes everyone builds against.
+The design the app was built from (20 Oct 2026): the model, data sources, pipeline, engine formulas and screens. The [README](../README.md) describes the app as it is now; where the two differ, the README and the code are current. [../contracts/](../contracts/) defines the exact data shapes.
 
 ---
 
-## 0. TL;DR — what exists by Saturday
+## 0. Summary
 
 A Streamlit web app on Replit where a fresh grad or early-career switcher:
 
@@ -59,9 +56,9 @@ Second persona: **Ravi, 27**, customer-service executive switching into tech.
 | Rebalancing | **Reskilling plan** | Greedy: best score gain per learning hour, within the hour budget |
 | ESG screen | **SDG lens** | Roles tagged to SDGs with cited reasons; chosen SDGs tilt the ranking |
 
-**How to read AI exposure (say this in the pitch):** exposure measures how much of an occupation's work already shows up in real AI usage. High exposure means the work is **changing fastest** — tasks are being automated *or* augmented — not that the job disappears. Like a stock's beta, it's sensitivity to the AI market, not a verdict.
+**How to read AI exposure:** exposure measures how much of an occupation's work already shows up in real AI usage. High exposure means the work is **changing fastest** — tasks are being automated *or* augmented — not that the job disappears. Like a stock's beta, it's sensitivity to the AI market, not a verdict.
 
-**Definition (confirmed by lane B, 20 Oct 2026)** — from Massenkoff & McCrory, *Labor market impacts of AI: A new measure and early evidence*, Anthropic, 5 Mar 2026 (https://www.anthropic.com/research/labor-market-impacts):
+**Definition (checked 20 Oct 2026)** — from Massenkoff & McCrory, *Labor market impacts of AI: A new measure and early evidence*, Anthropic, 5 Mar 2026 (https://www.anthropic.com/research/labor-market-impacts):
 - Observed exposure asks: of the tasks LLMs could theoretically speed up, how many are *actually* used that way at work, based on real Claude usage in the Anthropic Economic Index.
 - Fully automated use counts in full; augmentative (human + AI) use counts half.
 - Task scores are averaged to the occupation, weighted by the share of time spent on each task. In `job_exposure.csv` it is a 0–1 fraction (e.g. Data Scientists 0.4605 ≈ 46% of the work).
@@ -79,18 +76,18 @@ Second persona: **Ravi, 27**, customer-service executive switching into tech.
 | `onet_tech` | O*NET 31.0 **Technology Skills** — in the 31.0 CSV zip the file is `db_31_0_csv/software_skills.csv` | `https://www.onetcenter.org/dl_files/database/db_31_0_csv.zip` (also `_excel`, `_text`) | `O*NET-SOC Code`, `Workplace Example` (older releases: `Example`), `Hot Technology` (Y/N), `In Demand` (Y/N) | 31,821 rows; flags derived from employer job postings | CC BY 4.0 (stated in the zip's Read Me) |
 | `my_lfs` | Malaysia Labour Force Survey, quarterly | `https://api.data.gov.my/data-catalogue/?id=lfs_qtr` | Latest labour force, unemployment rate (context panel only) | Quarterly since 2010 | Open data |
 
-**API recipes (lane B):**
+**API recipes:**
 - List hiring threads: `GET /search_by_date?tags=story,author_whoishiring&query="who is hiring"&hitsPerPage=50` → keep titles matching `^Ask HN: Who is hiring\? \((\w+) (\d{4})\)$`.
 - Get one thread with all posts: `GET /items/{story_id}` → `children[]` are the top-level posts (`id`, `created_at`, `text` as HTML). Skip children with empty `text` (deleted).
 - Be polite: ≤1 request/second, cache raw months in `data/raw/hn/` (git-ignored), always re-fetch the **current** month (it keeps growing).
 
 **Window:** the last **25 months** (e.g. Oct 2024 → Oct 2026) ≈ 6,000 posts.
 
-**Known limit (state it in the proposal):** HN postings are global and tech-heavy, so SkillFolio targets grads moving into tech and data roles. Malaysian occupation-level data (OpenDOSM, TalentCorp MyCOL) is a Phase 2 upgrade.
+**Known limit:** HN postings are global and tech-heavy, so SkillFolio targets grads moving into tech and data roles. Malaysian occupation-level data (OpenDOSM, TalentCorp MyCOL) is a Phase 2 upgrade.
 
 ---
 
-## 4. Data pipeline (lane B)
+## 4. Data pipeline
 
 ```
 fetch_hn.py ─► data/raw/hn/YYYY-MM.json ─► extract_skills.py ─┐
@@ -101,12 +98,12 @@ data/skills.csv (canonical skills + aliases) ───────────�
 
 1. **`pipeline/fetch_hn.py`** — finds the last 25 monthly threads, downloads each with `/items/{id}`, writes `data/raw/hn/YYYY-MM.json` = `{story_id, month, url, retrieved_at, posts:[{id, created_at, text}]}`.
 2. **`pipeline/extract_skills.py`** — cleans HTML (`html.unescape`, strip tags), then for every skill in `data/skills.csv` checks if **any alias** appears (word-boundary regex; case-insensitive unless the alias starts with `cs:`). Counts **posts**, not mentions (a post mentioning Python 5 times counts once). `count_month` returns `{total_posts, counts: {skill_id: n}}`; `build_snapshot.py` turns these into `counts[]` and `shares[] = counts / total_posts` per skill.
-   - Ambiguous aliases must be case-sensitive or context-anchored: `Go`, `R`, `Spark`, `SAP`, `Swift`, `Rails`, `Excel`, `grid`, `battery`, `payments`, `analytics`, `embedded`. Lane B keeps a test file with ~15 hand-labelled posts.
+   - Ambiguous aliases must be case-sensitive or context-anchored: `Go`, `R`, `Spark`, `SAP`, `Swift`, `Rails`, `Excel`, `grid`, `battery`, `payments`, `analytics`, `embedded`. A test file keeps hand-labelled real posts (`tests/test_extract_skills_spec.py`).
 3. **`pipeline/load_exposure.py`** — joins skill → occupations → exposure:
    - Each skill row in `skills.csv` lists `onet_examples` (exact O*NET `Example` / `Workplace Example` names, `|`-separated).
    - Find every O*NET occupation whose Technology Skills include one of those examples; take the first 7 chars of the O*NET-SOC code (`15-1252.00` → `15-1252`) and look up `observed_exposure`.
    - `skill.exposure` = mean over those occupations; record `exposure_n_occupations`. If a skill has no O*NET example (e.g. "Customer success"), use `proxy_soc_codes` from `skills.csv` instead and set `exposure_method = "proxy"`.
-   - Also emits `data/role_skills.generated.csv`: for each role's SOC code, the O*NET tech skills flagged In Demand (weight 3) or Hot (weight 2) that map to our skills. Lane A/D curate this into `data/role_skills.csv` (≤10 skills per role).
+   - Also emits `data/role_skills.generated.csv`: for each role's SOC code, the O*NET tech skills flagged In Demand (weight 3) or Hot (weight 2) that map to our skills. The team curates this into `data/role_skills.csv` (≤10 skills per role).
 4. **`pipeline/build_snapshot.py`** — writes the snapshot (shape in [contracts](../contracts/README.md#snapshot)), stamps `retrieved_at` (UTC ISO), lists every source with URL + licence + retrieval time, and copies it to `latest.json`.
 5. **Refresh** — `python -m pipeline.build_snapshot --refresh-current` re-downloads only the current month and rebuilds. The app's **Refresh data** button calls the same function.
 
@@ -114,7 +111,7 @@ data/skills.csv (canonical skills + aliases) ───────────�
 
 ---
 
-## 5. Engine (lane A)
+## 5. Engine
 
 All tunable numbers live in `engine/config.py` and are shown on the Methodology page as **assumptions**.
 
@@ -135,7 +132,7 @@ For each skill, monthly shares `s_1 … s_M` (M = 25 in a full snapshot), oldest
 | Volatility `v` | sample std dev (divide by count − 1) of the month-on-month changes in `ln(ŝ_m + ε)` over the last 24 smoothed months (23 changes), × √12 | annualised; 0 when fewer than 2 changes |
 | History | `history_months = M` | |
 | Too little history | `history_months < 3` → `g = s = g′ = s′ = 0` (so `momentum`, `momentum_raw`, interval = 0) **and** the scenario shift is 0, so `projected = projected_low = projected_high = 0`; `thin_data = true` | placeholders, not a forecast |
-| Thin data flag | `history_months < 3` **or** the skill's mean posts per month (its `counts`, over **all** months, empty ones included) < 3 | **label is always Stable**; app (lane C) greys the row and shows a "low data" badge |
+| Thin data flag | `history_months < 3` **or** the skill's mean posts per month (its `counts`, over **all** months, empty ones included) < 3 | **label is always Stable**; the app greys the row and shows a "low data" badge |
 
 **Damping noisy trends (shrinkage, a.k.a. partial pooling).** A skill mentioned in about 4 posts a month has a very noisy trend; one mentioned 12 times a month does not. We estimate how much skills *really* differ from each other, then pull each skill's trend toward the average by exactly as much as its noise warrants.
 - **Reference skills** = skills with `history_months ≥ 3` that are **not** thin data; `k` = how many. If `k < SHRINK_MIN_SKILLS` (5) there is no prior and nothing is shrunk.
@@ -217,7 +214,7 @@ Rules the loop leaves open (implemented in `engine/pathway.py`):
 
 ### 5.5 SDG lens (`engine/sdg.py`)
 
-- Each **role** has ≥1 SDG in `roles.csv`, with a one-line reason and a source URL (lane D).
+- Each **role** has ≥1 SDG in `roles.csv`, with a one-line reason and a source URL.
 - Each **skill** gets SDG **4 (target 4.4 — relevant skills for decent jobs)** as a baseline, plus the SDGs of every role that weights it ≥2.
 - **Impact allocation:** share of the user's portfolio weight linked to each SDG → donut chart, before and after the plan. Each skill's weight is split **equally across that skill's SDGs** and each SDG adds up the pieces it receives, so the shares sum to 1. The list is ordered by share (high to low), then SDG number. Because every skill carries the baseline SDG 4 and gives it the same piece as each of its other SDGs, SDG 4 is always the largest slice, possibly tied (on a tie with SDG 1, 2 or 3 those are listed first): the donut should label it "SDG 4 (baseline)" and the story is in the other slices. Skills with weight 0 add no slices.
 - **Skill SDGs** are listed with the baseline first, then the rest ascending, each once. Origin roles count as roles here; rows naming a role missing from `roles.csv` are ignored. A skill no role weights ≥ 2 has only SDG 4.
@@ -233,7 +230,7 @@ Rules the loop leaves open (implemented in `engine/pathway.py`):
 
 ---
 
-## 6. Screens (lane C, Streamlit multipage)
+## 6. Screens (Streamlit multipage)
 
 | Page | Must show | Must-haves covered |
 |---|---|---|
@@ -262,45 +259,19 @@ Rules the loop leaves open (implemented in `engine/pathway.py`):
 
 ---
 
-## 8. Demo script (≈2 min of the 3-min pitch)
-
-1. **Home** (10 s) — "This is Aina. 200 hours. Which skills are worth them?" Point at the snapshot date.
-2. **Profile** (10 s) — load sample Aina.
-3. **Skill Market** (25 s) — rising vs declining skills from real postings; flip **Moderate → Fast AI**: exposed skills drop, others rise. Point at the source line.
-4. **Portfolio** (20 s) — her dot vs the role "funds"; AI-exposure gauge.
-5. **Matches** (25 s) — top role, open the breakdown: what counts, what's missing, SDG reason.
-6. **Rebalance Plan** (20 s) — 190 hours of courses; **Apply plan** → dot moves up-left, gauge drops. *(wow)*
-7. **Refresh data** (10 s) — new timestamp, tickers update. "It keeps learning as AI moves."
-
-Backup: if live refresh fails, the snapshot dropdown switches between two committed snapshots.
-
----
-
-## 9. Out of scope for the preliminary round (Phase 2 upgrades)
+## 8. Future work (out of scope for the preliminary round)
 
 HR / team heatmap · Bahasa Malaysia + Chinese UI · Malaysian occupation data (OpenDOSM, MyCOL) · scheduled automatic refresh · fairness audit report · progress tracking and badges · LLM explanations.
 
 ---
 
-## 10. Risks and fallbacks
+## 9. Risks and fallbacks
 
 | Risk | Fallback |
 |---|---|
 | HN API slow or down during demo | Committed snapshots; snapshot dropdown; app never calls the API on page load |
 | Alias matching miscounts skills | Hand-labelled test posts; ambiguous aliases case-sensitive; thin-data flag |
-| Scenario parameters look arbitrary | Shown openly as assumptions on Methodology; centred so they only re-rank; D cites the reasoning |
+| Scenario parameters look arbitrary | Shown openly as assumptions on Methodology; centred so they only re-rank; the reasoning is cited |
 | Exposure misread as "job loss" | Plain-English definition on every exposure tooltip |
 | Courses invented | Only rows with a fetched, working URL and `verified_on` date |
 | Replit limits | Plain Streamlit, no paid features; screen recording in repo |
-
----
-
-## 11. Definition of done (Sat 24 Oct, 9 pm)
-
-- [ ] Live HN data → snapshot with today's date, committed
-- [ ] All 7 pages work for both sample profiles, on desktop and phone
-- [ ] Scenario toggle visibly changes Skill Market, Portfolio and Matches
-- [ ] Apply plan moves the dot and drops the gauge
-- [ ] Every number has a source + date; every role and skill has ≥1 SDG with a reason
-- [ ] `pytest` green; repo public; README run steps work on a fresh Replit import
-- [ ] Proposal covers all 6 must-haves, the hardest risk and its fallback

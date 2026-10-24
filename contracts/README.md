@@ -1,16 +1,14 @@
 # Data contracts
 
-These are the shapes every lane builds against. **If you need to change one, say so in the group chat first** — someone else is probably reading it.
+The exact shapes of every data file and engine output. The data files and the engine are checked against these by the automated tests.
 
 Files in [`examples/`](examples/) are **illustrative fixtures for development and tests only — not real data**. They use `example.org` links and made-up numbers so nobody mistakes them for real figures. The app must show an "EXAMPLE DATA" banner if it ever loads them.
-
-Owner key: **A** engine · **B** data · **C** app · **D** research/pitch.
 
 ---
 
 ## CSV files in `data/`
 
-### `skills.csv` — canonical skills (owner B)
+### `skills.csv` — canonical skills
 
 | Column | Type | Example | Notes |
 |---|---|---|---|
@@ -19,10 +17,10 @@ Owner key: **A** engine · **B** data · **C** app · **D** research/pitch.
 | `ticker` | 2–5 capital letters or digits | `PY`, `K8S` | unique; shown on the Skill Market |
 | `category` | text | `language` | language, data, analytics, ai, cloud, devops, frontend, backend, database, security, design, product, business, hardware, green, domain, mobile, engineering |
 | `aliases` | `\|`-separated | `python` | matched with word boundaries, case-insensitive; prefix `cs:` for case-sensitive (e.g. `cs:Go`) |
-| `onet_examples` | `\|`-separated | `Python` | exact O*NET Technology Skills `Example` names (B fills from the O*NET file) |
+| `onet_examples` | `\|`-separated | `Python` | exact O*NET Technology Skills `Example` names (filled from the O*NET file) |
 | `proxy_soc_codes` | `\|`-separated | `43-4051` | only when no O*NET example fits; 6-digit SOC codes |
 
-### `roles.csv` — future roles, the "funds" (owners A + D)
+### `roles.csv` — future roles, the "funds"
 
 | Column | Type | Example | Notes |
 |---|---|---|---|
@@ -35,10 +33,10 @@ Owner key: **A** engine · **B** data · **C** app · **D** research/pitch.
 | `exposure_source` | source ID | `aei_job_exposure` | |
 | `sdgs` | `\|`-separated ints | `9\|8` | ≥1 required |
 | `sdg_rationale` | text | `Data science drives…` | one sentence, plain English |
-| `sdg_source_url` | URL | `https://sdgs.un.org/goals/goal9` | D refines to target level where possible |
+| `sdg_source_url` | URL | `https://sdgs.un.org/goals/goal9` | refined to target level where possible |
 | `description` | text | | one line shown on Matches |
 
-### `role_skills.csv` — what each role is made of (owners A + D, seeded by B)
+### `role_skills.csv` — what each role is made of
 
 | Column | Type | Example | Notes |
 |---|---|---|---|
@@ -48,7 +46,7 @@ Owner key: **A** engine · **B** data · **C** app · **D** research/pitch.
 | `required_level` | 1–3 | `2` | 1 basic · 2 working · 3 strong |
 | `source` | text | `onet_in_demand` | `onet_in_demand` \| `onet_hot` \| `team` |
 
-### `courses.csv` — the only courses SkillFolio may recommend (owner D)
+### `courses.csv` — the only courses SkillFolio may recommend
 
 | Column | Type | Example | Notes |
 |---|---|---|---|
@@ -63,13 +61,13 @@ Owner key: **A** engine · **B** data · **C** app · **D** research/pitch.
 | `hrdc_claimable` | `yes` \| `no` \| `unknown` | `unknown` | `yes` only with a source |
 | `prereq_skill_id` | slug or empty | | |
 | `prereq_level` | 1–3 or empty | | |
-| `verified_on` | date | `2026-10-21` | when D last opened the URL |
+| `verified_on` | date | `2026-10-21` | when the team last opened the URL |
 
 ---
 
 ## JSON shapes
 
-### Profile — `data/profiles/*.json` (owner D; app creates the same shape)
+### Profile — `data/profiles/*.json` (app creates the same shape)
 
 ```json
 {
@@ -88,7 +86,7 @@ Owner key: **A** engine · **B** data · **C** app · **D** research/pitch.
 
 ### Snapshot
 
-File: `data/snapshots/YYYY-MM-DD.json` (owner B), copied to `latest.json`.
+File: `data/snapshots/YYYY-MM-DD.json`, copied to `latest.json`.
 
 ```json
 {
@@ -119,7 +117,7 @@ File: `data/snapshots/YYYY-MM-DD.json` (owner B), copied to `latest.json`.
 - Optional `is_example: true` marks a fixture; the app shows the "EXAMPLE DATA" banner when it's present. Real snapshots omit it.
 - Optional `_note` is a free-text comment for humans; code ignores it.
 
-### SkillForecast — engine output per skill per scenario (owner A)
+### SkillForecast — engine output per skill per scenario
 
 ```json
 {
@@ -138,7 +136,7 @@ File: `data/snapshots/YYYY-MM-DD.json` (owner B), copied to `latest.json`.
 - When `history_months < 3`, `momentum`, `momentum_raw`, its interval, `volatility` and `projected` / `projected_low` / `projected_high` are all `0.0` placeholders, `trajectory` is `"stable"` and `thin_data` is `true` — show "low data", not a trend.
 - `thin_data` is also `true` when the skill's mean posts per month (its `counts`, over all months, empty ones included) is below 3. Then `trajectory` is always `"stable"`, but the numbers are real and should be shown greyed.
 
-### Match — engine output per role (owner A)
+### Match — engine output per role
 
 ```json
 {
@@ -153,7 +151,7 @@ File: `data/snapshots/YYYY-MM-DD.json` (owner B), copied to `latest.json`.
 ```
 `match_pct` = (3 × 1.0 + 3 × 0) / (3 + 3) = 0.5 · `rank_score` = 0.5 × (1 + 0.09) × (1 + 0.15 × 0.5) = 0.5859. `gaps` are sorted by `weight` (high → low), then `required_level` (high → low), then `skill_id`. `contributions` hold the skills with some credit, sorted by `weight`, then `credit` (high → low), then `skill_id`; a partly met skill is in both lists. `citations` are the demand data (`hn_whoishiring`), the role's exposure source, and one entry per distinct source in the role's skill rows (`onet_in_demand` / `onet_hot` appear as `onet_tech`; a hand-curated row with source `team` appears as `team`). Rules for growth, ties and which roles are ranked are in SPEC 5.3.
 
-### PathwayStep — engine output (owner A)
+### PathwayStep — engine output
 
 ```json
 {"order": 1, "course_id": "sql_basics_x", "title": "SQL basics", "provider": "Example Provider", "skill_id": "sql",
@@ -162,14 +160,14 @@ File: `data/snapshots/YYYY-MM-DD.json` (owner B), copied to `latest.json`.
  "gain_per_hour": 0.0041, "cumulative_hours": 12, "cumulative_cost_rm": 0}
 ```
 
-### PortfolioMetrics — engine output (owner A)
+### PortfolioMetrics — engine output
 
 ```json
 {"growth": 0.07, "ai_exposure": 0.38, "volatility": 0.14, "diversification": 0.71, "readiness": 0.04}
 ```
 `ai_exposure` is `null` when none of the profile's skills has a known exposure (the gauge should then show "n/a"). `growth` counts a thin-data skill at most ±5% (SPEC 5.2).
 
-### Analysis: `engine.api.analyse(profile, snapshot, scenario)` (owner A, the app's single front door)
+### Analysis: `engine.api.analyse(profile, snapshot, scenario)` (the app's single front door)
 
 One call returns everything a page needs, as plain JSON-able data. Pages call this and read the result instead of importing the other engine modules.
 
@@ -201,7 +199,7 @@ This is the real output today for Aina on the 2026-10-20 snapshot: `data/role_sk
 - Optional keyword arguments: `roles=` and `role_skills=` replace what is read from `data/` (an explicit empty list is respected); `top_n=` sets how many matches come back (default 5, `None` = every ranked role, for the roles-as-bubbles chart). Match objects carry SDG numbers only: join `sdg_rationale` and `sdg_source_url` from `data/roles.csv` by `role_id` for the badges and links.
 - The scenario toggle is just the `scenario` argument: call again, it takes a few milliseconds on the real snapshot.
 
-### PlanResult — `engine.pathway.plan` output (owner A)
+### PlanResult — `engine.pathway.plan` output
 
 ```json
 {

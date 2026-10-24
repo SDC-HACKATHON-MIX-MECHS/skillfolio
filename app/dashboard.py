@@ -84,20 +84,3 @@ def holdings(result: dict) -> list[dict]:
     return sorted(rows, key=lambda r: (-r["weight"], r["skill_id"]))
 
 
-def watchlist(forecasts: dict[str, dict], owned: set[str] | list[str], n: int = 5, thin_n: int = 2) -> list[dict]:
-    """Top-momentum skills the user does not hold: up to `n` solid ones by projected growth, then up to
-    `thin_n` thin-data ones at the bottom (the UI greys them and says "low data")."""
-    owned = set(owned)
-    rows = []
-    for skill_id, f in forecasts.items():
-        if skill_id in owned:
-            continue
-        rows.append({
-            "skill_id": skill_id, "projected": f["projected"], "thin": bool(f["thin_data"]),
-            "exposure": f.get("exposure"), "index": f.get("index", []), "trajectory": f.get("trajectory"),
-        })
-    solid = sorted((r for r in rows if not r["thin"]), key=lambda r: (-r["projected"], r["skill_id"]))
-    thin = sorted((r for r in rows if r["thin"]), key=lambda r: (-r["projected"], r["skill_id"]))
-    return solid[:n] + thin[:thin_n]
-
-

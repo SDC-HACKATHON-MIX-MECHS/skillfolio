@@ -7,10 +7,6 @@ import logging
 log = logging.getLogger(__name__)
 
 
-def known_ids(rows: list[dict], key: str) -> set[str]:
-    return {row[key] for row in rows}
-
-
 def keep_known(items: list[dict], key: str, allowed: set[str]) -> list[dict]:
     """Drop items whose `key` isn't in `allowed`, logging what was dropped."""
     kept = [item for item in items if item.get(key) in allowed]

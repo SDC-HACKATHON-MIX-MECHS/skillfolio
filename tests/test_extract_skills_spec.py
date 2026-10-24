@@ -1,5 +1,4 @@
-"""Acceptance tests for lane B's skill matcher (SPEC 4.2).
-Lane B: grow this to ~15 hand-labelled real posts."""
+"""Acceptance tests for the skill matcher (SPEC 4.2), on hand-labelled real posts."""
 
 import pytest
 
@@ -17,7 +16,7 @@ CASES = [
     ("Machine learning engineer working on LLMs and RAG pipelines.", {"ml", "llm"}),
 ]
 
-# Excerpts of real HN "Who is hiring?" posts (2024-11 .. 2026-10), labelled by hand (lane B, 2026-10-20).
+# Excerpts of real HN "Who is hiring?" posts (2024-11 .. 2026-10), labelled by hand (2026-10-20).
 REAL_CASES = [
     ("Stack is Rails/React/Typescript/Postgres/Elasticsearch", {"ruby", "react", "typescript", "postgres"}),
     ("Full Stack Engineer who can transform python backend into a working MVP.", {"python"}),

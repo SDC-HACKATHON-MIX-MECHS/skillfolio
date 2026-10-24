@@ -1,4 +1,4 @@
-"""Build a dated snapshot (SPEC 4.4-4.5). Lane B.
+"""Build a dated snapshot (SPEC 4.4-4.5).
 
 Run:  python -m pipeline.build_snapshot                 # full rebuild (25 months)
       python -m pipeline.build_snapshot --refresh-current  # only re-fetch the current month

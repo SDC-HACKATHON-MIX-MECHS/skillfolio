@@ -1,10 +1,10 @@
 """Home: the roles-first screen. Which roles fit me, and why? Answered in five seconds.
 
-With a profile and ranked roles: a hero, the top 3 roles as cards (title, status chip, Fit % with a progress track, one
-sentence on why, hiring-trend pill, and an inline 'Missing: X' strip with one button), one primary button to the learning
+With a profile and ranked roles: a hero, the top 3 roles as cards (title, status chip, Fit % with a progress track,
+hiring-trend pill, and an inline 'Missing: X' strip with one button), one primary button to the learning
 plan, and at wide widths a panel on the right on how the user's skills are doing, with everything else behind a single
-"Show details" expander. Without a profile: the hero, one button and a demo link. All wording is plain English
-(docs/DESIGN.md); every figure is engine output, never invented. Look: the shared app/theme.css (docs/DESIGN.md).
+"Show details" expander. Without a profile: the hero, one button and a demo link. All wording is plain English;
+every figure is engine output, never invented. Look: the shared app/theme.css.
 """
 
 import copy

@@ -1,11 +1,12 @@
 # SkillFolio — instructions for AI agents (Replit Agent)
 
+> Replit Agent reads this file when it works in the Repl. It is kept in the repository as part of our AI disclosure: it shows the rules the agent had to follow.
+
 SkillFolio treats a person's skills like an investment portfolio. Each skill has a demand trend (return), a demand swing (risk) and an AI-exposure beta, computed from public, dated job-post data. It is a Streamlit app for the SDC Hackathon 2026, Domain 1 (the Aiversecity Future-Ready Workforce). **AI advises; the person decides.**
 
 ## Read first
 1. `docs/SPEC.md` — what to build. §5 is the engine, **§6 is the screens**.
-2. `docs/TASKS.md` — who builds what. You are doing **lane C (the app)**.
-3. `contracts/README.md` — the exact shapes of every dict the engine returns.
+2. `contracts/README.md` — the exact shapes of every dict the engine returns.
 
 ## Your job
 Build and polish the pages in `app/pages/` (and shared helpers in `app/ui.py`), one page at a time, in this order: Skill Market, Profile, My Portfolio, Matches, Rebalance Plan, Methodology. Start with **Skill Market**: it is the feature the judges named ("trend signal feeding role matching").
@@ -13,7 +14,7 @@ Build and polish the pages in `app/pages/` (and shared helpers in `app/ui.py`), 
 ## Data and engine (already built, do not rewrite)
 - Snapshot: `from engine.data import load_snapshot; snap = load_snapshot("latest")`
 - Forecasts: `from engine.forecast import forecast_all; forecast_all(snap, scenario)` returns one SkillForecast dict per skill (keys in `contracts/README.md`).
-- Matching, portfolio and pathway are still being written by lane A. If a function raises `NotImplementedError`, show a short "coming soon" note instead of faking numbers.
+- Matching, portfolio, pathway and the SDG lens come from `engine.api.analyse(...)`; never compute or fake those numbers in a page.
 - The scenario is chosen in the sidebar by `app.ui.page_setup()` and stored in `st.session_state["scenario"]`, which is `"moderate"` or `"fast"`. Scenario names to show: `config.SCENARIOS[key]["label"]`.
 - Skills, roles, courses and sample profiles come from the `load_*` functions in `engine/data.py`. Do not read CSV files directly.
 - Allowed packages: `streamlit`, `pandas`, `numpy`, `plotly`, `requests`.

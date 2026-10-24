@@ -1,4 +1,3 @@
-import inspect
 import sys
 from pathlib import Path
 
@@ -9,7 +8,7 @@ import streamlit as st
 
 from app.page_components import PLAIN, compare_cards, course_list, course_row, sdg_bars
 from app.ui import (
-    SDG_NAMES, call_or_wait, course_catalog, fmt_pct, fmt_rm, fmt_score, fmt_signed, gauge_fig, hero, require_profile,
+    SDG_NAMES, course_catalog, fmt_pct, fmt_rm, fmt_score, fmt_signed, gauge_fig, hero, require_profile,
     page_header, page_setup, risk_return_fig, role_catalog, role_skill_rows, run_engine, section_header, show, show_fig, show_warnings,
     skill_label, source_caption, source_note, user_levels,
 )
@@ -37,19 +36,13 @@ target_id = st.selectbox(
     help="Starts on your closest role. Pick another to see its plan.",
 )
 
-# TODO(PR 11): engine.pathway.plan takes budget_rm from PR 11 on. This passes the profile's RM budget as soon as the
-# planner accepts it, and leaves it out (as on the older planner) until then.
-plan_kwargs = {"budget_rm": profile.get("budget_rm")} if "budget_rm" in inspect.signature(plan).parameters else {}
 try:
-    result_plan = call_or_wait(
-        "A", "the course planner", plan, user_levels(profile["skills"]), roles[target_id], role_skill_rows(),
-        list(course_catalog().values()), result["forecasts"], snapshot, profile["risk_tolerance"], profile["hours_budget"],
-        **plan_kwargs,
+    result_plan = plan(
+        user_levels(profile["skills"]), roles[target_id], role_skill_rows(), list(course_catalog().values()), result["forecasts"],
+        snapshot, profile["risk_tolerance"], profile["hours_budget"], budget_rm=profile.get("budget_rm"),
     )
 except ValueError as exc:
     st.error(f"We couldn't build a plan: {exc}")
-    st.stop()
-if result_plan is None:
     st.stop()
 steps = result_plan["steps"]
 if not steps:
@@ -132,9 +125,8 @@ with st.expander("Show details", expanded=applied):
             level_out = courses.get(s["course_id"], {}).get("level_out")
             if level_out:  # only courses.csv rows can change a level
                 new_levels[s["skill_id"]] = max(new_levels.get(s["skill_id"], 0), level_out)
-        new_weights = call_or_wait("A", "portfolio weights", portfolio.weights, [{"skill_id": k, "level": v} for k, v in new_levels.items()])
-        allocation = new_weights and call_or_wait(
-            "A", "the SDG lens", sdg.impact_allocation, new_weights, list(roles.values()), role_skill_rows())
+        new_weights = portfolio.weights([{"skill_id": k, "level": v} for k, v in new_levels.items()])
+        allocation = new_weights and sdg.impact_allocation(new_weights, list(roles.values()), role_skill_rows())
     else:
         allocation = {a["sdg"]: a["share"] for a in result["sdg_allocation"]}
     if allocation:

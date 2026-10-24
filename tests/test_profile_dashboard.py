@@ -77,19 +77,6 @@ def test_stat_columns_one_line_and_escaped():
     assert "<script" not in html and "&lt;script&gt;" in html and "\n" not in html and html.count("sf-pstat ") + html.count('sf-pstat"') >= 2
 
 
-def test_study_row_ring_shows_the_percentage_and_is_escaped():
-    row = {"course_id": "x", "title": HOSTILE, "provider": HOSTILE, "skill_id": "python", "level_word": "Beginner", "hours": 10, "pct": 35, "url": "https://x.test"}
-    html = pd_.study_row(row, "Python (PY)")
-    assert "35%" in html and "Beginner" in html and "<script" not in html and "\n" not in html
-    assert "sf-ring" in html and 'role="img"' in html
-
-
-def test_study_row_says_done_at_one_hundred_percent_and_hours_left_otherwise():
-    base = {"course_id": "x", "title": "T", "provider": "P", "skill_id": "python", "level_word": "Beginner", "hours": 10, "pct": 100, "url": None}
-    assert "Done" in pd_.study_row(base, "Python (PY)")
-    assert "5 h left" in pd_.study_row({**base, "pct": 50}, "Python (PY)")
-
-
 def test_petals_show_six_skills_with_percentages_and_the_fit_in_the_middle():
     items = [(f"Skill {i}", i * 15) for i in range(1, 7)]
     html = pd_.petal_chart(items, 68)
@@ -109,12 +96,6 @@ def test_coverage_is_how_much_of_each_required_level_you_hold():
     got = pd_.coverage(match, lambda s: s.upper())
     assert got[0] == ("B", 50)                              # heaviest first
     assert dict(got) == {"A": 100, "B": 50, "C": 0}
-
-
-def test_course_rows_carry_no_provider_ticker_or_helper_text():
-    row = {"course_id": "x", "title": "Tableau for Data Science", "provider": "freeCodeCamp", "skill_id": "tableau", "level_word": "Beginner", "hours": 10, "pct": 0, "url": None}
-    html = pd_.study_row(row, "Tableau (TAB)")
-    assert "freeCodeCamp" not in html and "(TAB)" not in html and "Tableau for Data Science" in html
 
 
 def test_stat_columns_show_label_and_number_only():

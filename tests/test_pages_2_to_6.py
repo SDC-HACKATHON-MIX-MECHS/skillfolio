@@ -1,7 +1,7 @@
 """AppTest coverage for pages 2-6 (Skill Market, My Portfolio, Matches, Rebalance Plan, Methodology).
 
 Each page is run with the sample profile and with no profile; key texts must be present, the plan error path must show a
-message instead of a traceback, and a jargon scan checks that the banned words (brief v2 rule 3) never appear on the visible
+message instead of a traceback, and a jargon scan checks that the banned words never appear on the visible
 surface (outside expanders; the Methodology page is exempt, it explains the technical names).
 
 role_skills.csv is empty on some branches, so these tests patch in a small role list instead of depending on the data file.
@@ -104,8 +104,6 @@ def test_page_with_profile_renders_key_texts(page, profile_id):
     at = run(page, sample_profile(profile_id))
     assert not at.exception, at.exception
     text = all_text(at)
-    if page == "5_Rebalance_Plan.py" and "Waiting for lane A" in text:
-        pytest.skip("this branch still has the stub planner")
     for needle in KEY_TEXTS[page]:
         assert needle in text, f"{page}: missing {needle!r}"
 
@@ -156,8 +154,6 @@ def test_plan_error_shows_a_message_not_a_traceback(monkeypatch):
 
 def test_apply_plan_changes_the_hero_and_can_be_undone():
     at = run("5_Rebalance_Plan.py", sample_profile())
-    if any("Waiting for lane A" in i.value for i in at.info):
-        pytest.skip("this branch still has the stub planner")
     assert [b.label for b in at.button] == ["Apply plan"]
     before = visible_text(at)
     at.button[0].click().run()

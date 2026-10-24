@@ -1,14 +1,12 @@
-"""Acceptance tests for lane A (SPEC 5). Marked xfail until the engine is implemented:
-once a function exists, its tests must pass for real."""
+"""Acceptance tests for the engine (SPEC 5)."""
 
 import json
 
 import pytest
 
-from engine import config, forecast, matching, pathway, portfolio, sdg
+from engine import forecast, matching, pathway, portfolio, sdg
 from engine.data import EXAMPLE_SNAPSHOT
 
-todo = pytest.mark.xfail(raises=NotImplementedError, reason="lane A: not implemented yet", strict=False)
 
 
 @pytest.fixture

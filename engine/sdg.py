@@ -1,4 +1,4 @@
-"""SDG lens (SPEC 5.5). Lane A, with SDG data from lane D.
+"""SDG lens (SPEC 5.5).
 
 Every skill supports SDG 4 (decent jobs through relevant skills) and inherits the SDGs of each role that
 leans on it. A portfolio's impact allocation says which SDGs its skills are linked to, as shares that sum to 1.

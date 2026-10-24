@@ -1,4 +1,4 @@
-"""Reskilling plan = portfolio rebalancing (SPEC 5.4). Lane A.
+"""Reskilling plan = portfolio rebalancing (SPEC 5.4).
 
 Given what the user knows and a target role, pick courses one at a time: each round takes the course that
 helps most per hour, applies it (the skill's level rises), and repeats while hours (and money) remain.

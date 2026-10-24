@@ -3,7 +3,7 @@
 Run:  python tools/design_audit.py        (prints a table, exit code 1 on any failure)
 tests/test_design_audit.py runs the same checks, so a token or stylesheet change that breaks them fails the suite.
 
-Rules (docs/DESIGN.md section 8): body text >= 7:1 on the surfaces it sits on; UI and button text >= 4.5:1; nothing below 14px
+Rules: body text >= 7:1 on the surfaces it sits on; UI and button text >= 4.5:1; nothing below 14px
 (0.875rem) in the stylesheet; padding, margin and gap values on a 4px step (8px for everything that is not a hairline gap).
 """
 
