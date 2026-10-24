@@ -78,7 +78,7 @@ show(
     concept_card("Your learning plan (planner)", [
         "The planner is greedy. Each round it takes the course, from our course list only, that raises your outlook score and your fit with the target role the most per hour, "
         "among courses that teach a missing skill, fit your remaining hours and have their prerequisite met. Then it repeats.",
-        "Hours, costs and links come from courses.csv, each link checked on its verified date. HRD Corp status is 'unknown' until a source is found.",
+        "Hours, costs and links come from courses.csv, each link checked on its verified date.",
     ]),
 )
 
@@ -113,7 +113,6 @@ st.markdown(
     "- Skills are found in posts with fixed text rules. Short names such as Go or R need exact capitalisation, so some posts may be miscounted.\n"
     "- Skills with not enough data are greyed and capped in your hiring trend, but their ups and downs are not capped, so the outlook score leans cautious if you hold rare skills.\n"
     "- Trends are pulled toward the average of all skills, so a skill that is truly growing very fast shows somewhat closer to average.\n"
-    "- HRD Corp funding status is 'unknown' for every course until a source is found.\n"
     "- We never ask your age or gender, and none are used in scoring."
 )
 

@@ -74,7 +74,7 @@ courses = course_catalog()
 rows = [
     course_row(
         s["order"], courses.get(s["course_id"], {}).get("title", s["course_id"]), courses.get(s["course_id"], {}).get("provider"),
-        skill_label(s["skill_id"]), s["hours"], fmt_rm(s["cost_rm"]), s["hrdc_claimable"], s["url"], lead=s["order"] == 1,
+        skill_label(s["skill_id"]), s["hours"], fmt_rm(s["cost_rm"]), s["url"], lead=s["order"] == 1,
     )
     for s in steps
 ]
@@ -87,7 +87,7 @@ if len(rows) > SHOWN:
 total_cost = sum(s["cost_rm"] for s in steps)
 st.caption(
     f"{result_plan['hours_used']:g} of {profile['hours_budget']:g} hours · {fmt_rm(total_cost)} in total"
-    f" (your budget {fmt_rm(profile.get('budget_rm'))}). HRD Corp status is 'unknown' until we find a source."
+    f" (your budget {fmt_rm(profile.get('budget_rm'))})."
 )
 source_note("our course list, each link checked on the date shown in its row", "estimates, not predictions")
 

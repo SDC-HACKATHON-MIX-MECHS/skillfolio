@@ -93,7 +93,7 @@ KEY_TEXTS = {
     "2_Skill_Market.py": ["Skill Market", "Rising fastest", "Not enough data", "Source: Hacker News"],
     "3_My_Portfolio.py": ["My portfolio", "Outlook score", "Hiring trend", "AI impact", "Skill variety", "Source: Hacker News"],
     "4_Matches.py": ["Which roles fit me?", "fit", "Source: Hacker News"],
-    "5_Rebalance_Plan.py": ["Your learning plan", "Fit with", "Courses, in order", "HRD Corp", "unknown", "estimates"],
+    "5_Rebalance_Plan.py": ["Your learning plan", "Fit with", "Courses, in order", "estimates"],
     "6_Methodology.py": ["Methodology and sources", "Where the data comes from", "How the numbers are made", "AI disclosure", "bge-small-en-v1.5", "Claude Code"],
 }
 
@@ -108,6 +108,12 @@ def test_page_with_profile_renders_key_texts(page, profile_id):
         pytest.skip("this branch still has the stub planner")
     for needle in KEY_TEXTS[page]:
         assert needle in text, f"{page}: missing {needle!r}"
+
+
+@pytest.mark.parametrize("page", list(KEY_TEXTS))
+def test_no_page_mentions_hrd_corp(page):
+    at = run(page, sample_profile("aina"))
+    assert "HRD" not in all_text(at), page
 
 
 @pytest.mark.parametrize("page", list(KEY_TEXTS))
@@ -196,4 +202,4 @@ def test_methodology_states_the_band_coverage_honestly():
     text = all_text(run("6_Methodology.py", None))
     assert "about 76%" in text and "1.9" in text
     assert "95%" not in text
-    assert "'unknown' until a source is found" in text
+    assert "HRD" not in text

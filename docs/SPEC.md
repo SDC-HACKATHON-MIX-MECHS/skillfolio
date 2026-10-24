@@ -206,7 +206,7 @@ Rules the table leaves open (implemented in `engine/matching.py`):
 - Target role = the user's pick (default: top-ranked).
 - Candidates = courses in `data/courses.csv` that teach a gap skill (`skill_id`), raising it to `level_out`.
 - **Greedy loop:** while hours remain, pick the course with the highest `(ΔU + β·ΔM) / hours` among courses that fit the remaining hours and whose prerequisite (`prereq_skill_id`, `prereq_level`) is met; apply it; repeat. `β = 1.0`.
-- Output: ordered steps (course, skill, hours, cost, link, HRD Corp flag, cumulative hours) and **before/after** for `M`, `R`, `E`, `σ_p`, `D`, `U`.
+- Output: ordered steps (course, skill, hours, cost, link, cumulative hours) and **before/after** for `M`, `R`, `E`, `σ_p`, `D`, `U`.
 - Never recommends a course that isn't in `courses.csv`.
 
 Rules the loop leaves open (implemented in `engine/pathway.py`):
@@ -242,7 +242,7 @@ Rules the loop leaves open (implemented in `engine/pathway.py`):
 | **2 · Skill Market** | Ticker table: ticker, skill, sparkline (demand index + band), momentum (damped; optionally the raw trend beside it), volatility, AI exposure, trajectory label. Scenario toggle (sidebar, global). **Refresh data** button. Source + date under the table | 2, 6 |
 | **3 · My Portfolio** | Growth, AI-exposure gauge, volatility, diversification, Readiness. **Risk/return chart:** x = AI exposure, y = growth; roles as bubbles (size = match %), user as a highlighted dot | 3, 6 |
 | **4 · Matches** | Top 5 roles: match %, rank-score breakdown, contributing skills, gaps, AI exposure, SDG badges with reasons + links, citations | 3, 5 |
-| **5 · Rebalance Plan** | Target-role picker, ordered course list (hours, cost RM, link, HRD Corp flag, cumulative hours), before/after metrics, **Apply plan** → dot moves on the chart, gauge drops, SDG donut updates | 4, 5 |
+| **5 · Rebalance Plan** | Target-role picker, ordered course list (hours, cost RM, link, cumulative hours), before/after metrics, **Apply plan** → dot moves on the chart, gauge drops, SDG donut updates | 4, 5 |
 | **Methodology** | Sources with URLs, licences and dates; formulas in plain English; assumption values from `config.py`; limits (HN is global/tech-heavy); AI disclosure; "estimates, not predictions" | all |
 
 **Global rules:** scenario toggle in the sidebar affects every page · every chart has a caption `Source: … · retrieved YYYY-MM-DD` · forecasts labelled "estimate" · works on a phone (Streamlit default layout, no wide tables without scroll).
@@ -256,7 +256,7 @@ Rules the loop leaves open (implemented in `engine/pathway.py`):
 | 1 | Skills profile intake | Profile page: picker + CV text matching (+ optional embedding model on RunPod) |
 | 2 | AI-trend signal layer (updatable, source + date) | HN Algolia pipeline → dated snapshots; Refresh button; source captions |
 | 3 | Future-role matching (explainable score + gap) | `matching.py`; Matches page breakdown |
-| 4 | Personalised reskilling pathway (ordered, timed, free/low-cost) | `pathway.py`; Rebalance Plan page; `courses.csv` with hours, cost, HRD Corp flag |
+| 4 | Personalised reskilling pathway (ordered, timed, free/low-cost) | `pathway.py`; Rebalance Plan page; `courses.csv` with hours and cost |
 | 5 | SDG mapping (role + skill, user contribution) | `roles.csv` SDG columns; `sdg.py`; badges + impact donut; SDG tilt in ranking |
 | 6 | Handling uncertainty (≥2 scenarios, estimates) | Moderate/Fast toggle; 80% intervals; thin-data flags; "estimate" labels |
 
