@@ -90,7 +90,7 @@ SkillFolio turns a resume into a skill portfolio. The user pastes a resume and w
 ### Architecture
 
 ```
-User ──► Replit (Streamlit app + Python engine) ──► RunPod Endpoint (embedding model, GPU)
+User ──► Replit (Streamlit app + Python engine) ──► RunPod Endpoint (embedding model, GPU; when switched on)
                 │                                          │
                 │◄──────────── suggested skill ids ◄───────┘
                 │
@@ -152,7 +152,7 @@ python -m pytest
 
 - **Workload:** resume-to-skills matching. The open embedding model `BAAI/bge-small-en-v1.5` compares each resume sentence with a plain description of each of our 73 skills and returns the closest ones, so "built dashboards for senior management" suggests Power BI even though the resume never names it.
 - **Setup:** `runpod/handler.py` is deployed as a **RunPod Serverless Endpoint** on a 16 GB GPU, built from `runpod/Dockerfile` with the model baked into the image (0 always-on workers, so it costs nothing when idle).
-- **Integration:** when `RUNPOD_API_KEY` and `RUNPOD_ENDPOINT_ID` are set, the app sends requests to the endpoint (`app/runpod_client.py`). The model can only rank skill ids we send it, and if the endpoint is slow or down the app falls back to keyword matching. The public Replit demo runs without those two secrets, so its resume step uses keyword matching and nobody waits for a cold GPU start. The endpoint is deployed and tested; the proof of use shows live calls to it.
+- **Integration:** when `RUNPOD_API_KEY` and `RUNPOD_ENDPOINT_ID` are set, the app sends requests to the endpoint (`app/runpod_client.py`). The model can only rank skill ids we send it, and if the endpoint is slow or down the app falls back to keyword matching. The public Replit demo runs without those two secrets, so its resume step uses keyword matching and nobody waits for a cold GPU start. The endpoint is deployed and tested; the proof of use shows it in the RunPod console.
 
 Example request:
 
@@ -171,7 +171,7 @@ curl -X POST https://api.runpod.ai/v2/$RUNPOD_ENDPOINT_ID/runsync \
 
 - **Keeping every number honest.** We agreed data formats and tests first, so no role, course or number can enter the app without a source and date, and the app can't recommend anything outside its own lists.
 - **Matching resumes by meaning.** Comparing resume sentences with tool names gave noisy results. Writing one plain sentence about the work behind each skill fixed it.
-- **Small data.** About 250 job posts a month is enough for common skills but not rare ones, so rare skills get no trend.
+- **Small data.** About 300 job posts a month is enough for common skills but not rare ones, so rare skills get no trend.
 - **Deploying on RunPod.** The first worker never started because the default 5 GB disk was too small for PyTorch. 20 GB fixed it.
 
 ## Known Limitations
