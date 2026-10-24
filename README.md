@@ -24,7 +24,7 @@
 | Live Demo         | https://skillfolio.replit.app/                 |
 | RunPod Endpoint   | https://api.runpod.ai/v2/r0ykxnttw93erm (API address, needs a key) |
 | Slide Deck        | [docs/SDC2026_MIXMECHS_Slides.pdf](docs/SDC2026_MIXMECHS_Slides.pdf) |
-| Demo Video        | [docs/demo/SDC2026_MIXMECHS_Demo.mp4](docs/demo/SDC2026_MIXMECHS_Demo.mp4) |
+| Demo Video        | https://youtu.be/VaGfrhBft5M                   |
 
 ---
 
@@ -76,7 +76,7 @@ SkillFolio turns a resume into a skill portfolio. The user pastes a resume and w
 │   ├── skill_match.py       # Resume-to-skills matching logic
 │   └── Dockerfile           # Image RunPod builds the endpoint from
 ├── contracts/               # Data shapes every file must follow
-├── docs/                    # Specification, screenshots, demo video
+├── docs/                    # Specification and screenshots
 ├── submission/              # Required submission documents
 ├── tests/                   # Unit and app tests
 ├── .env.example             # Example environment variables
