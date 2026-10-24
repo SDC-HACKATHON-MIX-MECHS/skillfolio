@@ -148,7 +148,7 @@ st.markdown(
 show(section_header("AI disclosure", icon_name="user"))
 st.markdown(
     "- **In the product:** forecasts and plans use statistics, not AI models. To read a resume, the app also uses an open "
-    "embedding model, BAAI/bge-small-en-v1.5 (MIT licence), running on a RunPod GPU (on by default; untick it to skip). It can only suggest skills from our own "
+    "embedding model, BAAI/bge-small-en-v1.5 (MIT licence), running on a RunPod GPU (optional: used only when the endpoint keys are set, and the user can untick it). It can only suggest skills from our own "
     "list, you can remove any that are wrong, and without it the app matches your resume with fixed keyword rules. "
     "SkillFolio keeps no copy of your resume text. No generative language model is used.\n"
     "- **While building:** we used Claude Code (Anthropic) to help write code, tests, data files and documents, and "
