@@ -76,7 +76,7 @@ def test_risk_chart_can_open_on_before_so_the_dot_can_slide_to_now():
     assert fig.layout.updatemenus[0].active == 0
     assert fig.data[-1].x[0] == 30 and fig.data[-1].y[0] == 12            # your dot starts where you were
     assert fig.data[1].text == ("",)                                       # no "Before" ring yet: it arrives with "Both"
-    assert fig.layout.annotations[0].text == "<b>Before the plan: +12.0% a year</b>"
+    assert fig.layout.annotations[0].text == "<b>Growth 12.0%/yr</b>"
     assert [f.name for f in fig.frames] == ["Before", "Now", "Both"]
     usual = ui.risk_return_fig(_matches(), after, before=before)
     assert usual.layout.updatemenus[0].active == 2 and usual.data[-1].x[0] == 20      # the default is unchanged

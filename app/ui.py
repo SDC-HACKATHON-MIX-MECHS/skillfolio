@@ -51,6 +51,9 @@ EXPOSURE_HIGH = "#4E5A52"
 EXPOSURE_STEPS = ["#D3DAD0", "#A6B2A2", "#4E5A52"]
 ROLE_DOT = "#7D8F80"       # role dots on the risk/return charts: a dark, greyed-out green, so the bright "You" dot leads
 ROLE_DOT_EDGE = "#5F7062"  # their 1px outline
+ROLE_DOT_DARK = "#3A3D3A"       # the same dots on the charcoal card: a step lighter than CHARCOAL, so they read as quiet discs
+ROLE_DOT_DARK_EDGE = "#565A56"  # their 1px outline on charcoal
+GRID_DARK = "rgba(242,244,240,0.10)"   # chart gridlines on the charcoal card (ON_CHARCOAL at 10%)
 DIRECTION_COLOUR = {"up": UP, "down": DOWN, "flat": FLAT, "low": FLAT}
 FONT_TEXT = "'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"   # the only family
 RADIUS = 32               # px: cards and expanders (very large corners, as in the reference)
@@ -461,23 +464,26 @@ PLAN_VIEWS = ("Before", "Now", "Both")
 
 def growth_readout(before: dict, after: dict, view: str) -> str:
     """The one line beside the Before / Now / Both control."""
-    if view == "Before":
-        return f"Before the plan: {fmt_signed(before['growth'])} a year"
-    if view == "Now":
-        return f"With the plan: {fmt_signed(after['growth'])} a year"
+    if view in ("Before", "Now"):
+        growth = (before if view == "Before" else after)["growth"] * 100
+        return f"Growth {growth:.1f}%/yr".replace("-", "−")
     change = (after["growth"] - before["growth"]) * 100
     if abs(change) < 0.05:
         return "Growth unchanged"
     return f"Growth {'up' if change > 0 else 'down'} {abs(change):.1f} points"
 
 
-def risk_return_fig(matches: list[dict], user: dict, before: dict | None = None, start: str = "Both") -> go.Figure:
+def risk_return_fig(matches: list[dict], user: dict, before: dict | None = None, start: str = "Both",
+                    dark: bool = False) -> go.Figure:
     """x = AI exposure, y = growth. Roles as quiet grey-green dots with short names, you as the bright green dot labelled "You".
     With `before`, the chart carries its own Before / Now / Both buttons and a one-line readout. Each button plays a
     Plotly frame in the browser (no Streamlit rerun), so your dot slides between where you were and where the plan takes
     you, and "Both" adds a hollow "Before" ring. It opens on `start` ("Both" by default). The Learning plan opens it on "Before"
-    once, right after Apply, and a tiny script presses "Both", so your dot slides from where you were to where the plan takes you."""
+    once, right after Apply, and a tiny script presses "Both", so your dot slides from where you were to where the plan takes you.
+    `dark` draws it for the charcoal card (dark_container): light text, darker role dots, a mint "You" dot without the ink ring."""
     start = start if before and start in PLAN_VIEWS else "Both"
+    text, muted = (ON_CHARCOAL, ON_CHARCOAL_MUTED) if dark else (TEXT, MUTED)
+    dot, dot_edge, grid = (ROLE_DOT_DARK, ROLE_DOT_DARK_EDGE, GRID_DARK) if dark else (ROLE_DOT, ROLE_DOT_EDGE, GRID)
     top = matches[: config.TOP_N_ROLES]
     now_xy = (user["ai_exposure"] * 100, user["growth"] * 100)
     before_xy = (before["ai_exposure"] * 100, before["growth"] * 100) if before else None
@@ -512,8 +518,8 @@ def risk_return_fig(matches: list[dict], user: dict, before: dict | None = None,
         xy = before_xy or now_xy
         return go.Scatter(
             x=[xy[0]], y=[xy[1]], mode="markers+text", text=["Before" if show else ""], textposition=before_side,
-            textfont=dict(color=MUTED), cliponaxis=False, name="Before",
-            marker=dict(size=16, color="rgba(0,0,0,0)", line=dict(color=MUTED if show else "rgba(0,0,0,0)", width=1.5)),
+            textfont=dict(color=muted), cliponaxis=False, name="Before",
+            marker=dict(size=16, color="rgba(0,0,0,0)", line=dict(color=muted if show else "rgba(0,0,0,0)", width=1.5)),
             hovertemplate="You, before the plan<br>AI exposure %{x:.0f}/100<br>Growth %{y:+.1f}%<extra></extra>",
         )
 
@@ -521,16 +527,16 @@ def risk_return_fig(matches: list[dict], user: dict, before: dict | None = None,
         """Your dot: the last trace, so theme.css can give it the soft pulse (inside .st-key-sf-plan-chart)."""
         return go.Scatter(
             x=[xy[0]], y=[xy[1]], mode="markers+text", text=["<b>You</b>"], textposition=side_for(xy[0], "middle left"),
-            textfont=dict(color=TEXT, size=15), cliponaxis=False, name="You",
-            marker=dict(size=16, color=MINT, line=dict(color=TEXT, width=2)),
+            textfont=dict(color=text, size=15), cliponaxis=False, name="You",
+            marker=dict(size=16, color=MINT, line=dict(color=MINT, width=0) if dark else dict(color=TEXT, width=2)),
             hovertemplate="You<br>AI exposure %{x:.0f}/100<br>Growth %{y:+.1f}%<extra></extra>",
         )
 
     fig = go.Figure()
     fig.add_trace(go.Scatter(
         x=[x for x, _ in roles], y=[y for _, y in roles], mode="markers+text", text=labels, textposition=sides,
-        textfont=dict(color=TEXT), cliponaxis=False,
-        marker=dict(size=sizes, color=ROLE_DOT, opacity=1, line=dict(color=ROLE_DOT_EDGE, width=1)),   # Plotly fades these to 0.7 by default
+        textfont=dict(color=text), cliponaxis=False,
+        marker=dict(size=sizes, color=dot, opacity=1, line=dict(color=dot_edge, width=1)),   # Plotly fades these to 0.7 by default
         customdata=[[round(m["match_pct"] * 100), m["title"]] for m in top],
         hovertemplate="%{customdata[1]}<br>AI exposure %{x:.0f}/100<br>Growth %{y:+.1f}%<br>Match %{customdata[0]}%<extra></extra>",
         name="Future roles",
@@ -539,18 +545,21 @@ def risk_return_fig(matches: list[dict], user: dict, before: dict | None = None,
     fig.add_trace(ring_trace(before_xy is not None and start == "Both"))
     fig.add_trace(you_trace(you_at[start]))
     style_fig(fig, height=420 if before_xy else 400)
-    axis = dict(showline=False, zeroline=False, ticks="", tickfont=dict(color=MUTED, size=14), title_font=dict(color=MUTED, size=14))
-    fig.update_xaxes(**axis, title="AI impact (0–100)", range=list(x_range), showgrid=False,
+    axis = dict(showline=False, zeroline=False, ticks="", tickfont=dict(color=muted, size=14), title_font=dict(color=muted, size=14))
+    fig.update_xaxes(**axis, title="AI exposure (lower is harder to automate)", range=list(x_range), showgrid=False,
                      tick0=0, dtick=20)
-    fig.update_yaxes(**axis, title="Demand growth (%/yr)", range=list(y_range), showgrid=True, gridcolor=GRID, gridwidth=1,
+    fig.update_yaxes(**axis, title="Demand growth (%/yr)", range=list(y_range), showgrid=True, gridcolor=grid, gridwidth=1,
                      tick0=0, dtick=_nice_step(*y_range))
     fig.update_layout(showlegend=False, margin=dict(l=8, r=8, t=8, b=8))
+    if dark:
+        fig.update_layout(font=dict(color=text), hoverlabel=dict(bgcolor=CHARCOAL, bordercolor=ROLE_DOT_DARK_EDGE,
+                                                                 font=dict(color=ON_CHARCOAL)))
     if before_xy is None:
         return fig
 
     def readout(view: str) -> dict:
         return dict(text=f"<b>{esc(growth_readout(before, user, view))}</b>", xref="paper", yref="paper", x=1, y=1.02,
-                    xanchor="right", yanchor="bottom", showarrow=False, font=dict(color=TEXT, size=15))
+                    xanchor="right", yanchor="bottom", showarrow=False, font=dict(color=text, size=15))
 
     fig.frames = [go.Frame(name=v, traces=[1, 2], data=[ring_trace(v == "Both"), you_trace(you_at[v])],
                            layout=dict(annotations=[readout(v)])) for v in PLAN_VIEWS]
@@ -562,7 +571,8 @@ def risk_return_fig(matches: list[dict], user: dict, before: dict | None = None,
         updatemenus=[dict(
             type="buttons", direction="right", active=PLAN_VIEWS.index(start), showactive=True,
             x=0, y=1.02, xanchor="left", yanchor="bottom", pad=dict(t=0, r=0, b=0, l=0),
-            bgcolor=CARD, bordercolor=BORDER, borderwidth=1, font=dict(color=TEXT, size=15),
+            bgcolor=CHARCOAL if dark else CARD, bordercolor=ROLE_DOT_DARK_EDGE if dark else BORDER, borderwidth=1,
+            font=dict(color=text, size=15),
             buttons=[dict(label=v, method="animate", args=[[v], slide]) for v in PLAN_VIEWS],
         )],
     )
