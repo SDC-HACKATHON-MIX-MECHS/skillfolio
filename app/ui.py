@@ -463,11 +463,13 @@ def growth_readout(before: dict, after: dict, view: str) -> str:
     return f"Growth {'up' if change > 0 else 'down'} {abs(change):.1f} points"
 
 
-def risk_return_fig(matches: list[dict], user: dict, before: dict | None = None) -> go.Figure:
+def risk_return_fig(matches: list[dict], user: dict, before: dict | None = None, start: str = "Both") -> go.Figure:
     """x = AI exposure, y = growth. Roles as quiet dots with short names, you as the amber dot labelled "You".
     With `before`, the chart carries its own Before / Now / Both buttons and a one-line readout. Each button plays a
     Plotly frame in the browser (no Streamlit rerun), so your dot slides between where you were and where the plan takes
-    you, and "Both" adds a hollow "Before" ring. It opens on "Both"."""
+    you, and "Both" adds a hollow "Before" ring. It opens on `start` ("Both" by default). The Learning plan opens it on "Before"
+    once, right after Apply, and a tiny script presses "Both", so your dot slides from where you were to where the plan takes you."""
+    start = start if before and start in PLAN_VIEWS else "Both"
     top = matches[: config.TOP_N_ROLES]
     now_xy = (user["ai_exposure"] * 100, user["growth"] * 100)
     before_xy = (before["ai_exposure"] * 100, before["growth"] * 100) if before else None
@@ -525,11 +527,12 @@ def risk_return_fig(matches: list[dict], user: dict, before: dict | None = None)
         hovertemplate="%{customdata[1]}<br>AI exposure %{x:.0f}/100<br>Growth %{y:+.1f}%<br>Match %{customdata[0]}%<extra></extra>",
         name="Future roles",
     ))
-    fig.add_trace(ring_trace(before_xy is not None))
-    fig.add_trace(you_trace(now_xy))
+    you_at = {"Before": before_xy, "Now": now_xy, "Both": now_xy} if before_xy else {"Both": now_xy}
+    fig.add_trace(ring_trace(before_xy is not None and start == "Both"))
+    fig.add_trace(you_trace(you_at[start]))
     style_fig(fig, height=420 if before_xy else 400)
     axis = dict(showline=False, zeroline=False, ticks="", tickfont=dict(color=MUTED, size=14), title_font=dict(color=MUTED, size=14))
-    fig.update_xaxes(**axis, title="AI exposure (lower is harder to automate)", range=list(x_range), showgrid=False,
+    fig.update_xaxes(**axis, title="AI impact (0–100)", range=list(x_range), showgrid=False,
                      tick0=0, dtick=20)
     fig.update_yaxes(**axis, title="Demand growth (%/yr)", range=list(y_range), showgrid=True, gridcolor=GRID, gridwidth=1,
                      tick0=0, dtick=_nice_step(*y_range))
@@ -541,16 +544,15 @@ def risk_return_fig(matches: list[dict], user: dict, before: dict | None = None)
         return dict(text=f"<b>{esc(growth_readout(before, user, view))}</b>", xref="paper", yref="paper", x=1, y=1.02,
                     xanchor="right", yanchor="bottom", showarrow=False, font=dict(color=TEXT, size=15))
 
-    you_at = {"Before": before_xy, "Now": now_xy, "Both": now_xy}
     fig.frames = [go.Frame(name=v, traces=[1, 2], data=[ring_trace(v == "Both"), you_trace(you_at[v])],
                            layout=dict(annotations=[readout(v)])) for v in PLAN_VIEWS]
     # redraw=True so the readout (a layout annotation) changes too; the dot still slides during the transition.
     slide = dict(frame=dict(duration=600, redraw=True), transition=dict(duration=600, easing="cubic-in-out"), mode="immediate")
     fig.update_layout(
         margin=dict(t=56),
-        annotations=[readout("Both")],
+        annotations=[readout(start)],
         updatemenus=[dict(
-            type="buttons", direction="right", active=PLAN_VIEWS.index("Both"), showactive=True,
+            type="buttons", direction="right", active=PLAN_VIEWS.index(start), showactive=True,
             x=0, y=1.02, xanchor="left", yanchor="bottom", pad=dict(t=0, r=0, b=0, l=0),
             bgcolor=CARD, bordercolor=BORDER, borderwidth=1, font=dict(color=TEXT, size=15),
             buttons=[dict(label=v, method="animate", args=[[v], slide]) for v in PLAN_VIEWS],

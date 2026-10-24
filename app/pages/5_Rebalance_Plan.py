@@ -1,4 +1,5 @@
 import sys
+import uuid
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
@@ -6,9 +7,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 import pandas as pd
 import streamlit as st
 
-from app.page_components import PLAIN, compare_cards, course_list, course_row, sdg_bars
+from app.page_components import PLAIN, compare_cards, course_list, course_row, fit_pct, plan_fit, plan_motion_script, sdg_bars
 from app.ui import (
-    SDG_NAMES, course_catalog, fmt_pct, fmt_rm, fmt_score, fmt_signed, gauge_fig, hero, require_profile,
+    SDG_NAMES, card_container, course_catalog, fmt_pct, fmt_rm, fmt_score, fmt_signed, gauge_fig, require_profile,
     page_header, page_setup, risk_return_fig, role_catalog, role_skill_rows, run_engine, section_header, show, show_fig, show_warnings,
     skill_label, source_caption, source_note, user_levels,
 )
@@ -53,42 +54,65 @@ before, after = result_plan["before"], result_plan["after"]
 applied = st.session_state.get("plan_applied") == target_id
 now = after if applied else before
 pts = (after["match_pct"] - before["match_pct"]) * 100
+# The Apply / Undo moment plays on the ONE run right after the press (the press stores a fresh token; this run takes it).
+motion = st.session_state.pop("plan_motion", None)
+animate = bool(motion) and motion.get("role") == target_id
 
-# --- The one message: how much closer the plan gets you -----------------------------------------------
-show(hero(
-    f"Fit with {roles[target_id]['title']}", fmt_pct(now["match_pct"]),
-    f"{pts:+.0f} points with this plan, an estimate".replace("-", "−") if applied else None,
-    "up" if pts > 0.5 else "down" if pts < -0.5 else "flat",
-    caption="Press Apply plan to see the change." if not applied else "Press Undo plan to go back.",
-))
+
+def press() -> None:
+    """Apply or Undo: flip the plan, and ask the next run to play the moment once."""
+    st.session_state["plan_applied"] = None if applied else target_id
+    st.session_state["plan_motion"] = {"role": target_id, "token": uuid.uuid4().hex[:12]}
+
+
+# --- The one message: how much closer the plan gets you, with the one primary action beside it ----------------------------
+courses = course_catalog()
+fit_col, course_col = st.columns(2, gap="large")
+with fit_col:
+    with card_container():
+        show(plan_fit(
+            roles[target_id]["title"], fit_pct(before["match_pct"]), fit_pct(after["match_pct"]), applied, animate=animate,
+            delta_text=f"{pts:+.0f} points with this plan, an estimate".replace("-", "−") if applied else None,
+            delta_dir="up" if pts > 0.5 else "down" if pts < -0.5 else "flat",
+            caption="Press Undo plan to go back." if applied else "Press Apply plan to see the change.",
+        ))
+        st.button("Undo plan" if applied else "Apply plan", type="primary", use_container_width=True, on_click=press)
+        st.caption("These are estimates. You decide what to learn.")
 
 # --- Courses, in order ----------------------------------------------------------------------------
-courses = course_catalog()
-rows = [
-    course_row(
-        s["order"], courses.get(s["course_id"], {}).get("title", s["course_id"]), courses.get(s["course_id"], {}).get("provider"),
-        skill_label(s["skill_id"]), s["hours"], fmt_rm(s["cost_rm"]), s["url"], lead=s["order"] == 1,
+with course_col:
+    rows = [
+        course_row(
+            s["order"], courses.get(s["course_id"], {}).get("title", s["course_id"]), courses.get(s["course_id"], {}).get("provider"),
+            skill_label(s["skill_id"]), s["hours"], fmt_rm(s["cost_rm"]), s["url"], lead=s["order"] == 1,
+        )
+        for s in steps
+    ]
+    SHOWN = 3
+    show(section_header("Courses, in order", icon_name="briefcase", tight=True))
+    show(course_list(rows[:SHOWN]))
+    if len(rows) > SHOWN:
+        with st.expander(f"Show the other {len(rows) - SHOWN} courses"):
+            show(course_list(rows[SHOWN:]))
+    total_cost = sum(s["cost_rm"] for s in steps)
+    st.caption(
+        f"{result_plan['hours_used']:g} of {profile['hours_budget']:g} hours · {fmt_rm(total_cost)} in total"
+        f" (your budget {fmt_rm(profile.get('budget_rm'))})."
     )
-    for s in steps
-]
-SHOWN = 3
-show(section_header("Courses, in order", icon_name="briefcase"))
-show(course_list(rows[:SHOWN]))
-if len(rows) > SHOWN:
-    with st.expander(f"Show the other {len(rows) - SHOWN} courses"):
-        show(course_list(rows[SHOWN:]))
-total_cost = sum(s["cost_rm"] for s in steps)
-st.caption(
-    f"{result_plan['hours_used']:g} of {profile['hours_budget']:g} hours · {fmt_rm(total_cost)} in total"
-    f" (your budget {fmt_rm(profile.get('budget_rm'))})."
-)
-source_note("our course list, each link checked on the date shown in its row", "estimates, not predictions")
+    source_note("our course list, each link checked on the date shown in its row", "estimates, not predictions")
 
-# --- The one primary action (the wow moment) ------------------------------------------------------
-if st.button("Undo plan" if applied else "Apply plan", type="primary", use_container_width=True):
-    st.session_state["plan_applied"] = None if applied else target_id
-    st.rerun()
-st.caption("These are estimates. You decide what to learn.")
+# --- Where you stand among the roles: after Apply your dot slides from where you were to where the plan takes you ----------
+if now["ai_exposure"] is not None and before["ai_exposure"] is not None:
+    with card_container():
+        show(section_header("Where you stand among the roles", "Up is more hiring growth, left is less AI impact. Bigger dots fit you more.",
+                            tight=True))
+        with st.container(key="sf-plan-chart"):   # theme.css styles its Before / Now / Both buttons and your dot's pulse
+            show_fig(risk_return_fig(result["matches"], now, before=before if applied else None,
+                                     start="Before" if animate and applied else "Both"))
+        source_caption(snapshot, "hn_whoishiring", "aei_job_exposure")
+    if animate and applied:
+        with st.container(key="sf-plan-motion"):   # hidden by theme.css: only runs the one script that presses "Both"
+            st.html(plan_motion_script(motion["token"]), unsafe_allow_javascript=True)
 
 
 def delta(change: float, text: str):
@@ -113,9 +137,6 @@ with st.expander("Show details", expanded=applied):
          *delta(after["growth"] - before["growth"], f"{(after['growth'] - before['growth']) * 100:+.1f} pts".replace("-", "−")), PLAIN["trend"]),
     ]))
     show_fig(gauge_fig(now["ai_exposure"], before=before["ai_exposure"] if applied else None))
-    if now["ai_exposure"] is not None and before["ai_exposure"] is not None:
-        with st.container(key="sf-plan-chart"):   # theme.css styles its Before / Now / Both buttons and your dot's pulse
-            show_fig(risk_return_fig(result["matches"], now, before=before if applied else None))
     source_caption(snapshot, "hn_whoishiring", "aei_job_exposure")
 
     st.markdown("**Where your skills point " + ("after the plan" if applied else "today") + "**")
