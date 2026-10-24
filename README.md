@@ -20,7 +20,7 @@
 | Resource          | Link                                           |
 | ----------------- | ---------------------------------------------- |
 | GitHub Repository | https://github.com/SDC-HACKATHON-MIX-MECHS/skillfolio |
-| Replit Project    | https://replit.com/@WhiteDevil23/skillfolio    |
+| Replit Project    | Private workspace; the deployed app is at https://skillfolio.replit.app/ and the proof of use is in [submission/SDC2026_MIXMECHS_Replit_POU.pdf](submission/SDC2026_MIXMECHS_Replit_POU.pdf) |
 | Live Demo         | https://skillfolio.replit.app/                 |
 | RunPod Endpoint   | https://api.runpod.ai/v2/r0ykxnttw93erm (API address, needs a key) |
 | Slide Deck        | [docs/SDC2026_MIXMECHS_Slides.pdf](docs/SDC2026_MIXMECHS_Slides.pdf) |
@@ -105,7 +105,7 @@ User ──► Replit (Streamlit app + Python engine) ──► RunPod Endpoint 
 
 ### Option 1 — Run on Replit (Recommended)
 
-1. Open the [Replit Project](https://replit.com/@WhiteDevil23/skillfolio), or import this repository via **Create Repl → Import from GitHub**.
+1. Import this repository into Replit via **Create Repl → Import from GitHub**.
 2. Optional, to turn on the AI model: open the **Secrets** tab (🔒) and add the two variables listed in `.env.example` (`RUNPOD_API_KEY` and `RUNPOD_ENDPOINT_ID`, from your own RunPod endpoint). Your keys stay in Secrets and are never committed.
 3. Click **Run**. Replit uses the `.replit` file to start `streamlit run app/Home.py`.
 
