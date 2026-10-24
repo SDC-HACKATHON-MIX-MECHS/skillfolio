@@ -8,7 +8,11 @@ here: every class used below is styled by the shared app/theme.css (injected onc
 
 from __future__ import annotations
 
-from app.home_components import skill_pill
+import json
+import math
+import re
+
+from app.home_components import fit_arc, skill_pill
 from app.ui import esc, exposure_bar, icon, pill, range_tabs, small_label, sparkline, status_chip
 
 # --- Plain-English words. Precise terms live only in expanders and on Methodology. ----------
@@ -148,6 +152,75 @@ def course_row(order: int, title: str, provider: str | None, skill_label_text: s
 
 def course_list(rows: list[str]) -> str:
     return f'<div class="sf-cards" role="list">{"".join(rows)}</div>'
+
+
+def fit_pct(x) -> int:
+    """An engine fit (0..1) as a whole percent, clamped to 0..100. Anything unreadable is 0."""
+    try:
+        value = float(x) * 100
+    except (TypeError, ValueError):
+        return 0
+    return max(0, min(100, round(value))) if math.isfinite(value) else 0
+
+
+def _whole(p) -> int:
+    try:
+        value = float(p)
+    except (TypeError, ValueError):
+        return 0
+    return max(0, min(100, round(value))) if math.isfinite(value) else 0
+
+
+def plan_fit(role_title: str, before_pct, after_pct, applied: bool, animate: bool = False, delta_text: str | None = None,
+             delta_dir: str = "flat", caption: str | None = None) -> str:
+    """The Learning plan's Fit card: 'Fit with <role>', the Home Fit arc on a mint panel with the big number inside, the change
+    pill and one caption. Shows the after-plan value when `applied`, else the before value (both whole percents from the engine).
+
+    `animate=True` is the Apply (or Undo) moment, rendered on ONE run only: the card carries --sf-from / --sf-to and app/theme.css
+    counts a registered integer (--sf-fit) between them, which drives both the counting number (a CSS counter, aria-hidden) and
+    the arc's dash. The real number stays in the markup (visually hidden while the copy counts), and --sf-fit is also set inline
+    to the end value, so without @property, or under reduced motion, the card simply shows the final value. One line of HTML."""
+    before, after = _whole(before_pct), _whole(after_pct)
+    now = after if applied else before
+    start = before if applied else after
+    style = f' style="--sf-from:{start};--sf-to:{now};--sf-fit:{now}"' if animate else ""
+    klass = "sf-planfit sf-planfit-anim" if animate else "sf-planfit"
+    real = f'<span class="sf-count-real">{now}%</span>' if animate else f"{now}%"
+    number = (f'<span class="sf-fit-num">{real}'
+              + ('<span class="sf-count" aria-hidden="true"></span>' if animate else "") + "</span>")
+    delta = f'<div class="sf-planfit-delta">{pill(delta_text, delta_dir)}</div>' if delta_text else ""
+    cap = f'<div class="sf-planfit-cap">{esc(caption)}</div>' if caption else ""
+    return (f'<div class="{klass}"{style} role="group" aria-label="Fit with {esc(role_title)}: {now} percent">'
+            f'<div class="sf-planfit-label">Fit with {esc(role_title)}</div>'
+            f'<div class="sf-fitpanel"><div class="sf-arcwrap">{fit_arc(now)}'
+            f'<div class="sf-arcnum">{number}<span class="sf-fit-label">Fit</span></div></div></div>{delta}{cap}</div>')
+
+
+def plan_motion_script(nonce: str) -> str:
+    """The one bit of JavaScript for the Apply moment: when the plan chart (inside .st-key-sf-plan-chart) is on screen, press its
+    own 'Both' button once, so your dot slides from where you were to where the plan takes you (Plotly's 600 ms frame).
+    `nonce` makes each press play once (the chart remembers the last nonce it played). Under prefers-reduced-motion the frame
+    and transition are set to 0 ms first, so the chart just shows the end state. Render with st.html(..., unsafe_allow_javascript=True)."""
+    token = json.dumps(re.sub(r"[^A-Za-z0-9_-]", "", str(nonce))[:40])
+    return (
+        "<script>(function(){"
+        "var d;try{d=window.parent.document;d.body;}catch(e){d=document;}"
+        "var w=d.defaultView||window;"
+        "var reduce=!!(w.matchMedia&&w.matchMedia('(prefers-reduced-motion: reduce)').matches);"
+        f"var token={token};var tries=0;"
+        "function still(o){if(o&&o.args&&o.args[1]){var a=o.args[1];if(a.frame)a.frame.duration=0;if(a.transition)a.transition.duration=0;}}"
+        "function go(){"
+        "var host=d.querySelector('.st-key-sf-plan-chart');var gd=host&&host.querySelector('.js-plotly-plot');"
+        "var btns=host?host.querySelectorAll('.updatemenu-button'):[];"
+        "if(!gd||3>btns.length){if(80>tries++){setTimeout(go,100);}return;}"
+        "if(gd.dataset.sfPlayed===token){return;}gd.dataset.sfPlayed=token;"
+        "if(reduce){[gd.layout,gd._fullLayout].forEach(function(l){((l&&l.updatemenus)||[]).forEach(function(m){(m.buttons||[]).forEach(still);});});}"
+        "var press=function(){btns[2].dispatchEvent(new MouseEvent('click',{bubbles:true}));};"
+        "if(reduce||!('IntersectionObserver' in w)){press();return;}"
+        "var io=new w.IntersectionObserver(function(es){if(es.some(function(e){return e.isIntersecting;})){io.disconnect();setTimeout(press,300);}},{threshold:0.5});"
+        "io.observe(gd);}"
+        "go();})();</script>"
+    )
 
 
 def compare_cards(items: list[tuple]) -> str:
