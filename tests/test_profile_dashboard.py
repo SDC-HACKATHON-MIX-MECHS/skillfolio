@@ -62,14 +62,15 @@ def test_a_finished_course_never_lowers_a_level_and_can_add_a_skill():
 # --- builders ----------------------------------------------------------------------------------------
 
 def test_goal_block_shows_fit_and_a_bar_with_a_hatched_part_still_to_gain():
-    html = pd_.goal_block(68, 88, 25, "Data Analyst")
-    assert "68" in html and "25% of your plan done" in html and "Data Analyst" in html
+    html = pd_.goal_block(68, 88, "Data Analyst")
+    assert "68" in html and "Data Analyst" in html
+    assert "your fit today" in html and "could reach 88%" in html and "plan done" not in html     # the bar is fit, not course progress
     assert 'style="width:68%"' in html and "sf-hatch" in html and "88%" in html
     assert "\n" not in html
 
 
 def test_goal_block_has_no_hatch_when_the_plan_adds_nothing():
-    assert "sf-hatch" not in pd_.goal_block(70, 70, 0, "Data Analyst")
+    assert "sf-hatch" not in pd_.goal_block(70, 70, "Data Analyst")
 
 
 def test_stat_columns_one_line_and_escaped():
