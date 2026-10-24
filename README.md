@@ -1,111 +1,211 @@
 # SkillFolio
 
-> **Your skills are a portfolio. AI is the market.**
-
-SDC Hackathon 2026 · Domain 1 — *The Aiversecity Future-Ready Workforce* · Team **SDC-HACKATHON-MIX-MECHS**
-
-SkillFolio treats a person's skills like an investment portfolio. Every skill has a **demand trend** (return), a **demand swing** (volatility) and an **AI-exposure risk**, all computed from public, dated data. The app shows a fresh graduate or early-career switcher which future roles they can reach, and how to "rebalance" their learning hours into skills that are growing and harder for AI to replace — with every number sourced and dated and every role linked to the UN SDGs.
-
-AI supports the decision. The person makes it.
-
-**Status:** preliminary round build · internal deadline **Sat 24 Oct, 9 pm** · hard deadline **Sun 25 Oct, 08:00**
+> A web app that shows Malaysian fresh graduates and early-career switchers which future roles fit their skills, why, and what to learn next, using live job-market data and AI-exposure data.
 
 ---
 
+## Team Information
+
+| Field                  | Details                                     |
+| ---------------------- | ------------------------------------------- |
+| **Team Name**          | [TO FILL]                                   |
+| **Team Domain**        | Domain 1 — The Aiversecity Future-Ready Workforce |
+| **SDG Track (1–17)**   | SDG 4 — Quality Education (target 4.4); SDG 8 — Decent Work and Economic Growth (target 8.5) |
+| **Team Leader**        | Jaiydaan Raj                                |
+| **University**         | [TO FILL]                                   |
+| **Number of Members**  | 4                                           |
+
+## Links
+
+| Resource          | Link                                           |
+| ----------------- | ---------------------------------------------- |
+| GitHub Repository | https://github.com/SDC-HACKATHON-MIX-MECHS/skillfolio |
+| Replit Project    | [TO FILL]                                      |
+| Live Demo         | [TO FILL]                                      |
+| RunPod Endpoint   | https://api.runpod.ai/v2/r0ykxnttw93erm        |
+| Slide Deck        | [TO FILL]                                      |
+| Demo Video        | [TO FILL]                                      |
+
+---
+
+## Overview
+
+### Problem
+
+AI is changing which skills employers want faster than career advice can keep up. In 2024, 66.0% of Malaysian graduates aged 24 and under worked in jobs below their qualifications (DOSM, Graduates Statistics 2024). A fresh graduate with a few hundred learning hours a year has no way to tell which skills are growing, which roles they could realistically reach, or which courses are worth their time, and chatbots that answer this can invent jobs, courses and numbers.
+
+### Solution
+
+SkillFolio treats a person's skills like an investment portfolio and AI as the market. It reads real, dated job posts (Hacker News "Who is hiring", 25 months) and AI-exposure data (Anthropic Economic Index, O*NET) to estimate how demand for each skill is moving under two AI scenarios. It then ranks the roles a person can reach with an explainable fit score, and builds an ordered plan of free courses that moves them closer fastest. An open AI model on a RunPod GPU reads the user's resume and suggests skills they describe without naming. Every number shows its source and date, forecasts are labelled as estimates, and the app can only recommend roles, skills and courses from its own verified lists, so it cannot invent them. The person makes the decision.
+
+### Key Features
+
+- **Resume to skills** — paste a resume; keyword matching plus an embedding model on RunPod suggest skills from our catalogue of 73, and the user confirms each one.
+- **Skill Market (AI-trend signal)** — every skill's job-post demand trend, a 12-month estimate with a range, and its AI exposure, from a dated snapshot that can be refreshed.
+- **Role matching** — ranked roles with a fit score, the skills that count towards it, the biggest missing skill, and the SDGs each role serves.
+- **Learning plan** — free courses in order, with hours and HRD Corp status; "Apply plan" shows the fit and AI exposure change live.
+- **Two AI futures** — every number re-runs under a moderate and a fast AI-disruption scenario.
+
+### Tech Stack
+
+| Layer         | Technology                   |
+| ------------- | ---------------------------- |
+| Frontend      | Streamlit, Plotly            |
+| Backend       | Python (pandas, NumPy): forecasting, matching and planning engine |
+| Database      | Versioned CSV and JSON snapshots in Git, checked by tests against written data contracts |
+| AI / Compute  | RunPod Serverless (GPU) running `BAAI/bge-small-en-v1.5` |
+| Hosting / Dev | Replit                       |
+
+---
+
+## Project Structure
+
+```
+.
+├── app/
+│   ├── Home.py              # Application entry point (Streamlit)
+│   ├── pages/               # Profile, Skill Market, My Portfolio, Matches, Learning plan, Methodology
+│   ├── runpod_client.py     # Calls the RunPod endpoint; falls back to keyword matching
+│   └── ...                  # Shared UI helpers and the stylesheet
+├── engine/                  # Forecasts, portfolio maths, role matching, course planner, SDG mapping
+├── pipeline/                # Fetches job posts and AI-exposure data, builds dated snapshots
+├── data/                    # Skills, roles, courses, sample profiles, dated snapshots
+├── runpod/
+│   ├── handler.py           # RunPod serverless handler (GPU workload)
+│   ├── skill_match.py       # Resume-to-skills matching logic
+│   └── Dockerfile           # Image RunPod builds the endpoint from
+├── contracts/               # Data shapes every file must follow
+├── docs/                    # Specification, design notes, proposal
+├── submission/              # Required submission documents
+├── tests/                   # Unit and app tests
+├── .env.example             # Example environment variables
+├── .gitignore
+├── .replit                  # Replit run configuration
+├── LICENSE
+├── requirements.txt         # Python dependencies
+└── README.md
+```
+
+### Architecture
+
+```
+User ──► Replit (Streamlit app + Python engine) ──► RunPod Endpoint (embedding model, GPU)
+                │                                          │
+                │◄──────────── suggested skill ids ◄───────┘
+                │
+                ├──► Dated snapshot (Hacker News job posts, Anthropic Economic Index, O*NET)
+                │
+                └──► Ranked roles, skills gap, learning plan, SDG links returned to user
+```
+
+---
+
+## How to Run
+
+### Option 1 — Run on Replit (Recommended)
+
+1. Open the [Replit Project]([TO FILL]), or import this repository via **Create Repl → Import from GitHub**.
+2. Open the **Secrets** tab (🔒) and add the variables listed in `.env.example`:
+   - `RUNPOD_API_KEY`
+   - `RUNPOD_ENDPOINT_ID`
+3. Click **Run**. Replit uses the `.replit` file to start `streamlit run app/Home.py`.
+
+Without the two secrets the app still runs; the resume step then uses keyword matching only.
+
+### Option 2 — Run Locally
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/SDC-HACKATHON-MIX-MECHS/skillfolio.git
+cd skillfolio
+
+# 2. Create and activate a virtual environment
+python -m venv venv
+source venv/bin/activate        # Windows: venv\Scripts\activate
+
+# 3. Install dependencies
+pip install -r requirements.txt
+
+# 4. Configure environment variables
+cp .env.example .env            # then fill in your values
+
+# 5. Run the app
+streamlit run app/Home.py
+```
+
+### Run Tests
+
+```bash
+python -m pytest
+```
+
+---
+
+## How We Use Replit *(Required)*
+
+- **Development:** the team imported this GitHub repository into one Replit workspace and worked in it together; GitHub stays the source of truth through branches and pull requests.
+- **Hosting:** the app is published with Replit Deployments at the Live Demo link above.
+- **Secrets:** the RunPod API key and endpoint ID are stored in Replit Secrets, never in the code.
+
+📄 Proof of use: [`submission/SDC2026_TeamName_Replit_POU.pdf`](submission/SDC2026_TeamName_Replit_POU.pdf)
+
+## How We Use RunPod *(Required)*
+
+- **Workload:** resume-to-skills matching. The open embedding model `BAAI/bge-small-en-v1.5` compares each resume sentence with a plain description of each of our 73 skills and returns the closest ones, so "built dashboards for senior management" suggests Power BI even though the resume never names it.
+- **Setup:** `runpod/handler.py` is deployed as a **RunPod Serverless Endpoint** on a 16 GB GPU, built from `runpod/Dockerfile` with the model baked into the image (0 always-on workers, so it costs nothing when idle).
+- **Integration:** the Replit app sends requests to the endpoint using `RUNPOD_API_KEY` and `RUNPOD_ENDPOINT_ID` (`app/runpod_client.py`). The model can only rank skill ids we send it, and if the endpoint is slow or down the app falls back to keyword matching.
+
+Example request:
+
+```bash
+curl -X POST https://api.runpod.ai/v2/$RUNPOD_ENDPOINT_ID/runsync \
+  -H "Authorization: Bearer $RUNPOD_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"input": {"task": "match_skills", "text": "Built dashboards for senior management.", "skills": [{"skill_id": "powerbi", "text": "Building dashboards and reports for managers in Microsoft Power BI."}]}}'
+```
+
+📄 Proof of use: [`submission/SDC2026_TeamName_Runpod_POU.pdf`](submission/SDC2026_TeamName_Runpod_POU.pdf)
+
+---
+
+## Challenges & Learnings
+
+- **Keeping every number honest.** We fixed data contracts and tests first, so no role, course or statistic can enter the app without a source and date, and the app cannot recommend anything outside its own lists.
+- **Matching resumes by meaning.** Comparing resume sentences with lists of tool names gave noisy results; writing one plain sentence about the work each skill involves made the embedding model accurate.
+- **Small, real data.** About 250 job posts a month is enough for clear trends in common skills but not rare ones, so thin-data skills are greyed out and never given a trend.
+- **Deploying on RunPod.** The first worker never started because the default 5 GB disk was too small for GPU PyTorch; raising it to 20 GB fixed it.
+
+## Future Improvements
+
+- [ ] Add a Malaysian job source so non-tech skills (marketing, accounting, supply chain) get real trends
+- [ ] Use the RunPod model to read job posts as well, so trend counts catch skills described without their name
+- [ ] Verify HRD Corp claimability for each course
+- [ ] Bahasa Malaysia interface
+
 ## Team
 
-| GitHub | Lane |
-|---|---|
-| [@Curryraj](https://github.com/Curryraj) (Jaiydaan) | A — Team Lead, Engine + RunPod |
-| [@AhmedAtheek](https://github.com/AhmedAtheek) (Atheek) | B — Data & Trends |
-| [@Kuhan06](https://github.com/Kuhan06) (Kuhan) | C — App & Replit |
-| [@oscarongggggg](https://github.com/oscarongggggg) (Oscar) | D — Research, SDG & Pitch |
+| Name        | Role                | GitHub                                   |
+| ----------- | ------------------- | ---------------------------------------- |
+| Jaiydaan | Team Lead, Engine + RunPod | [@Curryraj](https://github.com/Curryraj) |
+| Atheek | Data & Trends | [@AhmedAtheek](https://github.com/AhmedAtheek) |
+| Kuhan | App & Replit | [@Kuhan06](https://github.com/Kuhan06)   |
+| Oscar | Research, SDG & Pitch | [@oscarongggggg](https://github.com/oscarongggggg) |
 
-## Docs
+---
 
-- [docs/SPEC.md](docs/SPEC.md) — **what** we're building: the finance ↔ career model, formulas, screens, data sources
-- [docs/TASKS.md](docs/TASKS.md) — **who builds what, by when**, and how we know it's done
-- [docs/TEAM_PLAN.md](docs/TEAM_PLAN.md) — roles, sprint, Replit guide, risks, submission checklist
-- [contracts/](contracts/) — the data shapes every lane builds against
+## Submission Checklist
 
-## How we work
+- [ ] Team name, domain (Domain 1 / Domain 2) and SDG track filled in
+- [ ] Slide deck link added
+- [ ] Demo video link added
+- [ ] Replit used, with proof of use in `submission/`
+- [ ] RunPod used, with proof of use in `submission/`
+- [ ] Preliminary submission completed (`SDC2026_TeamName_Preliminary.pdf`)
+- [ ] Technology declaration completed (`SDC2026_TeamName_TechDeclaration.pdf`)
+- [ ] Submission files renamed with your team name (replace `TeamName`)
+- [ ] "How to Run" steps verified
+- [ ] No API keys or secrets committed to the repository
 
-1. **Pull before you start.** `git pull origin main`
-2. **Work on a branch** named after your lane: `data/hn-fetch`, `app/matches-page`, `pitch/sdg-table`…
-3. **Small commits, push often.** Open a pull request into `main`; ask one teammate to glance at it.
-4. **Never commit secrets.** API keys go in Replit **Secrets** or a local `.env` (already git-ignored).
-5. **Never put invented data in the repo.** Every role, course and statistic needs a source URL. Unknown? Leave `TODO(D): cite`.
-6. Tag issues with a lane label: `lane:engine`, `lane:data`, `lane:app`, `lane:pitch`, plus `blocked` when stuck.
+## License
 
-From Wednesday night, `main` must always run.
-
-## Running it
-
-Stack: **Python 3.12 · Streamlit · pandas · Plotly**.
-
-**On Replit:** see [Run on Replit](#run-on-replit) below.
-
-**Locally** (with [uv](https://docs.astral.sh/uv/)):
-```
-uv sync
-uv run pytest
-uv run streamlit run app/Home.py
-```
-Until the first real data snapshot lands, the app runs on an illustrative fixture and shows an "EXAMPLE DATA" banner.
-
-## Run on Replit
-
-Replit is required for the hackathon. The GitHub repo stays the source of truth; Replit imports it and publishes the demo link.
-
-**One-time setup**
-1. **GitHub org owner:** allow the Replit app to read the org (Org → Settings → Third-party access / GitHub Apps). Without this, the import cannot see the repo.
-2. **One teammate** (the one who redeems the hackathon's Replit Core): Create App → **Import from GitHub** → `SDC-HACKATHON-MIX-MECHS/skillfolio`, branch `main`.
-3. Press **Run**. `.replit` and `.streamlit/config.toml` start Streamlit on port 8501 (Replit maps it to port 80). If packages are not installed, open **Shell** and run `pip install -r requirements.txt`.
-4. Invite the other three teammates as collaborators (Core allows up to 5). Everyone can then work in the same workspace.
-
-**Working together**
-- GitHub is where work lands: use branches (`app/<page>`, `engine/<topic>`) and pull requests into `main`. In Replit use the **Git** pane; **pull before you push**.
-- The **Replit Agent** may build and polish Streamlit pages in `app/` (lane C) on its own branch. It reads [`replit.md`](replit.md) for the rules: no invented data, hands off `engine/`, `tests/`, `pipeline/` and `data/`. Disclose its use in the pull request and in the proposal.
-- Never put keys in code. If we ever add one, store it in Replit **Secrets**.
-
-**Publishing the demo**
-1. Merge everything into `main`, pull in Replit, press Run and click through all pages.
-2. **Deploy / Publish** (Autoscale is fine). Open the public link on a phone.
-3. Do this by **Friday night** and re-check on Saturday before submitting.
-
-**Things to know**
-- A published app's disk is temporary. The committed snapshot in `data/snapshots/` is the source of truth; a "Refresh data" button on a published app cannot save anything permanently.
-- Autoscale can sleep between visits, so open the link before a live demo to wake it.
-- Backup: keep a screen recording of the demo in `docs/demo/`.
-
-## Repo layout
-
-```
-app/          Streamlit pages (lane C)
-engine/       forecasts, portfolio maths, matching, plan, SDG lens (lane A)
-pipeline/     HN hiring posts + AI exposure -> dated snapshots (lane B)
-data/         skills, roles, courses, sample profiles, snapshots
-contracts/    data shapes + illustrative fixtures
-tests/        data-integrity checks + acceptance tests per lane
-docs/         spec, tasks, team plan
-```
-
-## Data sources
-
-| Signal | Source | Licence |
-|---|---|---|
-| Skill demand over time | Hacker News "Ask HN: Who is hiring?" monthly threads via the [HN Algolia API](https://hn.algolia.com/api) | Public API |
-| AI exposure by occupation | [Anthropic Economic Index](https://huggingface.co/datasets/Anthropic/EconomicIndex) — `labor_market_impacts/job_exposure.csv` | CC-BY |
-| Skill ↔ occupation links | [O*NET 31.0 database](https://www.onetcenter.org/database.html) — Technology Skills (Hot Technology / In Demand flags) | CC BY 4.0 |
-| Malaysian labour context | [data.gov.my](https://data.gov.my) API — `lfs_qtr` | Open data |
-
-Known limit: Hacker News postings are global and tech-heavy, so SkillFolio targets grads moving into tech and data roles. Malaysian occupation data is a Phase 2 upgrade.
-
-## AI disclosure
-
-- **In the product:** forecasts, matching and plans are statistics, not AI models. Resume reading can optionally use the open embedding model [`BAAI/bge-small-en-v1.5`](https://huggingface.co/BAAI/bge-small-en-v1.5) (MIT) on a RunPod Serverless GPU ([`runpod/README.md`](runpod/README.md)). It can only return skill IDs from our catalogue, the user sees each suggestion and can remove it, and on any error the app falls back to keyword rules. SkillFolio stores no copy of the resume text. No generative language model is used.
-- **While building:** Claude Code (Anthropic) helped write code, tests, data files and documents; Replit Agent helped build pages. All logic is reviewed by the team and passes the test suite and pull-request review.
-
-## Team agreement
-
-Code is released under the [Apache License 2.0](LICENSE) (copyright notice in [NOTICE](NOTICE)). The project belongs equally to the four team members; any decision to continue it after the hackathon is made together.
+This project is licensed under the [Apache License 2.0](LICENSE).
