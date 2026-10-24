@@ -3,6 +3,8 @@ and HTML escaping. Contrast and stylesheet rules: tests/test_design_audit.py."""
 
 import re
 
+import html as html_lib
+
 import pytest
 
 from app import home_components as hc
@@ -148,7 +150,8 @@ def test_skill_trend_text_says_not_enough_data_never_thin():
     assert hc.skill_trend_text(0.1, "rising", thin=True) == "Not enough data"
     assert hc.skill_trend_text(0.159, "rising") == "Rising +15.9%"
     assert hc.skill_trend_text(0.03, "stable") == "Steady +3.0%"
-    assert hc.skill_trend_text(-0.155, "stable") == "No clear trend"            # range spans zero: no number that contradicts the word
+    assert hc.skill_trend_text(-0.155, "stable") == "Leaning down · uncertain"  # range spans zero: a direction, no number that overclaims
+    assert hc.skill_trend_text(0.107, "stable") == "Leaning up · uncertain"
     assert "thin" not in hc.skill_trend_text(None, thin=True).lower()
 
 
@@ -157,6 +160,29 @@ def test_pills_use_direction_classes_and_an_arrow():
     assert "sf-pill-up" in up and "sf-pill-down" in down and "sf-pill-flat" in flat
     assert all("<svg" in p for p in (up, down, flat))                  # arrow icon
     assert "sf-pill-low" in hc.skill_pill(0.1, "rising", thin=True)
+
+
+def test_an_uncertain_trend_says_which_way_it_leans_in_a_neutral_pill_with_help():
+    up, down = hc.skill_pill(0.107, "stable"), hc.skill_pill(-0.151, "stable")
+    assert "Leaning up · uncertain" in up and "Leaning down · uncertain" in down
+    assert "sf-pill-lean-up" in up and "sf-pill-lean-down" in down               # neutral colour, never green or red
+    assert "sf-pill-up" not in up and "sf-pill-down" not in down
+    assert all("<svg" in p and f'title="{html_lib.escape(hc.LEAN_HELP)}"' in p for p in (up, down))
+    assert hc.skill_word(0.107, "stable") == "Leaning up · uncertain"
+    assert hc.hiring_text(0.107, "stable") == "Hiring leaning up · uncertain"
+    assert "sf-pill-lean-up" in hc.hiring_pill(0.107, "stable")
+
+
+def test_a_small_stable_change_is_still_steady_and_certain_trends_are_unchanged():
+    assert hc.skill_trend_text(0.03, "stable") == "Steady +3.0%"
+    assert hc.skill_trend_text(0.159, "rising") == "Rising +15.9%" and "sf-pill-up" in hc.skill_pill(0.159, "rising")
+    assert "title=" not in hc.skill_pill(0.159, "rising")
+
+
+def test_skill_rows_words_only_use_the_lean_pill():
+    held = [{"skill_id": "sql", "projected": 0.107, "trajectory": "stable", "thin": False}]
+    html = hc.skill_rows(held, name_of, numbers=False)
+    assert "sf-pill-lean-up" in html and "Leaning up · uncertain" in html and "%" not in html
 
 
 # --- names and greeting ------------------------------------------------------------------------------
@@ -307,7 +333,7 @@ def test_skill_rows_can_show_words_only():
             {"skill_id": "b", "projected": 0.1, "trajectory": "stable", "thin": False},
             {"skill_id": "c", "projected": None, "trajectory": None, "thin": True}]
     html = hc.skill_rows(held, name_of, numbers=False)
-    assert "Rising" in html and "No clear trend" in html and "Not enough data" in html and "%" not in html
+    assert "Rising" in html and "Leaning up · uncertain" in html and "Not enough data" in html and "%" not in html
     assert "+33.7%" in hc.skill_rows(held, name_of)                                   # the default still shows the figure
 
 
