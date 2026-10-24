@@ -106,12 +106,10 @@ User ──► Replit (Streamlit app + Python engine) ──► RunPod Endpoint 
 ### Option 1 — Run on Replit (Recommended)
 
 1. Open the [Replit Project]([TO FILL]), or import this repository via **Create Repl → Import from GitHub**.
-2. Open the **Secrets** tab (🔒) and add the variables listed in `.env.example`:
-   - `RUNPOD_API_KEY`
-   - `RUNPOD_ENDPOINT_ID`
+2. Optional, to turn on the AI model: open the **Secrets** tab (🔒) and add the two variables listed in `.env.example` (`RUNPOD_API_KEY` and `RUNPOD_ENDPOINT_ID`, from your own RunPod endpoint). Your keys stay in Secrets and are never committed.
 3. Click **Run**. Replit uses the `.replit` file to start `streamlit run app/Home.py`.
 
-Without the two secrets the app still runs; the resume step then uses keyword matching only.
+Without them the app runs fully; the resume step just uses keyword matching only.
 
 ### Option 2 — Run Locally
 
