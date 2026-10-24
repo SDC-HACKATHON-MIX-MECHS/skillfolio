@@ -159,6 +159,10 @@ label[data-baseweb="radio"], [data-baseweb="tab"], [data-baseweb="select"], summ
 [role="listbox"] [role="option"] { border-radius: calc(var(--sf-radius-control) - 4px) !important; }
 .stApp [data-testid="stExpander"] details { border: 1px solid var(--sf-border); background: var(--sf-card); border-radius: var(--sf-radius); box-shadow: var(--sf-shadow); }
 .stApp [data-testid="stExpander"] summary { min-height: 52px; font-size: 1rem; font-weight: 600; }
+/* the header's hover fill follows the box's 32px corners (Streamlit gives it 16px, so the grey showed past the curve);
+   open, only the top corners are round because the content sits below */
+.stApp [data-testid="stExpander"] summary { border-radius: var(--sf-radius) !important; }
+.stApp [data-testid="stExpander"] details[open] > summary { border-radius: var(--sf-radius) var(--sf-radius) 0 0 !important; }
 .stApp [data-testid="stAlert"] { border-radius: var(--sf-radius); border: 1px solid var(--sf-border); background: var(--sf-card); color: var(--sf-text); }
 .stApp [data-testid="stAlert"] p { font-size: 1rem; color: var(--sf-text); }
 /* notices (info, warning, error) are neutral white cards with an ink icon, never Streamlit blue; the words and a left marker carry the status */
@@ -442,7 +446,11 @@ a.sf-chip:hover { border-color: var(--sf-text); }
 .sf-mix-name { font-size: 1rem; font-weight: 500; color: var(--sf-on-charcoal); min-width: 0; }
 .sf-mix-pct { font-size: 1.25rem; font-weight: 600; color: var(--sf-on-charcoal); font-variant-numeric: tabular-nums; text-align: right; }
 .sf-mix-word { justify-self: end; }
-@media (max-width: 480px) {
+/* stack the trend word under the name when the CARD is narrow (it is ~340px beside the side column on a laptop, where the
+   name column was squeezed to ~64px and broke words letter by letter), not only when the whole window is a phone */
+.sf-mix { container-type: inline-size; }
+.sf-mix-name { overflow-wrap: normal; }
+@container (max-width: 480px) {
   .sf-mix-row { grid-template-columns: 16px minmax(0, 1fr) auto; grid-template-areas: "key name pct" ". word word"; row-gap: 8px; }
   .sf-mix-key { grid-area: key; } .sf-mix-name { grid-area: name; } .sf-mix-pct { grid-area: pct; }
   .sf-mix-word { grid-area: word; justify-self: start; }

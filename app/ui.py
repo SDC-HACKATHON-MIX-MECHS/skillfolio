@@ -49,8 +49,8 @@ FLAT = MUTED
 EXPOSURE_LOW = "#C2CBBE"  # AI impact: one neutral grey-green scale, never red/green/mint (AI impact is not "bad")
 EXPOSURE_HIGH = "#4E5A52"
 EXPOSURE_STEPS = ["#D3DAD0", "#A6B2A2", "#4E5A52"]
-ROLE_DOT = "#61A66B"       # role dots on the risk/return charts: a darker shade of MINT, so they stand out but stay quieter than "You"
-ROLE_DOT_EDGE = "#3A7A4C"  # their 1px outline
+ROLE_DOT = "#7D8F80"       # role dots on the risk/return charts: a dark, greyed-out green, so the bright "You" dot leads
+ROLE_DOT_EDGE = "#5F7062"  # their 1px outline
 DIRECTION_COLOUR = {"up": UP, "down": DOWN, "flat": FLAT, "low": FLAT}
 FONT_TEXT = "'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif"   # the only family
 RADIUS = 32               # px: cards and expanders (very large corners, as in the reference)
@@ -84,8 +84,8 @@ HELP = {
 # --- Page frame ---------------------------------------------------------------------------------
 
 def scenario_label(key: str) -> str:
-    """'Moderate AI disruption' -> 'Moderate AI' (the short pill label)."""
-    return config.SCENARIOS[key]["label"].replace(" disruption", "")
+    """'Steady AI change' -> 'Steady' (the short pill label, under the heading 'How fast will AI change jobs?')."""
+    return config.SCENARIOS[key]["label"].replace(" AI change", "")
 
 
 def _keep_scenario() -> None:
@@ -106,7 +106,8 @@ def _scenario_control() -> None:
         st.segmented_control(
             "AI scenario", options=options, format_func=scenario_label, key="scenario", on_change=_keep_scenario,
             selection_mode="single", label_visibility="collapsed",
-            help="Moderate or fast: how strongly AI changes which skills employers ask for. It is a what-if, not a prediction.",
+            help="A what-if, not a prediction. Fast gives AI impact more weight, so the skills AI affects most lose more of their "
+                 "expected growth. Steady gives it less weight.",
         )
     else:
         st.radio("AI scenario", options=options, format_func=scenario_label, key="scenario", horizontal=True,
@@ -150,7 +151,7 @@ def page_setup(title: str) -> dict:
     # Widget state is dropped on page change, so the control is refilled from a plain session key.
     st.session_state["scenario"] = st.session_state.get("_scenario", config.DEFAULT_SCENARIO)
     with st.sidebar:
-        show('<div class="sf-side-label">AI scenario</div>')
+        show('<div class="sf-side-label">How fast will AI change jobs?</div>')
         _scenario_control()
         st.caption(f"Data snapshot: **{snapshot['snapshot_date']}**")
         show(profile_block(st.session_state.get("profile")))
@@ -471,7 +472,7 @@ def growth_readout(before: dict, after: dict, view: str) -> str:
 
 
 def risk_return_fig(matches: list[dict], user: dict, before: dict | None = None, start: str = "Both") -> go.Figure:
-    """x = AI exposure, y = growth. Roles as quiet dots with short names, you as the amber dot labelled "You".
+    """x = AI exposure, y = growth. Roles as quiet grey-green dots with short names, you as the bright green dot labelled "You".
     With `before`, the chart carries its own Before / Now / Both buttons and a one-line readout. Each button plays a
     Plotly frame in the browser (no Streamlit rerun), so your dot slides between where you were and where the plan takes
     you, and "Both" adds a hollow "Before" ring. It opens on `start` ("Both" by default). The Learning plan opens it on "Before"

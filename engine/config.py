@@ -9,8 +9,8 @@ plain English.
 # A skill 0.1 more exposed than average has its yearly growth factor (1 + r) multiplied by about 0.95 (moderate) or 0.86 (fast).
 # These weights are assumptions, not estimates from data: today's job posts show no link between exposure and growth.
 SCENARIOS = {
-    "moderate": {"label": "Moderate AI disruption", "lambda": 0.5},
-    "fast": {"label": "Fast AI disruption", "lambda": 1.5},
+    "moderate": {"label": "Steady AI change", "lambda": 0.5},
+    "fast": {"label": "Fast AI change", "lambda": 1.5},
 }
 DEFAULT_SCENARIO = "moderate"
 

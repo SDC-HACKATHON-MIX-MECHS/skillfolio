@@ -62,7 +62,7 @@ with st.expander(f"Your {len(held)} skills"):
     st.caption("How much hiring bounces around: " + fmt_pct(m["volatility"], 1) + " a year. " + PLAIN["bounce"])
 
 with st.expander("Show how you compare with future roles"):
-    st.write("Up is more hiring growth, left is less AI impact. Each grey dot is a role; bigger means you already fit it more closely. The orange dot is you.")
+    st.write("Up is more hiring growth, left is less AI impact. Each grey-green dot is a role; bigger means you already fit it more closely. The bright green dot is you.")
     if not result["matches"]:
         show_warnings(result)
     elif m["ai_exposure"] is None:
