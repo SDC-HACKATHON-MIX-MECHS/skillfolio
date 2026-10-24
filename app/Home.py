@@ -93,7 +93,8 @@ def example_cards(snap: dict) -> None:
         show(example_label(first_name(load_profile(DEMO_PROFILE))))
         show(trend_head({**items[0], "label": EXAMPLE_TREND_LABEL}))
         if basket:
-            show(trend_bars(all_months[-len(basket):], basket, result["portfolio"].get("growth"), n=5))        # 5 months: the card is narrower than Home's
+            show(trend_bars(all_months[-len(basket):], basket, result["portfolio"].get("growth"), n=4,
+                            whose="these skills"))        # 4 months: the card is narrower than Home's, so "Estimate" fits
         source_caption(snap, "hn_whoishiring")
     if roles:
         with card_container():

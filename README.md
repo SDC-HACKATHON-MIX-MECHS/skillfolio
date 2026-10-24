@@ -169,6 +169,11 @@ curl -X POST https://api.runpod.ai/v2/$RUNPOD_ENDPOINT_ID/runsync \
 
 ---
 
+## AI Disclosure
+
+- **AI in the product:** one optional open embedding model, `BAAI/bge-small-en-v1.5` (MIT licence), on RunPod suggests skills from a resume. It can only return skills from our own catalogue, the user can remove any suggestion, and without it the app uses keyword matching. No generative language model is used in the product. Forecasts, matching and the course plan are our own statistics, not AI models.
+- **AI used to build it:** we used **Claude Code (Anthropic)** throughout the hackathon to help write the code, tests, data files and documents, and **Replit Agent** to help build app pages. The team set the direction, reviewed all AI-assisted output, ran the automated test suite before merging, and merged changes through reviewed pull requests.
+
 ## Challenges & Learnings
 
 - **Keeping every number honest.** We fixed data contracts and tests first, so no role, course or statistic can enter the app without a source and date, and the app cannot recommend anything outside its own lists.
