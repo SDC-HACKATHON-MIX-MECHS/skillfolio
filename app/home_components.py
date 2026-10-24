@@ -137,8 +137,24 @@ def trend_word(change: float | None, trajectory: str | None = None) -> str:
     return "rising" if change > 0 else "falling"
 
 
-def _trend_direction(word: str) -> str:
+LEAN_HELP = "The estimate leans this way, but its likely range also includes no change."
+
+
+def lean_text(change: float) -> str:
+    """An unclear trend in words: which way the estimate leans, and that it is not sure (no number: the range spans zero)."""
+    return f"Leaning {'up' if change > 0 else 'down'} · uncertain"
+
+
+def _trend_direction(word: str, change: float | None = None) -> str:
+    """Pill direction for a trend word. An unclear trend gets a neutral 'lean' pill whose arrow shows the way it leans."""
+    if word == "unclear" and change is not None:
+        return "lean-up" if change > 0 else "lean-down"
     return {"rising": "up", "falling": "down"}.get(word, "flat")
+
+
+def _trend_pill(text: str, change: float | None, trajectory: str | None) -> str:
+    word = trend_word(change, trajectory)
+    return pill(text, _trend_direction(word, change), LEAN_HELP if word == "unclear" else None)
 
 
 def hiring_text(change: float | None, trajectory: str | None = None) -> str:
@@ -146,17 +162,17 @@ def hiring_text(change: float | None, trajectory: str | None = None) -> str:
     if change is None:
         return "Hiring trend not available"
     word = trend_word(change, trajectory)
-    return "Hiring trend unclear" if word == "unclear" else f"Hiring {word} {fmt_signed(change)}"
+    return f"Hiring {lean_text(change).lower()}" if word == "unclear" else f"Hiring {word} {fmt_signed(change)}"
 
 
 def skill_trend_text(change: float | None, trajectory: str | None = None, thin: bool = False) -> str:
-    """Word + sign for a skill: 'Rising +15.9%'. Thin data -> 'Not enough data'; an unclear trend has no number."""
+    """Word + sign for a skill: 'Rising +15.9%'. Thin data -> 'Not enough data'; an unclear trend says which way it leans, with no number."""
     if thin:
         return "Not enough data"
     if change is None:
         return "Not available"
     word = trend_word(change, trajectory)
-    return "No clear trend" if word == "unclear" else f"{word.capitalize()} {fmt_signed(change)}"
+    return lean_text(change) if word == "unclear" else f"{word.capitalize()} {fmt_signed(change)}"
 
 
 # =============================== HTML builders ==============================================================
@@ -165,7 +181,7 @@ def hiring_pill(change: float | None, trajectory: str | None = None) -> str:
     """The small hiring-trend pill on a role card: arrow + word + sign."""
     if change is None:
         return pill(hiring_text(None), "flat")
-    return pill(hiring_text(change, trajectory), _trend_direction(trend_word(change, trajectory)))
+    return _trend_pill(hiring_text(change, trajectory), change, trajectory)
 
 
 def skill_pill(change: float | None, trajectory: str | None = None, thin: bool = False) -> str:
@@ -173,17 +189,17 @@ def skill_pill(change: float | None, trajectory: str | None = None, thin: bool =
         return pill(skill_trend_text(None, thin=True), "low")
     if change is None:
         return pill(skill_trend_text(None), "flat")
-    return pill(skill_trend_text(change, trajectory), _trend_direction(trend_word(change, trajectory)))
+    return _trend_pill(skill_trend_text(change, trajectory), change, trajectory)
 
 
 def skill_word(change: float | None, trajectory: str | None = None, thin: bool = False) -> str:
-    """The trend as a word only, no number: Rising, Steady, Falling, No clear trend or Not enough data."""
+    """The trend as a word only, no number: Rising, Steady, Falling, Leaning up/down · uncertain, or Not enough data."""
     if thin:
         return "Not enough data"
     if change is None:
         return "Not available"
     word = trend_word(change, trajectory)
-    return "No clear trend" if word == "unclear" else word.capitalize()
+    return lean_text(change) if word == "unclear" else word.capitalize()
 
 
 def greeting(name: str, line: str, lead: str | None = None) -> str:
@@ -386,8 +402,10 @@ def skill_rows(held: list[dict], name_of: Callable[[str], str], n: int = SKILL_R
         if numbers:
             chip = skill_pill(change, trajectory, thin)
         else:
-            direction = "low" if thin else "flat" if change is None else _trend_direction(trend_word(change, trajectory))
-            chip = pill(skill_word(change, trajectory, thin), direction)
+            if thin or change is None:
+                chip = pill(skill_word(change, trajectory, thin), "low" if thin else "flat")
+            else:
+                chip = _trend_pill(skill_word(change, trajectory, thin), change, trajectory)
         rows.append(f'<div class="sf-skill" role="listitem"><span class="sf-skill-name">{esc(_skill_text(h["skill_id"], name_of))}</span>{chip}</div>')
     if not rows:
         return note("No skills to show yet.")

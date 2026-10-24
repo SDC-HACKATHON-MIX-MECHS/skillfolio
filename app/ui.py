@@ -787,14 +787,17 @@ def icon(name: str, size: int = 16) -> str:
             f'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">{body}</svg>')
 
 
-_PILL_ICON = {"up": "trending-up", "down": "trending-down", "flat": "minus", "low": "minus"}
+_PILL_ICON = {"up": "trending-up", "down": "trending-down", "flat": "minus", "low": "minus",
+              "lean-up": "trending-up", "lean-down": "trending-down"}       # lean: an uncertain direction, drawn in neutral colours
 
 
-def pill(text: str, direction: str = "flat") -> str:
-    """A rounded status pill: arrow icon + your text. direction: 'up' (green) | 'down' (red) | 'flat' | 'low' (grey).
+def pill(text: str, direction: str = "flat", help_text: str | None = None) -> str:
+    """A rounded status pill: arrow icon + your text. direction: 'up' (green) | 'down' (red) | 'flat' | 'low' (grey) |
+    'lean-up' / 'lean-down' (grey, with the arrow: a direction the estimate is not sure of). `help_text` becomes a hover tooltip.
     Put the sign AND a word in `text` (e.g. '+9.7% rising') so colour is never the only signal."""
     d = direction if direction in _PILL_ICON else "flat"
-    return f'<span class="sf-pill sf-pill-{d}">{icon(_PILL_ICON[d], 14)}<span>{esc(text)}</span></span>'
+    title = f' title="{esc(help_text)}"' if help_text else ""
+    return f'<span class="sf-pill sf-pill-{d}"{title}>{icon(_PILL_ICON[d], 14)}<span>{esc(text)}</span></span>'
 
 
 def fmt_signed(x: float | None, decimals: int = 1) -> str:

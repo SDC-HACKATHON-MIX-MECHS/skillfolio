@@ -200,7 +200,8 @@ label[data-baseweb="radio"], [data-baseweb="tab"], [data-baseweb="select"], summ
            font-size: 0.875rem; font-weight: 600; line-height: 1.25; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .sf-pill-up { color: var(--sf-up-text); background: var(--sf-up-bg); }
 .sf-pill-down { color: var(--sf-down-text); background: var(--sf-down-bg); }
-.sf-pill-flat, .sf-pill-low { color: var(--sf-text); background: var(--sf-flat-bg); }
+.sf-pill-flat, .sf-pill-low, .sf-pill-lean-up, .sf-pill-lean-down { color: var(--sf-text); background: var(--sf-flat-bg); }
+.sf-pill-lean-up, .sf-pill-lean-down { cursor: help; }          /* an uncertain direction: neutral, the tooltip says why */
 
 /* the hatch: diagonal ink lines mark a projected value (an estimate), as in the reference */
 .sf-hatch { background: repeating-linear-gradient(135deg, var(--sf-text) 0 2px, transparent 2px 7px); }
