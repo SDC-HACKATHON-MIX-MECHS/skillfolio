@@ -44,7 +44,7 @@ SkillFolio is a living skill portfolio. The user pastes or uploads a resume and 
 - **Track your learning** — mark progress on each planned course; finishing one raises that skill's level and your fit, and the Profile page shows plan progress, hours left and skill coverage.
 - **Skill Market (AI-trend signal)** — every skill's job-post demand trend, a 12-month estimate with a range, and its AI exposure, from a dated snapshot that can be refreshed.
 - **Role matching** — 20 ranked roles with a fit score, the skills that count towards it, the biggest missing skill, and the SDGs each role serves.
-- **Learning plan** — free courses in order, with hours and HRD Corp status; "Apply plan" shows the fit and AI exposure change live.
+- **Learning plan** — free courses in order, with hours; "Apply plan" shows the fit and AI exposure change live.
 - **Two AI futures** — every number re-runs under a moderate and a fast AI-disruption scenario.
 
 ### Tech Stack
@@ -187,7 +187,6 @@ curl -X POST https://api.runpod.ai/v2/$RUNPOD_ENDPOINT_ID/runsync \
 - **Progress is self-reported:** users tick their own course progress; a very short course can raise the fit score sharply.
 - **Portfolios are not saved:** a portfolio lasts one browser session.
 - **Job data:** Hacker News posts are mostly US and remote tech jobs, not the Malaysian market. Skills with too few posts get no trend.
-- **HRD Corp:** claimability is shown as "unknown", because we found no public source for it.
 - **AI model:** it can over-suggest (for example all three clouds for "a cloud server"), and after a quiet spell the RunPod worker can take up to a minute to start, in which case the app uses keyword matching.
 - **Forecasts are estimates under two AI scenarios, not predictions.**
 
@@ -196,7 +195,6 @@ curl -X POST https://api.runpod.ai/v2/$RUNPOD_ENDPOINT_ID/runsync \
 - [ ] Saved portfolios, so users can return and keep updating their skills over time
 - [ ] Add a Malaysian job source so non-tech skills (marketing, accounting, supply chain) get real trends
 - [ ] Use the RunPod model to read job posts as well, so trend counts catch skills described without their name
-- [ ] Verify HRD Corp claimability for each course
 - [ ] Bahasa Malaysia interface
 
 ## Team

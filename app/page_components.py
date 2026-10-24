@@ -144,11 +144,10 @@ def role_extras(growth_pill_html: str, exposure: float | None, chips_html: str) 
 # --- Learning plan ------------------------------------------------------------------------------------
 
 def course_row(order: int, title: str, provider: str | None, skill_label_text: str, hours: float, cost_text: str,
-               hrdc: str, url, lead: bool = False) -> str:
-    """One course card in the ordered plan: step number, course, skill and provider, status chips (hours, cost, HRD Corp
-    status word), link."""
+               url, lead: bool = False) -> str:
+    """One course card in the ordered plan: step number, course, skill and provider, status chips (hours, cost), link."""
     sub = skill_label_text + (f" · {provider}" if provider else "")
-    chips = chip_row([f"{hours:g} h", cost_text, f"HRD Corp: {hrdc or 'unknown'}"])
+    chips = chip_row([f"{hours:g} h", cost_text])
     return (
         f'<div class="sf-order{" sf-order-lead" if lead else ""}" role="listitem"><div class="sf-ord-n">{int(order):02d}</div>'
         f'<div class="sf-ord-main"><div class="sf-name">{esc(title)}</div>{chips}</div>'
