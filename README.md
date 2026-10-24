@@ -22,7 +22,6 @@
 | GitHub Repository | https://github.com/SDC-HACKATHON-MIX-MECHS/skillfolio |
 | Replit Project    | Private workspace; the deployed app is at https://skillfolio.replit.app/ and the proof of use is in [submission/SDC2026_MIXMECHS_Replit_POU.pdf](submission/SDC2026_MIXMECHS_Replit_POU.pdf) |
 | Live Demo         | https://skillfolio.replit.app/                 |
-| RunPod Endpoint   | https://api.runpod.ai/v2/r0ykxnttw93erm (API address, needs a key) |
 | Slide Deck        | [docs/SDC2026_MIXMECHS_Slides.pdf](docs/SDC2026_MIXMECHS_Slides.pdf) |
 | Demo Video        | https://youtu.be/VaGfrhBft5M                   |
 
