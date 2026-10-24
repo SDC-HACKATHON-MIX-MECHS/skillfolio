@@ -175,6 +175,14 @@ def test_matches_shows_three_roles_and_the_learning_plan_button():
     assert "Missing:" in text or "Level up:" in text
 
 
+def test_matches_shows_the_engines_why_sentence_for_the_first_role():
+    at = run("4_Matches.py", sample_profile())
+    assert not at.exception
+    surface = re.findall(r'<div class="sf-why">(.*?)</div>', " ".join(m.value for m in at.markdown))
+    assert len(surface) >= 3 and all(surface)
+    assert "You already" in surface[0] or "We do not" in surface[0] or "You do not" in surface[0]
+
+
 def test_skill_market_sort_and_search_keep_working():
     at = run("2_Skill_Market.py", sample_profile())
     assert not at.exception

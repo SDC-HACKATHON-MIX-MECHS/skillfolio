@@ -41,6 +41,18 @@ def first_name(profile: dict | None) -> str:
     return "" if first.lower() == "you" else first             # the wizard's default name is "You": not a name to greet
 
 
+def list_phrase(names: list[str], limit: int = 2) -> str:
+    """['Excel'] -> 'Excel'; two -> 'Excel and SQL'; more -> 'Excel, SQL and 3 others'. Empty -> ''."""
+    names = [n for n in names if n]
+    if not names:
+        return ""
+    head = names[:limit]
+    extra = len(names) - len(head)
+    if extra > 0:
+        return f"{', '.join(head)} and {extra} other{'s' if extra != 1 else ''}"
+    return " and ".join(head)
+
+
 def _skill_text(skill_id, name_of: Callable[[str], str]) -> str:
     try:
         text = name_of(skill_id)
@@ -51,6 +63,36 @@ def _skill_text(skill_id, name_of: Callable[[str], str]) -> str:
 
 def _positive(x) -> bool:
     return isinstance(x, (int, float)) and not isinstance(x, bool) and x > 0
+
+
+def why_sentence(match: dict | None, name_of: Callable[[str], str] | None = None) -> str:
+    """ONE plain-English sentence on why a role fits, built only from the engine's Match object:
+    the skills the user already has that the role uses (`contributions`, credit > 0) and the biggest gap (`gaps`).
+    A gap the user has none of is "missing"; if every gap is a skill they partly have, it is a "step up".
+    Missing or malformed data gives a calm fallback, never an invented claim. Returns plain text (escape on render)."""
+    name_of = name_of or (lambda skill_id: str(skill_id))
+    match = match if isinstance(match, dict) else {}
+    contributions = [c for c in (match.get("contributions") or [])
+                     if isinstance(c, dict) and c.get("skill_id") and _positive(c.get("credit"))]
+    gaps = [g for g in (match.get("gaps") or []) if isinstance(g, dict) and g.get("skill_id")]
+    have = list_phrase([_skill_text(c["skill_id"], name_of) for c in contributions])
+
+    missing = next((g for g in gaps if not _positive(g.get("user_level"))), None)
+    step_up = None if missing else (gaps[0] if gaps else None)
+
+    if have and missing:
+        return f"You already use {have}, which this role needs, but {_skill_text(missing['skill_id'], name_of)} is the biggest skill you are missing."
+    if have and step_up:
+        skill = _skill_text(step_up["skill_id"], name_of)
+        level = LEVEL_WORDS.get(step_up.get("required_level"))
+        goal = f"reaching {level} level in {skill}" if level else f"building up {skill}"
+        return f"You already use {have}, which this role needs, and your biggest step up is {goal}."
+    if have:
+        return f"You already cover the skills this role needs, including {have}."
+    if missing or step_up:
+        gap = missing or step_up
+        return f"You do not have this role's key skills yet, and {_skill_text(gap['skill_id'], name_of)} is the biggest one to learn."
+    return "We do not have a skill list for this role yet."
 
 
 def missing_skill(match: dict | None) -> tuple[str | None, str | None]:
@@ -254,10 +296,12 @@ def tile(label: str, value: str, sub: str = "", tone: str = "mint", fraction: fl
 FIT_HELP = "How much of this role's skill list you already cover at the level it needs."
 
 
-def role_card(match: dict, name_of: Callable[[str], str] | None = None, rank: int | None = None, lead: bool = False) -> str:
+def role_card(match: dict, name_of: Callable[[str], str] | None = None, rank: int | None = None, lead: bool = False,
+              why: bool = False) -> str:
     """The top of a role card (Home and Matches): title and status chip, Fit % with its progress track and
     hiring pill. `lead=True` is the dominant first card (bigger Fit number and title); the others are quieter,
-    so three cards never read as three identical tiles. The 'Missing: X' strip and its button come after it (see `missing_strip`, rendered by the page)."""
+    so three cards never read as three identical tiles. `why=True` (Matches only) adds one plain-English sentence on why the role fits
+    below the fit block; Home leaves it off. The 'Missing: X' strip and its button come after it (see `missing_strip`, rendered by the page)."""
     title = match.get("title") or match.get("role_id") or "Role"
     pct = fit_percent(match)
     rank_text = f"Role {int(rank)}: " if rank else ""
@@ -267,9 +311,10 @@ def role_card(match: dict, name_of: Callable[[str], str] | None = None, rank: in
     else:
         fit_block = (f'<div class="sf-fitrow" title="{esc(FIT_HELP)}"><span class="sf-fit-num">{pct}%</span><span class="sf-fit-label">Fit</span></div>'
                      f'{fit_track(pct)}')
+    why_html = f'<div class="sf-why">{esc(why_sentence(match, name_of))}</div>' if why else ""
     return (f'<div class="sf-role{" sf-role-lead" if lead else ""}" role="group" aria-label="{rank_text}{esc(title)}, {pct} percent fit">'
             f'<div class="sf-role-head"><div class="sf-role-title">{esc(title)}</div>{fit_chip(pct)}</div>'
-            f'{fit_block}'
+            f'{fit_block}{why_html}'
             f'<div>{hiring_pill(match.get("role_growth"))}</div></div>')
 
 
